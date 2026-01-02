@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS analytics (
 -- Create brand_partnerships table
 CREATE TABLE IF NOT EXISTS brand_partnerships (
   id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
+  name TEXT NOT NULL UNIQUE,
   logo_url TEXT,
   website_url TEXT,
   description TEXT,
@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS brand_partnerships (
 -- Create product_bundles table
 CREATE TABLE IF NOT EXISTS product_bundles (
   id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
+  name TEXT NOT NULL UNIQUE,
   description TEXT,
   bundle_price DECIMAL(10, 2) NOT NULL,
   is_active BOOLEAN DEFAULT TRUE,
