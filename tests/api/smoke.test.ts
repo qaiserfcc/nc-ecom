@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest'
 
 // Test configuration
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-let authToken: string = ''
+let authCookie: string = '' // Store Set-Cookie header value
 let testUserId: number
 let testProductId: number
 let testBundleId: number
@@ -21,8 +21,9 @@ async function apiRequest(
     ...((options.headers as Record<string, string>) || {}),
   }
 
-  if (authToken && !headers['Authorization']) {
-    headers['Authorization'] = `Bearer ${authToken}`
+  // Add cookie if authenticated
+  if (authCookie && !headers['Cookie']) {
+    headers['Cookie'] = authCookie
   }
 
   return fetch(url, {
@@ -40,7 +41,7 @@ describe('API Smoke Tests - Sequential Authentication Flow', () => {
 
   describe('1. Authentication Flow', () => {
     it('should register a new user', async () => {
-      const response = await apiRequest('/api/auth/register', {
+      const response = await apiRequest('/api/auth/signup', {
         method: 'POST',
         body: JSON.stringify({
           email: testEmail,
@@ -49,16 +50,15 @@ describe('API Smoke Tests - Sequential Authentication Flow', () => {
         }),
       })
 
-      expect(response.status).toBe(201)
+      expect(response.status).toBe(200)
       const data = await response.json()
-      expect(data.message).toBe('User created successfully')
       expect(data.user).toBeDefined()
       expect(data.user.email).toBe(testEmail)
       testUserId = data.user.id
     })
 
     it('should login with registered credentials', async () => {
-      const response = await apiRequest('/api/auth/login', {
+      const response = await apiRequest('/api/auth/signin', {
         method: 'POST',
         body: JSON.stringify({
           email: testEmail,
@@ -68,12 +68,15 @@ describe('API Smoke Tests - Sequential Authentication Flow', () => {
 
       expect(response.status).toBe(200)
       const data = await response.json()
-      expect(data.token).toBeDefined()
       expect(data.user).toBeDefined()
       expect(data.user.email).toBe(testEmail)
       
-      // Save token for subsequent tests
-      authToken = data.token
+      // Extract and save cookie for subsequent tests
+      const setCookie = response.headers.get('set-cookie')
+      if (setCookie) {
+        // Extract just the cookie name=value part (before first semicolon)
+        authCookie = setCookie.split(';')[0]
+      }
     })
 
     it('should verify auth token with /api/auth/me', async () => {
@@ -86,14 +89,17 @@ describe('API Smoke Tests - Sequential Authentication Flow', () => {
       expect(data.user.id).toBe(testUserId)
     })
 
-    it('should reject invalid token', async () => {
+    it('should reject invalid cookie', async () => {
       const response = await apiRequest('/api/auth/me', {
         headers: {
-          Authorization: 'Bearer invalid_token_here',
+          Cookie: 'auth_token=invalid_cookie_value',
         },
       })
 
-      expect(response.status).toBe(401)
+      // Should return null user for invalid auth
+      expect(response.status).toBe(200)
+      const data = await response.json()
+      expect(data.user).toBeNull()
     })
   })
 

@@ -1,4 +1,10 @@
 import { neon } from "@neondatabase/serverless"
+import ws from "ws"
+
+// Configure WebSocket for Node.js environment (required for @neondatabase/serverless)
+if (typeof WebSocket === 'undefined') {
+  (global as any).WebSocket = ws
+}
 
 // Create a singleton database connection
 const sql = neon(process.env.DATABASE_URL!)

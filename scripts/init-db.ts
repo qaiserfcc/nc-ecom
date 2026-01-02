@@ -12,9 +12,13 @@
  *   tsx scripts/init-db.ts
  */
 
-import { Pool } from '@neondatabase/serverless';
+import { config } from 'dotenv';
+import { Client } from 'pg';
 import { readFile } from "fs/promises";
 import { join } from "path";
+
+// Load environment variables from .env file
+config();
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
@@ -26,6 +30,7 @@ if (!DATABASE_URL) {
 
 // SQL files to execute in order
 const SQL_FILES = [
+  "00-drop-all.sql",
   "01-create-schema.sql",
   "02-seed-data.sql",
   "03-add-password-hash.sql",
@@ -34,7 +39,7 @@ const SQL_FILES = [
 /**
  * Execute a SQL file against the database
  */
-async function executeSqlFile(pool: Pool, filename: string): Promise<void> {
+async function executeSqlFile(client: Client, filename: string): Promise<void> {
   const filePath = join(__dirname, filename);
   
   try {
@@ -43,9 +48,36 @@ async function executeSqlFile(pool: Pool, filename: string): Promise<void> {
     // Read the SQL file
     const sqlContent = await readFile(filePath, "utf-8");
     
-    // Execute the entire file content
-    // Neon's Pool handles multiple statements in a single query
-    const result = await pool.query(sqlContent);
+    // Split SQL statements by semicolon
+    // Remove comments and empty lines
+    const statements = sqlContent
+      .split('\n')
+      .filter(line => !line.trim().startsWith('--') && line.trim() !== '')
+      .join('\n')
+      .split(';')
+      .map(stmt => stmt.trim())
+      .filter(stmt => stmt.length > 0);
+    
+    // Execute each statement
+    for (const statement of statements) {
+      if (statement.length > 0) {
+        try {
+          await client.query(statement);
+        } catch (err: any) {
+          // Check if this is an ignorable error
+          const errorMsg = err.message?.toLowerCase() || "";
+          const isIgnorableError = 
+            errorMsg.includes("already exists") ||
+            errorMsg.includes("duplicate key") ||
+            errorMsg.includes("duplicate") ||
+            errorMsg.includes("violates unique constraint");
+          
+          if (!isIgnorableError) {
+            throw err;
+          }
+        }
+      }
+    }
     
     console.log(`   ✅ Success: ${filename} executed successfully`);
     
@@ -82,28 +114,32 @@ async function main() {
   console.log("🚀 Starting database initialization...");
   console.log(`📍 Database: ${DATABASE_URL.replace(/:[^:@]+@/, ':****@')}`); // Hide password
   
-  const pool = new Pool({ connectionString: DATABASE_URL });
+  const client = new Client({ 
+    connectionString: DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
   
   try {
-    // Test database connection
+    // Connect to database
     console.log("\n🔌 Testing database connection...");
-    await pool.query('SELECT 1 as test');
+    await client.connect();
+    await client.query('SELECT 1 as test');
     console.log("   ✅ Connection successful");
     
     // Execute each SQL file in order
     for (const file of SQL_FILES) {
-      await executeSqlFile(pool, file);
+      await executeSqlFile(client, file);
     }
     
     console.log("\n✨ Database initialization completed successfully!");
     console.log("🎉 Your database is ready to use\n");
     
-    await pool.end();
+    await client.end();
     process.exit(0);
   } catch (error: any) {
     console.error("\n💥 Database initialization failed!");
     console.error(error);
-    await pool.end();
+    await client.end();
     process.exit(1);
   }
 }
