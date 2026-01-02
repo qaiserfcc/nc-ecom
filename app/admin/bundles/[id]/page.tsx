@@ -39,7 +39,6 @@ export default function EditBundlePage({ params }: { params: { id: string } }) {
   const [bundle, setBundle] = useState<Bundle | null>(null)
   const [formData, setFormData] = useState({
     name: "",
-    slug: "",
     description: "",
     bundle_price: "",
     image_url: "",
@@ -59,7 +58,6 @@ export default function EditBundlePage({ params }: { params: { id: string } }) {
       setBundle(data.bundle)
       setFormData({
         name: data.bundle.name,
-        slug: data.bundle.slug,
         description: data.bundle.description || "",
         bundle_price: data.bundle.bundle_price.toString(),
         image_url: data.bundle.image_url || "",
@@ -102,8 +100,11 @@ export default function EditBundlePage({ params }: { params: { id: string } }) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
-          bundle_price: parseFloat(formData.bundle_price),
+           name: formData.name,
+           description: formData.description,
+           bundle_price: parseFloat(formData.bundle_price),
+           image_url: formData.image_url,
+           is_active: formData.is_active,
         }),
       })
 
@@ -181,16 +182,6 @@ export default function EditBundlePage({ params }: { params: { id: string } }) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="slug">Slug</Label>
-              <Input
-                id="slug"
-                name="slug"
-                value={formData.slug}
-                onChange={handleChange}
-                placeholder="bundle-slug"
-              />
-            </div>
 
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>

@@ -5,13 +5,14 @@ import { getSession } from "@/lib/auth"
 // GET single banner
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const banner = await sql`
       SELECT id, title, description, image_url, link_url, is_active, sort_order, created_at
       FROM homepage_banners
-      WHERE id = ${Number(params.id)}
+      WHERE id = ${Number(id)}
     `
 
     if (banner.length === 0) {
@@ -31,10 +32,11 @@ export async function GET(
 // PUT - Update banner (admin only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession()
+    const { id } = await params
     if (!session || session.user.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -50,8 +52,8 @@ export async function PUT(
       UPDATE homepage_banners
       SET title = ${title}, description = ${description || null}, image_url = ${image_url},
           link_url = ${link_url || null}, is_active = ${is_active !== undefined ? is_active : true},
-          sort_order = ${sort_order || 0}
-      WHERE id = ${Number(params.id)}
+           sort_order = ${Number.isNaN(Number(sort_order)) ? 0 : Number(sort_order)}
+      WHERE id = ${Number(id)}
       RETURNING id, title, description, image_url, link_url, is_active, sort_order, created_at
     `
 
@@ -72,15 +74,16 @@ export async function PUT(
 // DELETE - Delete banner (admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession()
+    const { id } = await params
     if (!session || session.user.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const result = await sql`DELETE FROM homepage_banners WHERE id = ${Number(params.id)}`
+    const result = await sql`DELETE FROM homepage_banners WHERE id = ${Number(id)}`
 
     if (result.length === 0) {
       return NextResponse.json({ error: "Banner not found" }, { status: 404 })

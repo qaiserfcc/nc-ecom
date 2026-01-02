@@ -32,14 +32,11 @@ export default function EditBrandPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: "",
-    slug: "",
     description: "",
     logo_url: "",
     website_url: "",
-    contact_email: "",
-    is_featured: false,
     is_active: true,
-    established_year: "",
+    is_featured: false,
   })
 
   useEffect(() => {
@@ -55,14 +52,10 @@ export default function EditBrandPage({ params }: { params: { id: string } }) {
       const brand = data.brand
       setFormData({
         name: brand.name,
-        slug: brand.slug,
         description: brand.description || "",
         logo_url: brand.logo_url || "",
         website_url: brand.website_url || "",
-        contact_email: brand.contact_email || "",
         is_featured: brand.is_featured || false,
-        is_active: brand.is_active !== false,
-        established_year: brand.established_year ? brand.established_year.toString() : "",
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load brand")
@@ -101,8 +94,11 @@ export default function EditBrandPage({ params }: { params: { id: string } }) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
-          established_year: formData.established_year ? parseInt(formData.established_year) : null,
+          name: formData.name,
+          description: formData.description,
+          logo_url: formData.logo_url,
+          website_url: formData.website_url,
+          is_featured: formData.is_featured,
         }),
       })
 
@@ -161,16 +157,6 @@ export default function EditBrandPage({ params }: { params: { id: string } }) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="slug">Slug</Label>
-              <Input
-                id="slug"
-                name="slug"
-                value={formData.slug}
-                onChange={handleChange}
-                placeholder="brand-slug"
-              />
-            </div>
 
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
@@ -217,31 +203,6 @@ export default function EditBrandPage({ params }: { params: { id: string } }) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="contact_email">Contact Email</Label>
-              <Input
-                id="contact_email"
-                name="contact_email"
-                value={formData.contact_email}
-                onChange={handleChange}
-                placeholder="contact@brand.com"
-                type="email"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="established_year">Established Year</Label>
-              <Input
-                id="established_year"
-                name="established_year"
-                value={formData.established_year}
-                onChange={handleChange}
-                placeholder="2020"
-                type="number"
-                min="1900"
-                max={new Date().getFullYear()}
-              />
-            </div>
 
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
@@ -252,16 +213,6 @@ export default function EditBrandPage({ params }: { params: { id: string } }) {
                 />
                 <Label htmlFor="is_featured" className="cursor-pointer">
                   Featured Brand
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="is_active"
-                  checked={formData.is_active}
-                  onCheckedChange={() => handleToggle("is_active")}
-                />
-                <Label htmlFor="is_active" className="cursor-pointer">
-                  Active
                 </Label>
               </div>
             </div>
