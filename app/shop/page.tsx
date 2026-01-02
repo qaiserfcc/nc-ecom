@@ -30,6 +30,7 @@ function ShopContent() {
   const type = searchParams.get("type") || "products" // Get the type parameter
   const [search, setSearch] = useState(searchParams.get("search") || "")
   const [category, setCategory] = useState(searchParams.get("category") || "all")
+  const [brandFilter, setBrandFilter] = useState(searchParams.get("brand") || "all")
   const [priceRange, setPriceRange] = useState([0, 10000])
   const [sortBy, setSortBy] = useState("created_at")
   const [sortOrder, setSortOrder] = useState("desc")
@@ -42,6 +43,7 @@ function ShopContent() {
     const params = new URLSearchParams()
     if (search) params.set("search", search)
     if (category && category !== "all") params.set("category", category)
+    if (brandFilter && brandFilter !== "all") params.set("brand", brandFilter)
     if (priceRange[0] > 0) params.set("minPrice", priceRange[0].toString())
     if (priceRange[1] < 10000) params.set("maxPrice", priceRange[1].toString())
     if (sortBy) params.set("sort", sortBy)
@@ -49,7 +51,7 @@ function ShopContent() {
     if (featuredOnly) params.set("featured", "true")
     if (newOnly) params.set("new", "true")
     return params.toString()
-  }, [search, category, priceRange, sortBy, sortOrder, featuredOnly, newOnly])
+  }, [search, category, brandFilter, priceRange, sortBy, sortOrder, featuredOnly, newOnly])
 
   // Fetch different data based on type
   const getApiEndpoint = () => {
@@ -60,6 +62,7 @@ function ShopContent() {
 
   const { data: itemsData, isLoading: itemsLoading } = useSWR(getApiEndpoint(), fetcher)
   const { data: categoriesData } = useSWR("/api/categories", fetcher)
+  const { data: brandsData } = useSWR("/api/brands", fetcher)
 
   // Extract items based on type
   const items = type === "brands" 
@@ -69,6 +72,7 @@ function ShopContent() {
     : (itemsData?.products || [])
   
   const categories = categoriesData?.categories || []
+  const brands = brandsData?.brands || []
 
   // Page title based on type
   const pageTitle = type === "brands" 
@@ -106,6 +110,7 @@ function ShopContent() {
   const clearFilters = () => {
     setSearch("")
     setCategory("all")
+    setBrandFilter("all")
     setPriceRange([0, 10000])
     setSortBy("created_at")
     setSortOrder("desc")
@@ -133,6 +138,29 @@ function ShopContent() {
               onClick={() => setCategory(cat.slug)}
             >
               {cat.name} ({cat.product_count})
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="font-semibold mb-3">Brands</h3>
+        <div className="space-y-2">
+          <Button
+            variant={brandFilter === "all" ? "default" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => setBrandFilter("all")}
+          >
+            All Brands
+          </Button>
+          {brands.map((brand: any) => (
+            <Button
+              key={brand.id}
+              variant={brandFilter === brand.slug ? "default" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => setBrandFilter(brand.slug)}
+            >
+              {brand.name}
             </Button>
           ))}
         </div>

@@ -70,6 +70,20 @@ export default function BrandsPage() {
     }
   }
 
+  const toggleFeatured = async (id: number, currentStatus: boolean) => {
+    try {
+      const response = await fetch(`/api/brands/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_featured: !currentStatus }),
+      })
+      if (!response.ok) throw new Error("Failed to update brand")
+      setBrands(brands.map((b) => (b.id === id ? { ...b, is_featured: !currentStatus } : b)))
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to toggle featured status")
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -150,9 +164,15 @@ export default function BrandsPage() {
                       </TableCell>
                       <TableCell className="font-medium">{brand.name}</TableCell>
                       <TableCell>
-                        {brand.is_featured && (
-                          <Badge variant="default">Featured</Badge>
-                        )}
+                        <Button
+                          size="sm"
+                          variant={brand.is_featured ? "default" : "outline"}
+                          onClick={() => toggleFeatured(brand.id, brand.is_featured)}
+                          disabled={deleting === brand.id}
+                          className="text-xs"
+                        >
+                          {brand.is_featured ? "Featured" : "Mark Featured"}
+                        </Button>
                       </TableCell>
                       <TableCell>
                         <Badge variant={brand.is_active ? "default" : "secondary"}>

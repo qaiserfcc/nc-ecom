@@ -121,7 +121,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                 <h3 className="text-xl font-bold">Products from {brand.name}</h3>
                 <Button asChild size="lg" className="w-full">
                   <Link href={`/shop?brand=${brand.slug}`}>
-                    View All Products
+                    View All {brand.name} Products
                   </Link>
                 </Button>
               </div>

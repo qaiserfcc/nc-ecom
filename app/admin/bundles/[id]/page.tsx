@@ -1,13 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useState, useEffect, use } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, Trash2 } from "lucide-react"
 import Link from "next/link"
 
@@ -30,13 +31,18 @@ interface Bundle {
   items: BundleItem[]
 }
 
-export default function EditBundlePage({ params }: { params: { id: string } }) {
+export default function EditBundlePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
-  const { id } = params
+  const { id } = use(params)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [bundle, setBundle] = useState<Bundle | null>(null)
+  const [products, setProducts] = useState<any[]>([])
+  const [loadingProducts, setLoadingProducts] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<number | "">("")
+  const [selectedQuantity, setSelectedQuantity] = useState("1")
+  const [addingItem, setAddingItem] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -46,7 +52,10 @@ export default function EditBundlePage({ params }: { params: { id: string } }) {
   })
 
   useEffect(() => {
-    fetchBundle()
+    if (id) {
+      fetchBundle()
+      fetchProducts()
+    }
   }, [id])
 
   const fetchBundle = async () => {
@@ -67,6 +76,20 @@ export default function EditBundlePage({ params }: { params: { id: string } }) {
       setError(err instanceof Error ? err.message : "Failed to load bundle")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchProducts = async () => {
+    try {
+      setLoadingProducts(true)
+      const response = await fetch("/api/products?all=true")
+      if (!response.ok) throw new Error("Failed to fetch products")
+      const data = await response.json()
+      setProducts(data.products || [])
+    } catch (err) {
+      console.error("Failed to load products:", err)
+    } finally {
+      setLoadingProducts(false)
     }
   }
 
@@ -137,6 +160,41 @@ export default function EditBundlePage({ params }: { params: { id: string } }) {
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to remove item")
+    }
+  }
+
+  const handleAddItem = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedProduct || !selectedQuantity) {
+      alert("Please select a product and quantity")
+      return
+    }
+
+    try {
+      setAddingItem(true)
+      const response = await fetch(`/api/bundles/${id}/items`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_id: parseInt(selectedProduct as string),
+          quantity: parseInt(selectedQuantity),
+        }),
+      })
+      if (!response.ok) throw new Error("Failed to add item")
+      const data = await response.json()
+      
+      if (bundle) {
+        setBundle({
+          ...bundle,
+          items: [...bundle.items, data.item],
+        })
+      }
+      setSelectedProduct("")
+      setSelectedQuantity("1")
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to add item")
+    } finally {
+      setAddingItem(false)
     }
   }
 
@@ -241,6 +299,61 @@ export default function EditBundlePage({ params }: { params: { id: string } }) {
               <Link href="/admin/bundles">
                 <Button variant="outline">Cancel</Button>
               </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Add Products to Bundle</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleAddItem} className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="product">Product *</Label>
+                <Select
+                  value={selectedProduct.toString()}
+                  onValueChange={setSelectedProduct}
+                  disabled={loadingProducts}
+                >
+                  <SelectTrigger id="product">
+                    <SelectValue placeholder={loadingProducts ? "Loading..." : "Select product"} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-64">
+                    {products.map((product) => (
+                      <SelectItem key={product.id} value={product.id.toString()}>
+                        {product.name} - Rs. {(product.current_price || product.price || 0).toLocaleString()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Quantity *</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  value={selectedQuantity}
+                  onChange={(e) => setSelectedQuantity(e.target.value)}
+                  placeholder="1"
+                  required
+                />
+              </div>
+
+              <div className="flex items-end">
+                <Button
+                  type="submit"
+                  disabled={addingItem || !selectedProduct}
+                  className="w-full"
+                >
+                  {addingItem && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Add Item
+                </Button>
+              </div>
             </div>
           </form>
         </CardContent>

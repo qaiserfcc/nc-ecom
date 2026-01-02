@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get("category")
+    const brand = searchParams.get("brand")
     const search = searchParams.get("search")
     const featured = searchParams.get("featured")
     const newArrival = searchParams.get("new")
@@ -25,6 +26,11 @@ export async function GET(request: NextRequest) {
     if (category) {
       filters.push(`c.slug = '${category.replace(/'/g, "''")}'`)
       countFilters.push(`c.slug = '${category.replace(/'/g, "''")}'`)
+    }
+
+    if (brand) {
+      filters.push(`b.slug = '${brand.replace(/'/g, "''")}'`)
+      countFilters.push(`b.slug = '${brand.replace(/'/g, "''")}'`)
     }
 
     if (search) {
@@ -63,6 +69,7 @@ export async function GET(request: NextRequest) {
 
     const products = await sql`
       SELECT p.*, c.name as category_name, c.slug as category_slug,
+             b.name as brand_name, b.slug as brand_slug,
              COALESCE(
                (SELECT json_agg(json_build_object('id', pi.id, 'image_url', pi.image_url, 'is_primary', pi.is_primary))
                 FROM product_images pi WHERE pi.product_id = p.id), '[]'::json
@@ -73,6 +80,7 @@ export async function GET(request: NextRequest) {
              ) as variants
       FROM products p
       JOIN categories c ON p.category_id = c.id
+      LEFT JOIN brand_partnerships b ON p.brand_id = b.id
       WHERE p.id IS NOT NULL ${filters.length > 0 ? sql.unsafe(`AND ${filters.join(" AND ")}`) : sql``}
       ORDER BY p.${sql.unsafe(sortField)} ${sql.unsafe(sortOrder)}
       LIMIT ${limit} OFFSET ${offset}
@@ -82,6 +90,7 @@ export async function GET(request: NextRequest) {
       SELECT COUNT(*)::int as total
       FROM products p
       JOIN categories c ON p.category_id = c.id
+      LEFT JOIN brand_partnerships b ON p.brand_id = b.id
       WHERE p.id IS NOT NULL ${countFilters.length > 0 ? sql.unsafe(`AND ${countFilters.join(" AND ")}`) : sql``}
     `
 

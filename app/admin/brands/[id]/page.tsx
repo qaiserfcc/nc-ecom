@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useState, useEffect, use } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -24,9 +24,9 @@ interface Brand {
   established_year: number | null
 }
 
-export default function EditBrandPage({ params }: { params: { id: string } }) {
+export default function EditBrandPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
-  const { id } = params
+  const { id } = use(params)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -40,7 +40,9 @@ export default function EditBrandPage({ params }: { params: { id: string } }) {
   })
 
   useEffect(() => {
-    fetchBrand()
+    if (id) {
+      fetchBrand()
+    }
   }, [id])
 
   const fetchBrand = async () => {
