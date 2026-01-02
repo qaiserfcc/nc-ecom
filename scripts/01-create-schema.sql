@@ -184,3 +184,19 @@ CREATE INDEX idx_orders_user ON orders(user_id);
 CREATE INDEX idx_analytics_user ON analytics(user_id);
 CREATE INDEX idx_analytics_product ON analytics(product_id);
 CREATE INDEX idx_analytics_created ON analytics(created_at);
+
+-- Create homepage_banners table for banner management
+CREATE TABLE IF NOT EXISTS homepage_banners (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  image_url TEXT NOT NULL,
+  link_url TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_banners_active ON homepage_banners(is_active);
+CREATE INDEX idx_banners_sort ON homepage_banners(sort_order);

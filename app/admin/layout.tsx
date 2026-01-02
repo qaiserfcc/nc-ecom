@@ -19,6 +19,7 @@ import {
   LogOut,
   ChevronLeft,
   Loader2,
+  Image,
 } from "lucide-react"
 
 const sidebarItems = [
@@ -26,6 +27,7 @@ const sidebarItems = [
   { href: "/admin/products", icon: Package, label: "Products" },
   { href: "/admin/orders", icon: ShoppingCart, label: "Orders" },
   { href: "/admin/users", icon: Users, label: "Users" },
+  { href: "/admin/banners", icon: Image, label: "Banners" },
   { href: "/admin/discounts", icon: Tag, label: "Discounts" },
   { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
 ]

@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
+import bcrypt from "bcryptjs"
 
 // GET users (admin only)
 export async function GET(request: NextRequest) {
@@ -51,3 +52,56 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
+
+// POST - Create new user (admin only)
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getSession()
+    if (!session || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const {
+      name,
+      email,
+      password,
+      phone,
+      address,
+      city,
+      postal_code,
+      country,
+      role = "user",
+    } = body
+
+    if (!name || !email || !password) {
+      return NextResponse.json(
+        { error: "Name, email, and password are required" },
+        { status: 400 }
+      )
+    }
+
+    // Check if email exists
+    const existingUser = await sql`SELECT id FROM users WHERE email = ${email}`
+    if (existingUser.length > 0) {
+      return NextResponse.json({ error: "Email already exists" }, { status: 409 })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    const result = await sql`
+      INSERT INTO users (name, email, password_hash, phone, address, city, postal_code, country, role, created_at)
+      VALUES (${name}, ${email}, ${hashedPassword}, ${phone || null}, ${address || null}, ${city || null}, ${postal_code || null}, ${country || null}, ${role}, NOW())
+      RETURNING id, email, name, role, created_at
+    `
+
+    return NextResponse.json(result[0], { status: 201 })
+  } catch (error: any) {
+    console.error("Create user error:", error)
+    return NextResponse.json(
+      { error: error.message || "Internal server error" },
+      { status: 500 }
+    )
+  }
+}
+

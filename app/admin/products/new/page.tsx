@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ChevronLeft, Loader2, Plus, X } from "lucide-react"
+import { ImageUpload } from "@/components/ui/image-upload"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -228,15 +229,12 @@ export default function NewProductPage() {
                   onChange={(e) => setStockQuantity(e.target.value)}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="image">Image URL</Label>
-                <Input
-                  id="image"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="/placeholder.svg"
-                />
-              </div>
+              <ImageUpload
+                value={imageUrl}
+                onChange={setImageUrl}
+                label="Product Image"
+              />
+
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="featured">Featured Product</Label>
