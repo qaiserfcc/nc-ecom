@@ -16,7 +16,6 @@ export async function GET(req: NextRequest) {
     } else {
       brands = await sql`
         SELECT * FROM brand_partnerships 
-        WHERE is_active = true
         ORDER BY is_featured DESC, name ASC
       `
     }

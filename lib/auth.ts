@@ -78,8 +78,15 @@ export async function signUp(
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Restrict role elevation outside development
-    const normalizedRole = process.env.NODE_ENV === "production" ? "customer" : role === "admin" ? "admin" : "customer"
+    // Allow admin signups when explicitly enabled, during development, or when no admin exists yet
+    const existingAdmin = await sql`SELECT id FROM users WHERE role = 'admin' LIMIT 1`
+    const isFirstAdmin = existingAdmin.length === 0
+    const allowAdminSignup =
+      isFirstAdmin ||
+      process.env.ALLOW_ADMIN_SIGNUP === "true" ||
+      process.env.NODE_ENV !== "production"
+
+    const normalizedRole = (role === "admin" || isFirstAdmin) && allowAdminSignup ? "admin" : "customer"
 
     // Create user
     const result = await sql`

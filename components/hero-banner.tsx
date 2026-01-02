@@ -16,6 +16,8 @@ interface Banner {
 }
 
 export default function HeroBanner() {
+  const fallbackImage =
+    "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1400&q=60&sat=-10"
   const [banners, setBanners] = useState<Banner[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -58,12 +60,19 @@ export default function HeroBanner() {
 
   if (error || banners.length === 0) {
     return (
-      <section className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20">
+      <section className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] overflow-hidden rounded-lg md:rounded-xl">
+        <img
+          src={fallbackImage}
+          alt="Natural skincare products banner"
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-black/45" />
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-balance text-foreground mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-balance text-white mb-4">
             Premium Organic Products for You
           </h1>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mb-6">
+          <p className="text-base sm:text-lg text-gray-100 max-w-2xl mb-6">
             Discover authentic skincare, haircare, and organic foods with profit-sharing benefits
           </p>
           <Link href="/shop">
@@ -77,14 +86,16 @@ export default function HeroBanner() {
   }
 
   const currentBanner = banners[currentIndex]
+  const imageSrc = currentBanner?.image_url?.trim() || fallbackImage
 
   return (
     <section className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] overflow-hidden rounded-lg md:rounded-xl group">
       {/* Banner Image */}
       <img
-        src={currentBanner.image_url || "/placeholder.svg"}
+        src={imageSrc}
         alt={currentBanner.title}
         className="w-full h-full object-cover"
+        loading="lazy"
       />
 
       {/* Dark Overlay */}

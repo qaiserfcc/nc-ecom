@@ -25,7 +25,10 @@ export default function SignUpPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  const isProd = process.env.NODE_ENV === "production"
+  const allowAdminSignup =
+    typeof process !== "undefined" && process.env.NEXT_PUBLIC_ALLOW_ADMIN_SIGNUP === "true"
+      ? true
+      : process.env.NODE_ENV !== "production"
 
   const applyPreset = (preset: "customer" | "admin") => {
     const presets = {
@@ -68,7 +71,7 @@ export default function SignUpPage() {
     setLoading(true)
 
     try {
-      const requestedRole = role === "admin" && !isProd ? "admin" : "customer"
+      const requestedRole = role === "admin" && allowAdminSignup ? "admin" : "customer"
       await signUp(email, password, name, requestedRole)
       router.push("/")
     } catch (err: any) {
@@ -169,13 +172,20 @@ export default function SignUpPage() {
                   <Label htmlFor="role-customer" className="cursor-pointer">Shopper</Label>
                 </div>
                 <div className="flex items-center space-x-2 rounded-md border p-3 opacity-100">
-                  <RadioGroupItem value="admin" id="role-admin" disabled={isProd} />
-                  <Label htmlFor="role-admin" className={`cursor-pointer ${isProd ? "text-muted-foreground" : ""}`}>
+                  <RadioGroupItem value="admin" id="role-admin" disabled={!allowAdminSignup} />
+                  <Label
+                    htmlFor="role-admin"
+                    className={`cursor-pointer ${!allowAdminSignup ? "text-muted-foreground" : ""}`}
+                  >
                     Admin
                   </Label>
                 </div>
               </RadioGroup>
-              {isProd && <p className="text-xs text-muted-foreground">Admin signups are disabled in production.</p>}
+              {!allowAdminSignup && (
+                <p className="text-xs text-muted-foreground">
+                  Admin signups require NEXT_PUBLIC_ALLOW_ADMIN_SIGNUP=true (dev-only).
+                </p>
+              )}
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
