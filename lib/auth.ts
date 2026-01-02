@@ -66,6 +66,7 @@ export async function signUp(
   email: string,
   password: string,
   name: string,
+  role: "customer" | "admin" = "customer",
 ): Promise<{ user: User; token: string } | { error: string }> {
   try {
     // Check if user exists
@@ -77,10 +78,13 @@ export async function signUp(
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
+    // Restrict role elevation outside development
+    const normalizedRole = process.env.NODE_ENV === "production" ? "customer" : role === "admin" ? "admin" : "customer"
+
     // Create user
     const result = await sql`
       INSERT INTO users (email, password_hash, name, role)
-      VALUES (${email}, ${hashedPassword}, ${name}, 'customer')
+      VALUES (${email}, ${hashedPassword}, ${name}, ${normalizedRole})
       RETURNING id, email, name, phone, address, city, postal_code, country, role, created_at
     `
 

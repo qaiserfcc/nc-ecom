@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ChevronLeft, Loader2, Upload, CheckCircle, AlertCircle } from "lucide-react"
 
 const sampleCSV = `category_id,name,slug,description,short_description,original_price,current_price,stock_quantity,is_featured,is_new_arrival,image_url
-1,Sample Product,sample-product,A great product description,Short desc,1000,899,50,false,true,/placeholder.svg`
+1,Sample Product,sample-product,A great product description,Short desc,1000,899,50,false,true,https://example.com/images/sample-product.jpg`
 
 export default function BulkUploadPage() {
   const router = useRouter()
@@ -85,6 +85,7 @@ export default function BulkUploadPage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Bulk Upload</h1>
           <p className="text-muted-foreground">Upload multiple products at once using CSV format</p>
+          <p className="text-xs text-muted-foreground">We will download each provided image URL and store a local copy in /uploads automatically.</p>
         </div>
       </div>
 
@@ -159,7 +160,7 @@ export default function BulkUploadPage() {
                   <span className="font-medium">is_new_arrival:</span> true or false
                 </div>
                 <div>
-                  <span className="font-medium">image_url:</span> Image URL path
+                  <span className="font-medium">image_url:</span> Direct image URL (the file is downloaded and saved locally)
                 </div>
               </div>
             </CardContent>

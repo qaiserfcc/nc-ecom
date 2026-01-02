@@ -21,6 +21,17 @@ export default function SignInPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
+  const applyPreset = (preset: "customer" | "admin") => {
+    const presets = {
+      customer: { email: "user@namecheap.com", password: "user123" },
+      admin: { email: "admin@namecheap.com", password: "admin123" },
+    }
+
+    const chosen = presets[preset]
+    setEmail(chosen.email)
+    setPassword(chosen.password)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -60,6 +71,14 @@ export default function SignInPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+            <div className="grid grid-cols-2 gap-2">
+              <Button type="button" variant="outline" onClick={() => applyPreset("customer")} className="w-full">
+                Shopper Login
+              </Button>
+              <Button type="button" variant="outline" onClick={() => applyPreset("admin")} className="w-full">
+                Admin Login
+              </Button>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input

@@ -25,11 +25,11 @@ export function useAuth() {
   const user = data?.user as User | null
 
   const signUp = useCallback(
-    async (email: string, password: string, name: string) => {
+    async (email: string, password: string, name: string, role: "customer" | "admin" = "customer") => {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password, name, role }),
       })
       const result = await res.json()
       if (!res.ok) throw new Error(result.error)

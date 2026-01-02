@@ -1,6 +1,33 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { promises as fs } from "fs"
+import path from "path"
+import { randomUUID } from "crypto"
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
+
+async function downloadAndStoreImage(imageUrl?: string): Promise<string> {
+  if (!imageUrl) return ""
+  const trimmed = imageUrl.trim()
+  if (!/^https?:\/\//i.test(trimmed)) return trimmed
+
+  const uploadsDir = path.join(process.cwd(), "public", "uploads")
+  await fs.mkdir(uploadsDir, { recursive: true })
+
+  const urlObj = new URL(trimmed)
+  const ext = path.extname(urlObj.pathname) || ".jpg"
+  const safeExt = ext.length > 5 ? ".jpg" : ext
+  const fileName = `${randomUUID()}${safeExt}`
+  const filePath = path.join(uploadsDir, fileName)
+
+  const response = await fetch(trimmed)
+  if (!response.ok) {
+    throw new Error(`Failed to download image (${response.status})`)
+  }
+
+  const buffer = Buffer.from(await response.arrayBuffer())
+  await fs.writeFile(filePath, buffer)
+  return `/uploads/${fileName}`
+}
 
 // POST - Bulk upload products (admin only)
 export async function POST(request: NextRequest) {
@@ -22,9 +49,10 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < products.length; i++) {
       const product = products[i]
       try {
+        const localImageUrl = await downloadAndStoreImage(product.image_url)
         const result = await sql`
           INSERT INTO products (category_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url)
-          VALUES (${product.category_id}, ${product.name}, ${product.slug}, ${product.description || ""}, ${product.short_description || ""}, ${product.original_price}, ${product.current_price}, ${product.stock_quantity || 0}, ${product.is_featured || false}, ${product.is_new_arrival || false}, ${product.image_url || ""})
+          VALUES (${product.category_id}, ${product.name}, ${product.slug}, ${product.description || ""}, ${product.short_description || ""}, ${product.original_price}, ${product.current_price}, ${product.stock_quantity || 0}, ${product.is_featured || false}, ${product.is_new_arrival || false}, ${localImageUrl})
           ON CONFLICT (slug) DO UPDATE SET
             name = EXCLUDED.name,
             description = EXCLUDED.description,

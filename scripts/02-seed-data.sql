@@ -61,12 +61,24 @@ INSERT INTO bundle_items (bundle_id, product_id, quantity) VALUES
 
 -- Seed brand partnerships
 INSERT INTO brand_partnerships (name, logo_url, website_url, description, is_featured) VALUES
-('Chiltanpure Organics', '/placeholder.svg?height=100&width=100', 'https://chiltanpure.com', 'Premium organic skincare and food products from Pakistan', TRUE),
+('Chiltanpure Organics', 'https://chiltanpure.com/wp-content/uploads/2023/11/chiltanpure-logo.png', 'https://chiltanpure.com', 'Official ChiltanPure brand from Pakistan with natural beauty and wellness essentials.', TRUE),
 ('Nature Pure', '/placeholder.svg?height=100&width=100', 'https://naturepure.com', 'Natural and organic beauty solutions', TRUE),
 ('Green Wellness', '/placeholder.svg?height=100&width=100', 'https://greenwellness.com', 'Holistic health and wellness products', FALSE),
 ('Pure Botanicals', '/placeholder.svg?height=100&width=100', 'https://purebotanicals.com', 'Plant-based organic products', FALSE),
 ('Organic Essentials', '/placeholder.svg?height=100&width=100', 'https://orgessentials.com', 'Essential oils and organic extracts', TRUE)
-ON CONFLICT (name) DO NOTHING;
+ON CONFLICT (name) DO UPDATE SET
+	logo_url = EXCLUDED.logo_url,
+	website_url = EXCLUDED.website_url,
+	description = EXCLUDED.description,
+	is_featured = EXCLUDED.is_featured;
+
+-- ChiltanPure best sellers (featured)
+INSERT INTO products (category_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url) VALUES
+((SELECT id FROM categories WHERE slug = 'haircare'), 'ChiltanPure Miracle Hair Growth Oil', 'chiltanpure-miracle-hair-oil', 'Signature ChiltanPure blend that supports hair regrowth and scalp health.', 'Bestselling growth oil from ChiltanPure.com', 2400.00, 1899.00, 80, TRUE, TRUE, 'https://chiltanpure.com/wp-content/uploads/2023/11/hair-growth-oil.jpg'),
+((SELECT id FROM categories WHERE slug = 'skincare'), 'ChiltanPure 24K Vitamin C Serum', 'chiltanpure-vitamin-c-serum', 'Brightening serum infused with vitamin C and gold flakes to revive dull skin.', 'Top-rated serum from ChiltanPure.com', 3200.00, 2399.00, 60, TRUE, FALSE, 'https://chiltanpure.com/wp-content/uploads/2023/11/vitamin-c-serum.jpg'),
+((SELECT id FROM categories WHERE slug = 'cosmetics'), 'ChiltanPure Pinkish Lip & Cheek Tint', 'chiltanpure-pinkish-tint', 'Lightweight tint with long-lasting natural pigment and nourishing oils.', 'Viral tint from ChiltanPure.com', 1800.00, 1299.00, 90, TRUE, TRUE, 'https://chiltanpure.com/wp-content/uploads/2023/11/pinkish-tint.jpg'),
+((SELECT id FROM categories WHERE slug = 'foods-supplements'), 'ChiltanPure Sidr Beri Honey', 'chiltanpure-sidr-beri-honey', 'Raw Sidr honey sourced and bottled by ChiltanPure for daily immunity.', 'Flagship honey from ChiltanPure.com', 2600.00, 2199.00, 70, TRUE, FALSE, 'https://chiltanpure.com/wp-content/uploads/2023/11/sidr-honey.jpg')
+ON CONFLICT (slug) DO NOTHING;
 
 -- Seed sample discount
 INSERT INTO discounts (code, name, description, discount_type, discount_value, min_purchase_amount, apply_to_all, is_active, start_date, end_date) VALUES
