@@ -4,6 +4,11 @@ import { sql } from "@/lib/db"
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
+    const bundleId = Number.parseInt(id)
+
+    if (Number.isNaN(bundleId)) {
+      return NextResponse.json({ error: "Invalid bundle ID" }, { status: 400 })
+    }
 
     const bundle = await sql`
       SELECT pb.*,
@@ -23,7 +28,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
                 WHERE bi.bundle_id = pb.id), 0
              ) as original_price
       FROM product_bundles pb
-      WHERE pb.id = ${id} OR pb.slug = ${id}
+      WHERE pb.id = ${bundleId}
     `
 
     if (bundle.length === 0) {

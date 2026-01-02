@@ -4,10 +4,15 @@ import { sql } from "@/lib/db"
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
+    const brandId = Number.parseInt(id)
+
+    if (Number.isNaN(brandId)) {
+      return NextResponse.json({ error: "Invalid brand ID" }, { status: 400 })
+    }
 
     const brand = await sql`
       SELECT * FROM brand_partnerships
-      WHERE id = ${id} OR slug = ${id}
+      WHERE id = ${brandId}
     `
 
     if (brand.length === 0) {
