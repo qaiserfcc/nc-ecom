@@ -7,6 +7,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params
 
+    // Try to parse as number first, otherwise use as slug
+    const productId = Number.parseInt(id)
+    
     const result = await sql`
       SELECT p.*, c.name as category_name, c.slug as category_slug,
              COALESCE(
@@ -19,7 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
              ) as variants
       FROM products p
       JOIN categories c ON p.category_id = c.id
-      WHERE p.id = ${Number.parseInt(id)} OR p.slug = ${id}
+      WHERE ${!Number.isNaN(productId) ? sql`p.id = ${productId}` : sql`p.slug = ${id}`}
     `
 
     if (result.length === 0) {
