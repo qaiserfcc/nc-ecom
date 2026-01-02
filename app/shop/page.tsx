@@ -77,21 +77,6 @@ function ShopContent() {
     ? "Product Bundles" 
     : "Shop All Products"
 
-  const items = type === "brands" 
-    ? (itemsData?.brands || [])
-    : type === "bundles"
-    ? (itemsData?.bundles || [])
-    : (itemsData?.products || [])
-  
-  const categories = categoriesData?.categories || []
-
-  // Page title based on type
-  const pageTitle = type === "brands" 
-    ? "Our Brands" 
-    : type === "bundles" 
-    ? "Product Bundles" 
-    : "Shop All Products"
-
   const handleAddToCart = async (productId: number, e: React.MouseEvent) => {
     e.preventDefault()
     if (!isAuthenticated) {
