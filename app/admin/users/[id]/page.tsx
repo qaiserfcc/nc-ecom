@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import useSWR from "swr"
 import { Button } from "@/components/ui/button"
@@ -35,7 +35,7 @@ export default function EditUserPage() {
   const [role, setRole] = useState("user")
 
   // Load user data
-  React.useEffect(() => {
+  useEffect(() => {
     if (userData?.user) {
       const user = userData.user
       setName(user.name || "")
@@ -72,7 +72,8 @@ export default function EditUserPage() {
       })
 
       if (!response.ok) {
-        throw new Error(await response.text())
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to update user")
       }
 
       setSuccess("User updated successfully")

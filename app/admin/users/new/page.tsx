@@ -60,7 +60,8 @@ export default function NewUserPage() {
       })
 
       if (!response.ok) {
-        throw new Error(await response.text())
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to create user")
       }
 
       router.push("/admin/users")
