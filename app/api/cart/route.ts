@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { product_id, variant_id, quantity = 1 } = await request.json()
+    const { product_id, variant_id = null, quantity = 1 } = await request.json()
 
     // Check if product exists and has stock
     const product = await sql`SELECT * FROM products WHERE id = ${product_id}`
@@ -54,12 +54,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if item already in cart
-    const existing = await sql`
-      SELECT * FROM cart_items 
-      WHERE user_id = ${session.user.id}::uuid 
-        AND product_id = ${product_id} 
-        AND (variant_id = ${variant_id} OR (variant_id IS NULL AND ${variant_id} IS NULL))
-    `
+    let existing
+    if (variant_id) {
+      existing = await sql`
+        SELECT * FROM cart_items 
+        WHERE user_id = ${session.user.id}::uuid 
+          AND product_id = ${product_id} 
+          AND variant_id = ${variant_id}
+      `
+    } else {
+      existing = await sql`
+        SELECT * FROM cart_items 
+        WHERE user_id = ${session.user.id}::uuid 
+          AND product_id = ${product_id} 
+          AND variant_id IS NULL
+      `
+    }
 
     if (existing.length > 0) {
       // Update quantity
@@ -75,11 +85,16 @@ export async function POST(request: NextRequest) {
       `
     }
 
-    // Track for analytics
-    await sql`
-      INSERT INTO analytics (user_id, product_id, event_type, event_data)
-      VALUES (${session.user.id}::uuid, ${product_id}, 'add_to_cart', ${JSON.stringify({ quantity, variant_id })})
-    `.catch(() => {})
+    // Track for analytics (table may not exist)
+    try {
+      await sql`
+        INSERT INTO analytics (user_id, product_id, event_type, event_data)
+        VALUES (${session.user.id}::uuid, ${product_id}, 'add_to_cart', ${JSON.stringify({ quantity, variant_id })})
+      `
+    } catch (analyticsError) {
+      // Ignore analytics errors
+      console.log('Analytics tracking skipped:', analyticsError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

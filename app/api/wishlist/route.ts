@@ -49,11 +49,16 @@ export async function POST(request: NextRequest) {
       ON CONFLICT (user_id, product_id) DO NOTHING
     `
 
-    // Track for analytics
-    await sql`
-      INSERT INTO analytics (user_id, product_id, event_type, event_data)
-      VALUES (${session.user.id}::uuid, ${product_id}, 'add_to_wishlist', '{}')
-    `.catch(() => {})
+    // Track for analytics (table may not exist)
+    try {
+      await sql`
+        INSERT INTO analytics (user_id, product_id, event_type, event_data)
+        VALUES (${session.user.id}::uuid, ${product_id}, 'add_to_wishlist', '{}')
+      `
+    } catch (analyticsError) {
+      // Ignore analytics errors
+      console.log('Analytics tracking skipped:', analyticsError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
