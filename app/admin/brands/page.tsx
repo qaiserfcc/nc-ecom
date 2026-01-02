@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Loader2, Plus, Edit, Trash2, Eye } from "lucide-react"
+import { Loader2, Plus, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface Brand {
@@ -27,6 +27,8 @@ export default function BrandsPage() {
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [deleting, setDeleting] = useState<number | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
   useEffect(() => {
     fetchBrands()
@@ -39,7 +41,14 @@ export default function BrandsPage() {
         brand.id.toString().includes(searchTerm)
     )
     setFilteredBrands(filtered)
+    setCurrentPage(1) // Reset to first page when search changes
   }, [searchTerm, brands])
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredBrands.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentBrands = filteredBrands.slice(startIndex, endIndex)
 
   const fetchBrands = async () => {
     try {
@@ -147,7 +156,7 @@ export default function BrandsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredBrands.map((brand) => (
+                  {currentBrands.map((brand) => (
                     <TableRow key={brand.id}>
                       <TableCell>
                         <div className="w-10 h-10 rounded border bg-muted flex items-center justify-center">
@@ -213,8 +222,36 @@ export default function BrandsPage() {
             </div>
           )}
 
-          <div className="text-sm text-muted-foreground">
-            Total: {filteredBrands.length} brand{filteredBrands.length !== 1 ? "s" : ""}
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Showing {startIndex + 1}-{Math.min(endIndex, filteredBrands.length)} of {filteredBrands.length} brand{filteredBrands.length !== 1 ? "s" : ""}
+            </div>
+            
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </Button>
+                <div className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

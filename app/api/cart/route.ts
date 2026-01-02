@@ -29,6 +29,7 @@ export async function GET() {
     return NextResponse.json({
       items,
       subtotal,
+      totalAmount: subtotal,
       itemCount: items.reduce((acc, item) => acc + item.quantity, 0),
     })
   } catch (error) {

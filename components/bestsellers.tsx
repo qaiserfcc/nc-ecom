@@ -25,7 +25,7 @@ export default function Bestsellers() {
     async function fetchProducts() {
       try {
         setLoading(true)
-        const response = await fetch("/api/products?featured=true&limit=4")
+        const response = await fetch("/api/products?featured=true&limit=100")
         if (!response.ok) {
           throw new Error("Failed to fetch products")
         }
