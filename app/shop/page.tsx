@@ -27,6 +27,7 @@ function ShopContent() {
   const searchParams = useSearchParams()
   const { isAuthenticated } = useAuth()
 
+  const type = searchParams.get("type") || "products" // Get the type parameter
   const [search, setSearch] = useState(searchParams.get("search") || "")
   const [category, setCategory] = useState(searchParams.get("category") || "all")
   const [priceRange, setPriceRange] = useState([0, 10000])
@@ -50,11 +51,46 @@ function ShopContent() {
     return params.toString()
   }, [search, category, priceRange, sortBy, sortOrder, featuredOnly, newOnly])
 
-  const { data: productsData, isLoading: productsLoading } = useSWR(`/api/products?${buildQuery()}`, fetcher)
+  // Fetch different data based on type
+  const getApiEndpoint = () => {
+    if (type === "brands") return `/api/brands?${buildQuery()}`
+    if (type === "bundles") return `/api/bundles?${buildQuery()}`
+    return `/api/products?${buildQuery()}`
+  }
+
+  const { data: itemsData, isLoading: itemsLoading } = useSWR(getApiEndpoint(), fetcher)
   const { data: categoriesData } = useSWR("/api/categories", fetcher)
 
-  const products = productsData?.products || []
+  // Extract items based on type
+  const items = type === "brands" 
+    ? (itemsData?.brands || [])
+    : type === "bundles"
+    ? (itemsData?.bundles || [])
+    : (itemsData?.products || [])
+  
   const categories = categoriesData?.categories || []
+
+  // Page title based on type
+  const pageTitle = type === "brands" 
+    ? "Our Brands" 
+    : type === "bundles" 
+    ? "Product Bundles" 
+    : "Shop All Products"
+
+  const items = type === "brands" 
+    ? (itemsData?.brands || [])
+    : type === "bundles"
+    ? (itemsData?.bundles || [])
+    : (itemsData?.products || [])
+  
+  const categories = categoriesData?.categories || []
+
+  // Page title based on type
+  const pageTitle = type === "brands" 
+    ? "Our Brands" 
+    : type === "bundles" 
+    ? "Product Bundles" 
+    : "Shop All Products"
 
   const handleAddToCart = async (productId: number, e: React.MouseEvent) => {
     e.preventDefault()
@@ -169,7 +205,7 @@ function ShopContent() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search products..."
+                    placeholder={`Search ${type}...`}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="pl-10"
@@ -182,7 +218,8 @@ function ShopContent() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="created_at">Newest</SelectItem>
-                      <SelectItem value="current_price">Price</SelectItem>
+                      {type === "products" && <SelectItem value="current_price">Price</SelectItem>}
+                      {type === "bundles" && <SelectItem value="bundle_price">Price</SelectItem>}
                       <SelectItem value="name">Name</SelectItem>
                     </SelectContent>
                   </Select>
@@ -195,45 +232,111 @@ function ShopContent() {
                       <SelectItem value="desc">Desc</SelectItem>
                     </SelectContent>
                   </Select>
-                  {/* Mobile Filter Button */}
-                  <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
-                    <SheetTrigger asChild>
-                      <Button variant="outline" className="md:hidden bg-transparent">
-                        <Filter className="w-4 h-4" />
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left">
-                      <SheetHeader>
-                        <SheetTitle>Filters</SheetTitle>
-                      </SheetHeader>
-                      <div className="mt-6">
-                        <FilterPanel />
-                      </div>
-                    </SheetContent>
-                  </Sheet>
+                  {/* Mobile Filter Button - Only for products */}
+                  {type === "products" && (
+                    <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+                      <SheetTrigger asChild>
+                        <Button variant="outline" className="md:hidden bg-transparent">
+                          <Filter className="w-4 h-4" />
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent side="left">
+                        <SheetHeader>
+                          <SheetTitle>Filters</SheetTitle>
+                        </SheetHeader>
+                        <div className="mt-6">
+                          <FilterPanel />
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  )}
                 </div>
               </div>
 
               {/* Results Count */}
               <p className="text-sm text-muted-foreground mb-4">
-                {productsData?.pagination?.total || 0} products found
+                {itemsData?.pagination?.total || items.length || 0} {type === "brands" ? "brands" : type === "bundles" ? "bundles" : "products"} found
               </p>
 
-              {/* Products Grid */}
-              {productsLoading ? (
+              {/* Items Grid */}
+              {itemsLoading ? (
                 <div className="flex items-center justify-center py-20">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
-              ) : products.length === 0 ? (
+              ) : items.length === 0 ? (
                 <div className="text-center py-20">
-                  <p className="text-muted-foreground">No products found</p>
-                  <Button variant="link" onClick={clearFilters}>
-                    Clear filters
-                  </Button>
+                  <p className="text-muted-foreground">No {type} found</p>
+                  {type === "products" && (
+                    <Button variant="link" onClick={clearFilters}>
+                      Clear filters
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {products.map((product: any) => (
+                  {type === "brands" ? (
+                    // Render Brands
+                    items.map((brand: any) => (
+                      <a key={brand.id} href={brand.website_url} target="_blank" rel="noopener noreferrer">
+                        <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
+                          <div className="relative aspect-square overflow-hidden bg-muted flex items-center justify-center p-8">
+                            <Image
+                              src={brand.logo_url || "/placeholder.svg?height=200&width=200"}
+                              alt={brand.name}
+                              width={200}
+                              height={200}
+                              className="object-contain group-hover:scale-105 transition-transform"
+                            />
+                            {brand.is_featured && (
+                              <Badge className="absolute top-2 right-2 bg-secondary text-secondary-foreground">Featured</Badge>
+                            )}
+                          </div>
+                          <CardContent className="p-4">
+                            <h3 className="font-semibold text-lg mb-2">{brand.name}</h3>
+                            <p className="text-sm text-muted-foreground line-clamp-2">{brand.description}</p>
+                          </CardContent>
+                        </Card>
+                      </a>
+                    ))
+                  ) : type === "bundles" ? (
+                    // Render Bundles
+                    items.map((bundle: any) => (
+                      <Link key={bundle.id} href={`/product/bundle-${bundle.id}`}>
+                        <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
+                          <div className="relative aspect-square overflow-hidden bg-muted">
+                            <Image
+                              src={bundle.image_url || "/placeholder.svg?height=300&width=300"}
+                              alt={bundle.name}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform"
+                            />
+                            <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">Bundle</Badge>
+                            {bundle.original_price && bundle.original_price > bundle.bundle_price && (
+                              <Badge variant="destructive" className="absolute top-2 right-2">
+                                Save Rs. {(bundle.original_price - bundle.bundle_price).toLocaleString()}
+                              </Badge>
+                            )}
+                          </div>
+                          <CardContent className="p-3">
+                            <h3 className="font-medium text-sm line-clamp-2 mb-2">{bundle.name}</h3>
+                            <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{bundle.description}</p>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-primary">
+                                Rs. {Number(bundle.bundle_price).toLocaleString()}
+                              </span>
+                              {bundle.original_price && bundle.original_price > bundle.bundle_price && (
+                                <span className="text-xs text-muted-foreground line-through">
+                                  Rs. {Number(bundle.original_price).toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))
+                  ) : (
+                    // Render Products
+                    items.map((product: any) => (
                     <Link key={product.id} href={`/product/${product.slug}`}>
                       <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
                         <div className="relative aspect-square overflow-hidden bg-muted">
@@ -289,7 +392,8 @@ function ShopContent() {
                         </CardContent>
                       </Card>
                     </Link>
-                  ))}
+                  ))
+                  )}
                 </div>
               )}
             </div>
