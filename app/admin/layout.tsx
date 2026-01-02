@@ -25,6 +25,8 @@ import {
 const sidebarItems = [
   { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/admin/products", icon: Package, label: "Products" },
+  { href: "/admin/bundles", icon: Package, label: "Bundles" },
+  { href: "/admin/brands", icon: Package, label: "Brands" },
   { href: "/admin/orders", icon: ShoppingCart, label: "Orders" },
   { href: "/admin/users", icon: Users, label: "Users" },
   { href: "/admin/banners", icon: Image, label: "Banners" },

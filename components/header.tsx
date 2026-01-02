@@ -66,6 +66,12 @@ export default function Header() {
             <Link href="/shop" className="text-foreground hover:text-primary font-medium transition">
               Shop
             </Link>
+            <Link href="/shop?type=bundles" className="text-foreground hover:text-primary font-medium transition">
+              Bundles
+            </Link>
+            <Link href="/shop?type=brands" className="text-foreground hover:text-primary font-medium transition">
+              Brands
+            </Link>
             {isAuthenticated && (
               <Link href="/orders" className="text-foreground hover:text-primary font-medium transition">
                 Orders
@@ -215,6 +221,20 @@ export default function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Shop
+            </Link>
+            <Link
+              href="/shop?type=bundles"
+              className="px-4 py-3 text-foreground hover:bg-muted rounded-md"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Bundles
+            </Link>
+            <Link
+              href="/shop?type=brands"
+              className="px-4 py-3 text-foreground hover:bg-muted rounded-md"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Brands
             </Link>
             {isAuthenticated ? (
               <>
