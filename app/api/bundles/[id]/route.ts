@@ -45,12 +45,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const body = await request.json()
-    const { name, slug, description, bundle_price, image_url, is_active } = body
+    const bundleId = Number.parseInt(id)
 
-    if (!name || !slug) {
+    if (Number.isNaN(bundleId)) {
+      return NextResponse.json({ error: "Invalid bundle ID" }, { status: 400 })
+    }
+
+    const body = await request.json()
+    const { name, description, bundle_price, image_url, is_active } = body
+
+    if (!name) {
       return NextResponse.json(
-        { error: "Missing required fields: name, slug" },
+        { error: "Missing required field: name" },
         { status: 400 }
       )
     }
@@ -58,14 +64,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const result = await sql`
       UPDATE product_bundles
       SET name = ${name},
-          slug = ${slug},
           description = ${description || ""},
           bundle_price = ${bundle_price},
           image_url = ${image_url || ""},
-          is_active = ${is_active !== false},
-          updated_at = NOW()
-      WHERE id = ${parseInt(id)}
-      RETURNING id, name, slug, bundle_price, is_active
+          is_active = ${is_active !== false}
+      WHERE id = ${bundleId}
+      RETURNING id, name, bundle_price, is_active
     `
 
     if (result.length === 0) {
@@ -85,12 +89,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
+    const bundleId = Number.parseInt(id)
+
+    if (Number.isNaN(bundleId)) {
+      return NextResponse.json({ error: "Invalid bundle ID" }, { status: 400 })
+    }
 
     // First delete all bundle items
-    await sql`DELETE FROM bundle_items WHERE bundle_id = ${parseInt(id)}`
+    await sql`DELETE FROM bundle_items WHERE bundle_id = ${bundleId}`
 
     // Then delete the bundle
-    const result = await sql`DELETE FROM product_bundles WHERE id = ${parseInt(id)} RETURNING id`
+    const result = await sql`DELETE FROM product_bundles WHERE id = ${bundleId} RETURNING id`
 
     if (result.length === 0) {
       return NextResponse.json({ error: "Bundle not found" }, { status: 404 })

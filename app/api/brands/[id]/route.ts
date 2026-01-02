@@ -29,22 +29,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
+    const brandId = Number.parseInt(id)
+
+    if (Number.isNaN(brandId)) {
+      return NextResponse.json({ error: "Invalid brand ID" }, { status: 400 })
+    }
+
     const body = await request.json()
     const {
       name,
-      slug,
       description,
       logo_url,
       website_url,
-      contact_email,
       is_featured,
-      is_active,
-      established_year,
     } = body
 
-    if (!name || !slug) {
+    if (!name) {
       return NextResponse.json(
-        { error: "Missing required fields: name, slug" },
+        { error: "Missing required field: name" },
         { status: 400 }
       )
     }
@@ -52,15 +54,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const result = await sql`
       UPDATE brand_partnerships
       SET name = ${name},
-          slug = ${slug},
           description = ${description || ""},
           logo_url = ${logo_url || ""},
           website_url = ${website_url || ""},
-          contact_email = ${contact_email || ""},
-          is_featured = ${is_featured === true},
-          is_active = ${is_active !== false},
-          established_year = ${established_year || null}
-      WHERE id = ${parseInt(id)}
+          is_featured = ${is_featured === true}
+      WHERE id = ${brandId}
       RETURNING *
     `
 
@@ -81,8 +79,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
+    const brandId = Number.parseInt(id)
 
-    const result = await sql`DELETE FROM brand_partnerships WHERE id = ${parseInt(id)} RETURNING id`
+    if (Number.isNaN(brandId)) {
+      return NextResponse.json({ error: "Invalid brand ID" }, { status: 400 })
+    }
+
+    const result = await sql`DELETE FROM brand_partnerships WHERE id = ${brandId} RETURNING id`
 
     if (result.length === 0) {
       return NextResponse.json({ error: "Brand not found" }, { status: 404 })

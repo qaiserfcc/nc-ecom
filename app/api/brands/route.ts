@@ -34,32 +34,26 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const {
       name,
-      slug,
       description,
       logo_url,
       website_url,
-      contact_email,
       is_featured,
-      is_active,
-      established_year,
     } = body
 
-    if (!name || !slug) {
+    if (!name) {
       return NextResponse.json(
-        { error: "Missing required fields: name, slug" },
+        { error: "Missing required field: name" },
         { status: 400 }
       )
     }
 
     const result = await sql`
       INSERT INTO brand_partnerships (
-        name, slug, description, logo_url, website_url, contact_email,
-        is_featured, is_active, established_year
+        name, description, logo_url, website_url, is_featured
       )
       VALUES (
-        ${name}, ${slug}, ${description || ""}, ${logo_url || ""},
-        ${website_url || ""}, ${contact_email || ""}, ${is_featured === true},
-        ${is_active !== false}, ${established_year || null}
+        ${name}, ${description || ""}, ${logo_url || ""},
+        ${website_url || ""}, ${is_featured === true}
       )
       RETURNING *
     `

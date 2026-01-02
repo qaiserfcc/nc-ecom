@@ -62,19 +62,19 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { name, slug, description, bundle_price, image_url, is_active } = body
+    const { name, description, bundle_price, image_url, is_active } = body
 
-    if (!name || !slug || bundle_price === undefined) {
+    if (!name || bundle_price === undefined) {
       return NextResponse.json(
-        { error: "Missing required fields: name, slug, bundle_price" },
+        { error: "Missing required fields: name, bundle_price" },
         { status: 400 }
       )
     }
 
     const result = await sql`
-      INSERT INTO product_bundles (name, slug, description, bundle_price, image_url, is_active)
-      VALUES (${name}, ${slug}, ${description || ""}, ${bundle_price}, ${image_url || ""}, ${is_active !== false})
-      RETURNING id, name, slug, bundle_price, is_active
+      INSERT INTO product_bundles (name, description, bundle_price, image_url, is_active)
+      VALUES (${name}, ${description || ""}, ${bundle_price}, ${image_url || ""}, ${is_active !== false})
+      RETURNING id, name, bundle_price, is_active
     `
 
     return NextResponse.json({ bundle: result[0] }, { status: 201 })
