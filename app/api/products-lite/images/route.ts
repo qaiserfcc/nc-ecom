@@ -68,13 +68,13 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Add cache headers for aggressive caching of images
+    // Add cache headers for images with revalidation
     const response = NextResponse.json({ images: imagesByProduct })
     
-    // Cache images for 30 days (images don't change often)
+    // Cache images for 1 hour, must revalidate to prevent stale images
     response.headers.set(
       "Cache-Control",
-      "public, max-age=2592000, immutable"
+      "public, max-age=3600, must-revalidate"
     )
     
     return response

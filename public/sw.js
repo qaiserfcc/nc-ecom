@@ -110,12 +110,12 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Images: Cache first strategy (most images don't change)
+  // Images: Network first with cache fallback (prevents caching failed requests)
   if (
     url.pathname.match(/\.(png|jpg|jpeg|webp|gif|svg|ico)$/i) ||
     url.pathname.includes('/api/products-lite/images')
   ) {
-    event.respondWith(CACHE_STRATEGIES.cacheFirst(request))
+    event.respondWith(CACHE_STRATEGIES.networkFirst(request))
     return
   }
 

@@ -169,18 +169,28 @@ function ShopContent() {
   // Load remaining image batches lazily
   useEffect(() => {
     let timeoutId: NodeJS.Timeout
+    let errorShown = false
     if (productBatches.length > 2) {
       // Load remaining batches after a delay
       timeoutId = setTimeout(() => {
         productBatches.slice(2).forEach((batch) => {
           fetch(`/api/products-lite/images?ids=${batch}`)
-            .then((res) => res.json())
+            .then((res) => {
+              if (!res.ok) throw new Error(`HTTP ${res.status}`)
+              return res.json()
+            })
             .then((data) => {
               if (data?.images) {
                 setProductImages((prev) => ({ ...prev, ...data.images }))
               }
             })
-            .catch((err) => console.error("Error loading images batch:", err))
+            .catch((err) => {
+              console.error("Error loading images batch:", err)
+              if (!errorShown) {
+                notify.warning("Loading more images", "Some images may take a moment to appear")
+                errorShown = true
+              }
+            })
         })
       }, 500) // Delay remaining batch loads
     }
@@ -519,6 +529,9 @@ function ShopContent() {
                                       className="group-hover:scale-105 transition-transform"
                                       loading="lazy"
                                       onLoad={() => performanceMonitor.recordImageLoad(Date.now())}
+                                      onError={() => {
+                                        console.warn(`Image load error for product: ${product.name}`)
+                                      }}
                                     />
                                   )}
                                   {product.is_new_arrival && (
