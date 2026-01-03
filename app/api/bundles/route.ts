@@ -12,45 +12,56 @@ export async function GET(req: NextRequest) {
     let bundles
     let countResult
 
-    const bundleQuery = `
-      SELECT pb.*,
-             COALESCE(
-               (SELECT json_agg(json_build_object(
-                 'id', bi.id, 'product_id', bi.product_id, 'quantity', bi.quantity,
-                 'product_name', p.name, 'product_image', p.image_url, 'product_price', p.current_price
-               ))
-               FROM bundle_items bi
-               JOIN products p ON bi.product_id = p.id
-               WHERE bi.bundle_id = pb.id), '[]'
-             ) as items,
-             (SELECT SUM(p.current_price * bi.quantity)
-              FROM bundle_items bi
-              JOIN products p ON bi.product_id = p.id
-              WHERE bi.bundle_id = pb.id) as original_price,
-             (SELECT COUNT(*) FROM bundle_items WHERE bundle_id = pb.id) as item_count
-      FROM product_bundles pb
-    `
-
     if (search) {
-      bundles = await sql.unsafe(`
-        ${bundleQuery}
-        WHERE pb.name ILIKE '%${search}%' OR pb.description ILIKE '%${search}%'
+      bundles = await sql`
+        SELECT pb.*,
+               COALESCE(
+                 (SELECT json_agg(json_build_object(
+                   'id', bi.id, 'product_id', bi.product_id, 'quantity', bi.quantity,
+                   'product_name', p.name, 'product_image', p.image_url, 'product_price', p.current_price
+                 ))
+                 FROM bundle_items bi
+                 JOIN products p ON bi.product_id = p.id
+                 WHERE bi.bundle_id = pb.id), '[]'
+               ) as items,
+               (SELECT SUM(p.current_price * bi.quantity)
+                FROM bundle_items bi
+                JOIN products p ON bi.product_id = p.id
+                WHERE bi.bundle_id = pb.id) as original_price,
+               (SELECT COUNT(*) FROM bundle_items WHERE bundle_id = pb.id) as item_count
+        FROM product_bundles pb
+        WHERE pb.name ILIKE ${"%" + search + "%"} OR pb.description ILIKE ${"%" + search + "%"}
         ORDER BY pb.created_at DESC
         LIMIT ${limit} OFFSET ${offset}
-      `)
-      countResult = await sql.unsafe(`
+      `
+      countResult = await sql`
         SELECT COUNT(*)::int as total FROM product_bundles pb
-        WHERE pb.name ILIKE '%${search}%' OR pb.description ILIKE '%${search}%'
-      `)
+        WHERE pb.name ILIKE ${"%" + search + "%"} OR pb.description ILIKE ${"%" + search + "%"}
+      `
     } else {
-      bundles = await sql.unsafe(`
-        ${bundleQuery}
+      bundles = await sql`
+        SELECT pb.*,
+               COALESCE(
+                 (SELECT json_agg(json_build_object(
+                   'id', bi.id, 'product_id', bi.product_id, 'quantity', bi.quantity,
+                   'product_name', p.name, 'product_image', p.image_url, 'product_price', p.current_price
+                 ))
+                 FROM bundle_items bi
+                 JOIN products p ON bi.product_id = p.id
+                 WHERE bi.bundle_id = pb.id), '[]'
+               ) as items,
+               (SELECT SUM(p.current_price * bi.quantity)
+                FROM bundle_items bi
+                JOIN products p ON bi.product_id = p.id
+                WHERE bi.bundle_id = pb.id) as original_price,
+               (SELECT COUNT(*) FROM bundle_items WHERE bundle_id = pb.id) as item_count
+        FROM product_bundles pb
         ORDER BY pb.created_at DESC
         LIMIT ${limit} OFFSET ${offset}
-      `)
-      countResult = await sql.unsafe(`
+      `
+      countResult = await sql`
         SELECT COUNT(*)::int as total FROM product_bundles pb
-      `)
+      `
     }
 
     const total = countResult[0]?.total ?? 0
