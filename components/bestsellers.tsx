@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Heart, ShoppingCart, Loader2 } from "lucide-react"
+import { Heart, ShoppingCart, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
 
@@ -20,6 +20,12 @@ interface Product {
   stock_quantity: number
 }
 
+interface Discount {
+  id: number
+  discount_type: string
+  discount_value: number
+}
+
 export default function Bestsellers() {
   const router = useRouter()
   const { isAuthenticated } = useAuth()
@@ -27,31 +33,63 @@ export default function Bestsellers() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pendingId, setPendingId] = useState<number | null>(null)
+  const [discount, setDiscount] = useState<Discount | null>(null)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [isMobile, setIsMobile] = useState(false)
+
+  const productsPerPage = isMobile ? 6 : 10
 
   useEffect(() => {
-    async function fetchProducts() {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
+
+  useEffect(() => {
+    async function fetchData() {
       try {
         setLoading(true)
-        const response = await fetch("/api/products?featured=true&limit=10")
-        if (!response.ok) {
+        const [productsRes, discountRes] = await Promise.all([
+          fetch("/api/products?featured=true&limit=50"),
+          fetch("/api/discounts/active"),
+        ])
+        
+        if (!productsRes.ok) {
           throw new Error("Failed to fetch products")
         }
-        const data = await response.json()
-        setProducts(data.products || [])
+        
+        const productsData = await productsRes.json()
+        const discountData = await discountRes.json()
+        
+        setProducts(productsData.products || [])
+        setDiscount(discountData.discount || null)
       } catch (err) {
-        console.error("Error fetching products:", err)
+        console.error("Error fetching data:", err)
         setError("Failed to load products")
       } finally {
         setLoading(false)
       }
     }
 
-    fetchProducts()
+    fetchData()
   }, [])
 
   const calculateDiscount = (original: number, current: number) => {
     if (!original) return 0
     return Math.max(0, Math.round(((original - current) / original) * 100))
+  }
+
+  const calculateDiscountedPrice = (price: number) => {
+    if (!discount) return price
+    
+    if (discount.discount_type === "percentage") {
+      return price - (price * discount.discount_value) / 100
+    } else {
+      return Math.max(0, price - discount.discount_value)
+    }
   }
 
   const handleAdd = async (productId: number) => {
@@ -129,6 +167,20 @@ export default function Bestsellers() {
     )
   }
 
+  const totalPages = Math.ceil(products.length / productsPerPage)
+  const displayedProducts = products.slice(
+    currentPage * productsPerPage,
+    (currentPage + 1) * productsPerPage
+  )
+
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => Math.max(0, prev - 1))
+  }
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))
+  }
+
   return (
     <section className="py-8 sm:py-12 md:py-16">
       <div className="container mx-auto px-4">
@@ -138,7 +190,8 @@ export default function Bestsellers() {
         </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {products.map((product) => {
+          {displayedProducts.map((product) => {
+            const discountedPrice = calculateDiscountedPrice(product.current_price)
             return (
               <Card
                 key={product.id}
@@ -153,6 +206,13 @@ export default function Bestsellers() {
                         className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
+                      {discount && (
+                        <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
+                          {discount.discount_type === "percentage"
+                            ? `${discount.discount_value}% OFF`
+                            : `Rs. ${discount.discount_value} OFF`}
+                        </Badge>
+                      )}
                     </div>
                   </Link>
                   <div className="p-3 sm:p-4 space-y-2">
@@ -162,9 +222,20 @@ export default function Bestsellers() {
                       </h3>
                     </Link>
                     <div className="flex items-center gap-2">
-                      <span className="text-primary font-bold text-sm sm:text-base">
-                        Rs. {product.current_price.toLocaleString()}
-                      </span>
+                      {discount ? (
+                        <>
+                          <span className="text-muted-foreground line-through text-xs sm:text-sm">
+                            Rs. {product.current_price.toLocaleString()}
+                          </span>
+                          <span className="text-primary font-bold text-sm sm:text-base">
+                            Rs. {Math.round(discountedPrice).toLocaleString()}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-primary font-bold text-sm sm:text-base">
+                          Rs. {product.current_price.toLocaleString()}
+                        </span>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <Button
@@ -196,6 +267,30 @@ export default function Bestsellers() {
             )
           })}
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-8">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevPage}
+              disabled={currentPage === 0}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Page {currentPage + 1} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages - 1}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   )
