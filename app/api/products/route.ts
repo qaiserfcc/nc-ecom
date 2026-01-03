@@ -82,7 +82,6 @@ export async function GET(request: NextRequest) {
       FROM products p
       JOIN categories c ON p.category_id = c.id
       JOIN brand_partnerships b ON p.brand_id = b.id
-      JOIN categories c ON p.category_id = c.id
       WHERE p.id IS NOT NULL ${countFilters.length > 0 ? sql.unsafe(`AND ${countFilters.join(" AND ")}`) : sql``}
     `
 
