@@ -62,10 +62,13 @@ export default function Bestsellers() {
         }
         
         const productsData = await productsRes.json()
-        const discountData = await discountRes.json()
-        
         setProducts(productsData.products || [])
-        setDiscount(discountData.discount || null)
+        
+        // Handle discount fetch separately to avoid breaking if it fails
+        if (discountRes.ok) {
+          const discountData = await discountRes.json()
+          setDiscount(discountData.discount || null)
+        }
       } catch (err) {
         console.error("Error fetching data:", err)
         setError("Failed to load products")

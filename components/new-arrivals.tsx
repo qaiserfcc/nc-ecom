@@ -58,10 +58,13 @@ export default function NewArrivals() {
         if (!productsRes.ok) throw new Error("Failed to fetch new arrivals")
         
         const productsData = await productsRes.json()
-        const discountData = await discountRes.json()
-        
         setProducts(productsData.products || [])
-        setDiscount(discountData.discount || null)
+        
+        // Handle discount fetch separately to avoid breaking if it fails
+        if (discountRes.ok) {
+          const discountData = await discountRes.json()
+          setDiscount(discountData.discount || null)
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load products")
       } finally {
