@@ -3,7 +3,6 @@
 import type React from "react"
 
 import { useRouter, usePathname } from "next/navigation"
-import Link from "next/link"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -60,41 +59,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const Sidebar = () => (
     <div className="flex flex-col h-full">
       <div className="p-4 border-b">
-        <Link href="/" className="flex items-center gap-2">
+        <button onClick={() => router.push("/")} className="flex items-center gap-2 hover:cursor-pointer">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
             NC
           </div>
           <span className="font-bold text-primary">Admin</span>
-        </Link>
+        </button>
       </div>
       <ScrollArea className="flex-1 py-4">
         <nav className="px-2 space-y-1">
           {sidebarItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href))
             return (
-              <Link
+              <button
                 key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors cursor-pointer z-10 relative block ${
+                onClick={() => router.push(item.href)}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:cursor-pointer ${
                   isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted text-foreground"
                 }`}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
-                <span>{item.label}</span>
-              </Link>
+                <span className="text-left">{item.label}</span>
+              </button>
             )
           })}
         </nav>
       </ScrollArea>
       <div className="p-4 border-t space-y-2">
-        <Link
-          href="/"
-          className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition"
+        <button
+          onClick={() => router.push("/")}
+          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition hover:cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" />
           Back to Store
-        </Link>
-        <Button variant="ghost" className="w-full justify-start text-destructive" onClick={handleSignOut}>
+        </button>
+        <Button variant="ghost" className="w-full justify-start text-destructive hover:cursor-pointer" onClick={handleSignOut}>
           <LogOut className="w-4 h-4 mr-2" />
           Sign Out
         </Button>
