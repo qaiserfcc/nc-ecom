@@ -23,13 +23,13 @@ export default function AboutPage() {
               <div>
                 <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">Our Story</h2>
                 <p className="text-muted-foreground mb-4 text-sm sm:text-base leading-relaxed">
-                  Namecheap began with a simple vision: to make premium organic and natural products accessible to everyone while building a community that benefits together. We believe that beauty and health products should be pure, effective, and ethically sourced.
+                  Namecheap is a community platform that shares its own profit with users by giving them more discount than the official price. We believe in creating value for our community through two powerful ways.
                 </p>
                 <p className="text-muted-foreground mb-4 text-sm sm:text-base leading-relaxed">
-                  What started as a small initiative to source the best organic products has grown into a thriving marketplace where quality meets affordability. Our unique profit-sharing model ensures that our success is your success.
+                  <strong>Bulk Buying Power:</strong> We buy in bulk which gives us 20% discount from suppliers. We then sell single pieces to our customers by giving them 10% discount from the official retail price. This way, you save money while we cover our costs and share the profits with you.
                 </p>
                 <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
-                  Today, we serve thousands of customers who trust us for authentic organic products, transparent pricing, and a commitment to sustainable practices. Every purchase you make supports not just your health and beauty, but also a more sustainable future.
+                  <strong>Referral Profit Sharing:</strong> We use referral codes to grow our community. When you refer others, we earn 20% referral commission from our partners. We keep 10% for operations and give you 10% as your share of the profit. It's a win-win for everyone!
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -107,18 +107,18 @@ export default function AboutPage() {
 
           {/* Shopping Information */}
           <section className="mb-12 md:mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-foreground">Shopping with Namecheap</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-foreground">How Namecheap Works</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h3 className="text-xl font-semibold mb-3 text-foreground">Bulk Buy Discounts</h3>
+                <h3 className="text-xl font-semibold mb-3 text-foreground">Bulk Buy Advantage</h3>
                 <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
-                  Save more when you buy more! Our tiered pricing system automatically applies discounts when you purchase in bulk. Whether you're stocking up for yourself or sharing with family and friends, you'll enjoy better prices.
+                  We leverage bulk purchasing power to get 20% discount from suppliers. Instead of keeping all the profit, we pass on 10% discount to you on every single item purchase. You get better prices without having to buy in bulk yourself!
                 </p>
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-3 text-foreground">Referral Profits</h3>
+                <h3 className="text-xl font-semibold mb-3 text-foreground">Referral Commission Sharing</h3>
                 <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
-                  Join our community and earn commission by sharing products you love. Every successful referral puts money back in your pocket. It's our way of thanking you for spreading the word about organic living.
+                  When you refer friends using your unique referral code, we earn 20% commission from our partners. We share half of this profit with you - you get 10% and we keep 10%. The more you share, the more you earn!
                 </p>
               </div>
               <div>

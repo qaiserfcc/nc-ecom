@@ -9,17 +9,20 @@ export default function AboutSection() {
           <div>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">About Namecheap</h2>
             <p className="text-muted-foreground mb-4 text-sm sm:text-base leading-relaxed">
-              Namecheap is a community-driven marketplace dedicated to bringing premium organic and natural products to
-              your doorstep. We believe in quality, transparency, and sharing profits with our community members.
+              Namecheap is a community platform that shares its own profit with users by giving them more discount than
+              the official price. We make quality products affordable through smart buying and profit sharing.
+            </p>
+            <p className="text-muted-foreground mb-4 text-sm sm:text-base leading-relaxed">
+              <strong>First way:</strong> We buy in bulk to get 20% discount from suppliers, then sell individual 
+              items to you with 10% discount from retail price.
             </p>
             <p className="text-muted-foreground mb-6 text-sm sm:text-base leading-relaxed">
-              Our platform features carefully curated products from trusted organic brands, combined with our unique
-              profit-sharing model. Whether you're buying for personal use, sharing with friends through our referral
-              program, or purchasing in bulk for better savings, Namecheap has you covered.
+              <strong>Second way:</strong> Our referral program earns us 20% commission - we share half (10%) with 
+              you and keep 10% for operations.
             </p>
             <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
-              We're committed to sustainable practices, fair pricing, and building a community where everyone benefits
-              from better products at better prices.
+              Join our community where everyone wins - better prices for you, sustainable growth for us, and shared profits 
+              that benefit our entire network of members.
             </p>
           </div>
 
@@ -67,9 +70,9 @@ export default function AboutSection() {
                 ✓
               </div>
               <div>
-                <p className="font-semibold text-sm sm:text-base text-foreground">Bulk Buy Discounts</p>
+                <p className="font-semibold text-sm sm:text-base text-foreground">10% Bulk Buy Savings</p>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  More you buy, more you save with tiered pricing
+                  We buy in bulk with 20% discount, share 10% with you
                 </p>
               </div>
             </div>
@@ -79,9 +82,9 @@ export default function AboutSection() {
                 ✓
               </div>
               <div>
-                <p className="font-semibold text-sm sm:text-base text-foreground">Referral Profits</p>
+                <p className="font-semibold text-sm sm:text-base text-foreground">10% Referral Commission</p>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Earn commission by sharing products with friends
+                  Earn 10% from our 20% referral income when you share
                 </p>
               </div>
             </div>
