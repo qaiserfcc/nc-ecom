@@ -166,34 +166,73 @@ function ShopContent() {
     }
   }, [itemsData, offset, type])
   
-  // Load remaining image batches lazily
+  // Load remaining image batches lazily with improved error handling
   useEffect(() => {
     let timeoutId: NodeJS.Timeout
     let errorShown = false
+    let retryCount = 0
+    const MAX_RETRIES = 2
+    
     if (productBatches.length > 2) {
       // Load remaining batches after a delay
       timeoutId = setTimeout(() => {
-        productBatches.slice(2).forEach((batch) => {
-          fetch(`/api/products-lite/images?ids=${batch}`)
-            .then((res) => {
-              if (!res.ok) throw new Error(`HTTP ${res.status}`)
-              return res.json()
-            })
-            .then((data) => {
-              if (data?.images) {
-                setProductImages((prev) => ({ ...prev, ...data.images }))
+        const remainingBatches = productBatches.slice(2)
+        
+        const loadBatchesWithRetry = async (batchIndex: number) => {
+          if (batchIndex >= remainingBatches.length) return
+          
+          const batch = remainingBatches[batchIndex]
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
+          
+          try {
+            const res = await fetch(`/api/products-lite/images?ids=${batch}`, {
+              signal: controller.signal,
+              headers: {
+                'Accept': 'image/webp,image/*,*/*;q=0.8',
               }
             })
-            .catch((err) => {
-              console.error("Error loading images batch:", err)
-              if (!errorShown) {
-                notify.warning("Loading more images", "Some images may take a moment to appear")
-                errorShown = true
-              }
-            })
-        })
+            
+            clearTimeout(timeoutId)
+            
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}`)
+            }
+            
+            const data = await res.json()
+            if (data?.images) {
+              setProductImages((prev) => ({ ...prev, ...data.images }))
+            }
+            
+            // Load next batch
+            loadBatchesWithRetry(batchIndex + 1)
+          } catch (err) {
+            clearTimeout(timeoutId)
+            console.error(`Error loading image batch ${batchIndex}:`, err)
+            
+            // Retry failed batch if not maxed out
+            if (retryCount < MAX_RETRIES) {
+              retryCount++
+              setTimeout(() => {
+                loadBatchesWithRetry(batchIndex)
+              }, 2000 * retryCount) // Exponential backoff
+            } else if (!errorShown) {
+              // Only show error once after retries exhausted
+              notify.warning(
+                "Loading images",
+                "Some images may take longer to appear. Check your connection."
+              )
+              errorShown = true
+              // Continue loading remaining batches
+              loadBatchesWithRetry(batchIndex + 1)
+            }
+          }
+        }
+        
+        loadBatchesWithRetry(0)
       }, 500) // Delay remaining batch loads
     }
+    
     return () => clearTimeout(timeoutId)
   }, [productBatches])
   
@@ -513,7 +552,10 @@ function ShopContent() {
                         {allItems.map((product: any) => {
                           const productImageList = productImages[product.id] || []
                           const primaryImage = productImageList.find((img: any) => img.is_primary) || productImageList[0]
+                          
+                          // Get image URL with fallback chain
                           const imageUrl = primaryImage?.image_url || "/placeholder.svg?height=300&width=300"
+                          const fallbackUrls = primaryImage?.format_options || ["/placeholder.svg?height=300&width=300"]
                           
                           return (
                             <Link key={product.id} href={`/product/${product.slug}`}>
