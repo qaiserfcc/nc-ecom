@@ -85,11 +85,11 @@ export default function Bundles() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {bundles.map((bundle, index) => {
+            const delayClass = index < 8 ? `animation-delay-${(index + 1) * 100}` : '';
             return (
               <Card 
                 key={bundle.id} 
-                className="overflow-hidden hover:shadow-lg transition-all duration-300 group animate-fade-in"
-                style={{ animationDelay: `${index * 0.15}s` }}
+                className={`overflow-hidden hover:shadow-lg transition-all duration-300 group animate-fade-in ${delayClass}`}
               >
                 <CardContent className="p-0">
                   <Link href={`/bundle/${bundle.id}`}>

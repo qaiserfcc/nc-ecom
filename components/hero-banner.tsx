@@ -91,12 +91,14 @@ export default function HeroBanner() {
   return (
     <section className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] overflow-hidden rounded-lg md:rounded-xl group">
       {/* Banner Image with Transition */}
-      <div className="absolute inset-0 transition-opacity duration-700">
+      <div 
+        key={currentIndex}
+        className="absolute inset-0 animate-fade-in"
+      >
         <img
-          key={currentIndex}
           src={imageSrc}
           alt={currentBanner.title}
-          className="w-full h-full object-cover animate-fade-in"
+          className="w-full h-full object-cover"
           loading="lazy"
         />
       </div>

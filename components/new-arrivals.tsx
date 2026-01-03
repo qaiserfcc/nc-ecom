@@ -144,11 +144,11 @@ export default function NewArrivals() {
 
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {products.map((product, index) => {
+            const delayClass = index < 8 ? `animation-delay-${(index + 1) * 100}` : '';
             return (
               <Card
                 key={product.id}
-                className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-border/70 group animate-fade-in"
-                style={{ animationDelay: `${index * 0.1}s` }}
+                className={`overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-border/70 group animate-fade-in ${delayClass}`}
               >
                 <CardContent className="p-0">
                   <Link href={`/product/${product.slug}`}>
