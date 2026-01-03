@@ -29,7 +29,9 @@ interface Variant {
 export default function NewProductPage() {
   const router = useRouter()
   const { data: categoriesData } = useSWR("/api/categories", fetcher)
+  const { data: brandsData } = useSWR("/api/brands", fetcher)
   const categories = categoriesData?.categories || []
+  const brands = brandsData?.brands || []
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -37,6 +39,7 @@ export default function NewProductPage() {
   const [name, setName] = useState("")
   const [slug, setSlug] = useState("")
   const [categoryId, setCategoryId] = useState("")
+  const [brandId, setBrandId] = useState("")
   const [description, setDescription] = useState("")
   const [shortDescription, setShortDescription] = useState("")
   const [originalPrice, setOriginalPrice] = useState("")
@@ -79,7 +82,7 @@ export default function NewProductPage() {
     e.preventDefault()
     setError("")
 
-    if (!name || !categoryId || !originalPrice || !currentPrice) {
+    if (!name || !categoryId || !brandId || !originalPrice || !currentPrice) {
       setError("Please fill in all required fields")
       return
     }
@@ -94,6 +97,7 @@ export default function NewProductPage() {
           name,
           slug: slug || generateSlug(name),
           category_id: Number.parseInt(categoryId),
+          brand_id: Number.parseInt(brandId),
           description,
           short_description: shortDescription,
           original_price: Number.parseFloat(originalPrice),
@@ -165,6 +169,21 @@ export default function NewProductPage() {
                     {categories.map((cat: any) => (
                       <SelectItem key={cat.id} value={cat.id.toString()}>
                         {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="brand">Brand *</Label>
+                <Select value={brandId} onValueChange={setBrandId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a brand" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {brands.map((brand: any) => (
+                      <SelectItem key={brand.id} value={brand.id.toString()}>
+                        {brand.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
