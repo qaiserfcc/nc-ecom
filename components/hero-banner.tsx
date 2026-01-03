@@ -90,19 +90,25 @@ export default function HeroBanner() {
 
   return (
     <section className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] overflow-hidden rounded-lg md:rounded-xl group">
-      {/* Banner Image */}
-      <img
-        src={imageSrc}
-        alt={currentBanner.title}
-        className="w-full h-full object-cover"
-        loading="lazy"
-      />
+      {/* Banner Image with Transition */}
+      <div className="absolute inset-0 transition-opacity duration-700">
+        <img
+          key={currentIndex}
+          src={imageSrc}
+          alt={currentBanner.title}
+          className="w-full h-full object-cover animate-fade-in"
+          loading="lazy"
+        />
+      </div>
 
       {/* Dark Overlay */}
       <div className="absolute inset-0 bg-black/40" />
 
-      {/* Content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-10">
+      {/* Content with Animation */}
+      <div 
+        key={`content-${currentIndex}`}
+        className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-10 animate-slide-up"
+      >
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-balance text-white mb-4">
           {currentBanner.title}
         </h1>
@@ -110,7 +116,7 @@ export default function HeroBanner() {
           {currentBanner.description}
         </p>
         <Link href={currentBanner.link_url || "/shop"}>
-          <Button className="px-6 sm:px-8 py-2 sm:py-3 text-base">
+          <Button className="px-6 sm:px-8 py-2 sm:py-3 text-base animate-scale-in">
             Shop Now
           </Button>
         </Link>

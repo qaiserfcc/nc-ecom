@@ -84,9 +84,13 @@ export default function Bundles() {
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {bundles.map((bundle) => {
+          {bundles.map((bundle, index) => {
             return (
-              <Card key={bundle.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
+              <Card 
+                key={bundle.id} 
+                className="overflow-hidden hover:shadow-lg transition-all duration-300 group animate-fade-in"
+                style={{ animationDelay: `${index * 0.15}s` }}
+              >
                 <CardContent className="p-0">
                   <Link href={`/bundle/${bundle.id}`}>
                     <div className="relative overflow-hidden bg-muted h-40 sm:h-48">
@@ -99,7 +103,7 @@ export default function Bundles() {
                   </Link>
                   <div className="p-4 sm:p-6">
                     <Link href={`/bundle/${bundle.id}`}>
-                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground hover:text-primary">
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground hover:text-primary transition-colors">
                         {bundle.name}
                       </h3>
                     </Link>
@@ -108,11 +112,11 @@ export default function Bundles() {
                     </div>
                     <div className="flex gap-2">
                       <Link href={`/bundle/${bundle.id}`} className="flex-1">
-                        <Button size="sm" className="w-full">
+                        <Button size="sm" className="w-full transition-transform hover:scale-105">
                           View Bundle
                         </Button>
                       </Link>
-                      <Button size="sm" variant="outline" className="flex-1">
+                      <Button size="sm" variant="outline" className="flex-1 transition-transform hover:scale-105">
                         <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
                       </Button>
                     </div>

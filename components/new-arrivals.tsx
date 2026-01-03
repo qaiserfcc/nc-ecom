@@ -143,11 +143,12 @@ export default function NewArrivals() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {products.map((product) => {
+          {products.map((product, index) => {
             return (
               <Card
                 key={product.id}
-                className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-border/70 group"
+                className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-border/70 group animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <CardContent className="p-0">
                   <Link href={`/product/${product.slug}`}>
@@ -162,7 +163,7 @@ export default function NewArrivals() {
                   </Link>
                   <div className="p-3 sm:p-4 space-y-2">
                     <Link href={`/product/${product.slug}`}>
-                      <h3 className="font-semibold text-sm sm:text-base line-clamp-2 text-foreground hover:text-primary">
+                      <h3 className="font-semibold text-sm sm:text-base line-clamp-2 text-foreground hover:text-primary transition-colors">
                         {product.name}
                       </h3>
                     </Link>
@@ -174,7 +175,7 @@ export default function NewArrivals() {
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        className="flex-1 h-9 text-xs sm:text-sm"
+                        className="flex-1 h-9 text-xs sm:text-sm transition-transform hover:scale-105"
                         disabled={pendingId === product.id}
                         onClick={() => handleAdd(product.id)}
                       >
@@ -188,7 +189,7 @@ export default function NewArrivals() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="flex-1 h-9 bg-transparent"
+                        className="flex-1 h-9 bg-transparent transition-transform hover:scale-105"
                         disabled={pendingId === product.id}
                         onClick={() => handleWishlist(product.id)}
                       >
