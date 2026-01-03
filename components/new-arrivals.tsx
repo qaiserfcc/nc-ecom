@@ -30,7 +30,7 @@ export default function NewArrivals() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("/api/products?new=true&limit=100")
+        const response = await fetch("/api/products?new=true&limit=10")
         if (!response.ok) throw new Error("Failed to fetch new arrivals")
         const data = await response.json()
         setProducts(data.products || [])

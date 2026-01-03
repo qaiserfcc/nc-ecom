@@ -165,10 +165,10 @@ export default function CheckoutPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
+      <main className="min-h-screen bg-gradient-to-br from-accent via-background to-secondary/10">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8 animate-fade-in">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Secure Checkout</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-primary/80 to-secondary bg-clip-text text-transparent">Secure Checkout</h1>
             <p className="text-muted-foreground">Complete your purchase securely</p>
           </div>
 
@@ -181,9 +181,9 @@ export default function CheckoutPage() {
                 </Alert>
               )}
 
-              <Card className="border-border/50 shadow-md hover:shadow-lg transition-shadow duration-300">
-                <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border/50">
-                  <CardTitle>Shipping Information</CardTitle>
+              <Card className="border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/90 backdrop-blur-sm">
+                <CardHeader className="bg-gradient-to-r from-primary/10 via-accent/50 to-secondary/10 border-b border-primary/20">
+                  <CardTitle className="text-foreground">Shipping Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 pt-6">
                   <div className="grid sm:grid-cols-2 gap-4">
@@ -243,25 +243,25 @@ export default function CheckoutPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-border/50 shadow-md hover:shadow-lg transition-shadow duration-300">
-                <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border/50">
-                  <CardTitle>Payment Method</CardTitle>
+              <Card className="border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/90 backdrop-blur-sm">
+                <CardHeader className="bg-gradient-to-r from-primary/10 via-accent/50 to-secondary/10 border-b border-primary/20">
+                  <CardTitle className="text-foreground">Payment Method</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <div className="flex items-center space-x-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-muted/50 hover:border-primary/50 transition-all duration-200 group">
+                    <div className="flex items-center space-x-3 p-4 border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-accent/50 rounded-lg cursor-pointer hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/70 hover:border-primary/50 transition-all duration-200 group shadow-sm">
                       <RadioGroupItem value="cash_on_delivery" id="cod" />
                       <Label htmlFor="cod" className="flex items-center gap-4 cursor-pointer flex-1">
-                        <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                        <div className="p-2 bg-primary/15 rounded-lg group-hover:bg-primary/25 transition-colors">
                           <Banknote className="w-5 h-5 text-primary" />
                         </div>
                         <div className="flex-1">
-                          <p className="font-semibold">Cash on Delivery</p>
+                          <p className="font-semibold text-foreground">Cash on Delivery</p>
                           <p className="text-sm text-muted-foreground">Pay when you receive your order</p>
                         </div>
                       </Label>
                     </div>
-                    <div className="flex items-center space-x-3 p-4 border border-border/50 rounded-lg cursor-not-allowed opacity-50">
+                    <div className="flex items-center space-x-3 p-4 border border-border/50 bg-muted/30 rounded-lg cursor-not-allowed opacity-50">
                       <RadioGroupItem value="card" id="card" disabled />
                       <Label htmlFor="card" className="flex items-center gap-4 cursor-not-allowed flex-1">
                         <div className="p-2 bg-muted rounded-lg">
@@ -281,9 +281,9 @@ export default function CheckoutPage() {
             {/* Order Summary */}
             <div>
               <div className="sticky top-24 animate-fade-in" style={{ animationDelay: '200ms' }}>
-                <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 shadow-lg">
-                  <CardHeader className="pb-3 border-b border-primary/10">
-                    <CardTitle className="text-xl">Order Summary</CardTitle>
+                <Card className="bg-gradient-to-br from-primary/10 via-accent/60 to-secondary/15 border-primary/30 shadow-xl">
+                  <CardHeader className="pb-3 border-b border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/10">
+                    <CardTitle className="text-xl text-foreground">Order Summary</CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">{items.length} item{items.length !== 1 ? 's' : ''} in your order</p>
                   </CardHeader>
                   <CardContent className="pt-4">
@@ -332,17 +332,17 @@ export default function CheckoutPage() {
                         <span className="text-green-600 font-medium">Free</span>
                       </div>
                       <Separator />
-                      <div className="bg-white/50 rounded-lg p-3 border border-primary/20">
+                      <div className="bg-gradient-to-r from-white/80 to-accent/80 rounded-lg p-3 border-2 border-primary/30 shadow-sm">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-foreground">Total Amount</span>
-                          <span className="text-2xl font-bold text-primary">Rs. {totals.final.toLocaleString()}</span>
+                          <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Rs. {totals.final.toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="border-t border-primary/10 bg-white/30">
+                  <CardFooter className="border-t border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/10">
                     <Button 
-                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg transition-all duration-300 py-6 text-base font-semibold" 
+                      className="w-full bg-gradient-to-r from-primary via-primary/90 to-secondary hover:shadow-xl hover:scale-[1.02] transition-all duration-300 py-6 text-base font-semibold border-2 border-primary/30" 
                       onClick={handlePlaceOrder} 
                       disabled={loading}
                     >
