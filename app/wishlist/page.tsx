@@ -116,6 +116,7 @@ export default function WishlistPage() {
                         alt={item.name}
                         fill
                         className="object-cover group-hover:scale-105 transition-all duration-300"
+                        loading="lazy"
                       />
                       {item.stock_quantity === 0 && (
                         <div className="absolute inset-0 bg-background/80 flex items-center justify-center">

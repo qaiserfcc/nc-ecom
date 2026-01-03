@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useCallback, Suspense } from "react"
+import { useState, useCallback, Suspense, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -38,9 +38,12 @@ function ShopContent() {
   const [featuredOnly, setFeaturedOnly] = useState(false)
   const [newOnly, setNewOnly] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [offset, setOffset] = useState(0)
+  const [allItems, setAllItems] = useState<any[]>([])
+  const [hasMore, setHasMore] = useState(true)
 
   // Build query string
-  const buildQuery = useCallback(() => {
+  const buildQuery = useCallback((pageOffset: number = 0) => {
     const params = new URLSearchParams()
     if (search) params.set("search", search)
     if (category && category !== "all") params.set("category", category)
@@ -51,29 +54,55 @@ function ShopContent() {
     if (sortOrder) params.set("order", sortOrder)
     if (featuredOnly) params.set("featured", "true")
     if (newOnly) params.set("new", "true")
+    params.set("limit", "12")
+    params.set("offset", pageOffset.toString())
     return params.toString()
   }, [search, category, brandFilter, priceRange, sortBy, sortOrder, featuredOnly, newOnly])
 
   // Fetch different data based on type
   const getApiEndpoint = () => {
-    if (type === "brands") return `/api/brands?${buildQuery()}`
-    if (type === "bundles") return `/api/bundles?${buildQuery()}`
-    return `/api/products?${buildQuery()}`
+    if (type === "brands") return `/api/brands?${buildQuery(offset)}`
+    if (type === "bundles") return `/api/bundles?${buildQuery(offset)}`
+    return `/api/products?${buildQuery(offset)}`
   }
 
   const { data: itemsData, isLoading: itemsLoading } = useSWR(getApiEndpoint(), fetcher)
   const { data: categoriesData } = useSWR("/api/categories", fetcher)
   const { data: brandsData } = useSWR("/api/brands", fetcher)
 
-  // Extract items based on type
-  const items = type === "brands" 
-    ? (itemsData?.brands || [])
-    : type === "bundles"
-    ? (itemsData?.bundles || [])
-    : (itemsData?.products || [])
+  // Handle pagination - append new items to existing ones
+  useEffect(() => {
+    if (itemsData) {
+      if (offset === 0) {
+        // First page, replace all items
+        const newItems = type === "brands" 
+          ? (itemsData?.brands || [])
+          : type === "bundles"
+          ? (itemsData?.bundles || [])
+          : (itemsData?.products || [])
+        setAllItems(newItems)
+      } else {
+        // Append new items
+        const newItems = type === "brands" 
+          ? (itemsData?.brands || [])
+          : type === "bundles"
+          ? (itemsData?.bundles || [])
+          : (itemsData?.products || [])
+        setAllItems(prev => [...prev, ...newItems])
+      }
+      // Check if there are more items
+      setHasMore(itemsData?.pagination?.hasMore || false)
+    }
+  }, [itemsData, offset, type])
   
   const categories = categoriesData?.categories || []
   const brands = brandsData?.brands || []
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setOffset(0)
+    setAllItems([])
+  }, [search, category, brandFilter, priceRange, sortBy, sortOrder, featuredOnly, newOnly])
 
   // Page title based on type
   const pageTitle = type === "brands" 
@@ -127,6 +156,7 @@ function ShopContent() {
     setSortOrder("desc")
     setFeaturedOnly(false)
     setNewOnly(false)
+    setOffset(0) // Reset pagination
   }
 
   const FilterPanel = () => (
@@ -279,15 +309,17 @@ function ShopContent() {
 
               {/* Results Count */}
               <p className="text-sm text-muted-foreground mb-4">
-                {itemsData?.pagination?.total || items.length || 0} {type === "brands" ? "brands" : type === "bundles" ? "bundles" : "products"} found
+                {allItems.length > 0 
+                  ? `Showing ${allItems.length} of ${itemsData?.pagination?.total || allItems.length}`
+                  : `${itemsData?.pagination?.total || 0}`} {type === "brands" ? "brands" : type === "bundles" ? "bundles" : "products"} found
               </p>
 
               {/* Items Grid */}
-              {itemsLoading ? (
+              {itemsLoading && offset === 0 ? (
                 <div className="flex items-center justify-center py-20">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
-              ) : items.length === 0 ? (
+              ) : allItems.length === 0 ? (
                 <div className="text-center py-20">
                   <p className="text-muted-foreground">No {type} found</p>
                   {type === "products" && (
@@ -297,135 +329,158 @@ function ShopContent() {
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {type === "brands" ? (
-                    // Render Brands
-                    items.map((brand: any) => (
-                      <a key={brand.id} href={brand.website_url} target="_blank" rel="noopener noreferrer">
-                        <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
-                          <div className="relative aspect-square overflow-hidden bg-muted flex items-center justify-center p-8">
-                            <Image
-                              src={brand.logo_url || "/placeholder.svg?height=200&width=200"}
-                              alt={brand.name}
-                              width={200}
-                              height={200}
-                              className="object-contain group-hover:scale-105 transition-transform"
-                            />
-                            {brand.is_featured && (
-                              <Badge className="absolute top-2 right-2 bg-secondary text-secondary-foreground">Featured</Badge>
-                            )}
-                          </div>
-                          <CardContent className="p-4">
-                            <h3 className="font-semibold text-lg mb-2">{brand.name}</h3>
-                            <p className="text-sm text-muted-foreground line-clamp-2">{brand.description}</p>
-                          </CardContent>
-                        </Card>
-                      </a>
-                    ))
-                  ) : type === "bundles" ? (
-                    // Render Bundles
-                    items.map((bundle: any) => (
-                      <Link key={bundle.id} href={`/product/bundle-${bundle.id}`}>
-                        <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
-                          <div className="relative aspect-square overflow-hidden bg-muted">
-                            <Image
-                              src={bundle.image_url || "/placeholder.svg?height=300&width=300"}
-                              alt={bundle.name}
-                              fill
-                              className="object-cover group-hover:scale-105 transition-transform"
-                            />
-                            <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">Bundle</Badge>
-                            {bundle.original_price && bundle.original_price > bundle.bundle_price && (
-                              <Badge variant="destructive" className="absolute top-2 right-2">
-                                Save Rs. {(bundle.original_price - bundle.bundle_price).toLocaleString()}
-                              </Badge>
-                            )}
-                          </div>
-                          <CardContent className="p-3">
-                            <h3 className="font-medium text-sm line-clamp-2 mb-2">{bundle.name}</h3>
-                            <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{bundle.description}</p>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-primary">
-                                Rs. {Number(bundle.bundle_price).toLocaleString()}
-                              </span>
-                              {bundle.original_price && bundle.original_price > bundle.bundle_price && (
-                                <span className="text-xs text-muted-foreground line-through">
-                                  Rs. {Number(bundle.original_price).toLocaleString()}
-                                </span>
+                <>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {type === "brands" ? (
+                      // Render Brands
+                      allItems.map((brand: any) => (
+                        <a key={brand.id} href={brand.website_url} target="_blank" rel="noopener noreferrer">
+                          <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
+                            <div className="relative aspect-square overflow-hidden bg-muted flex items-center justify-center p-8">
+                              <Image
+                                src={brand.logo_url || "/placeholder.svg?height=200&width=200"}
+                                alt={brand.name}
+                                width={200}
+                                height={200}
+                                className="object-contain group-hover:scale-105 transition-transform"
+                                loading="lazy"
+                              />
+                              {brand.is_featured && (
+                                <Badge className="absolute top-2 right-2 bg-secondary text-secondary-foreground">Featured</Badge>
                               )}
                             </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    ))
-                  ) : (
-                    // Render Products
-                    items.map((product: any) => (
-                    <Link key={product.id} href={`/product/${product.slug}`}>
-                      <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
-                        <div className="relative aspect-square overflow-hidden bg-muted">
-                          <Image
-                            src={product.image_url || "/placeholder.svg?height=300&width=300"}
-                            alt={product.name}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform"
-                          />
-                          {product.is_new_arrival && (
-                            <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground">New</Badge>
-                          )}
-                          {product.original_price > product.current_price && (
-                            <Badge variant="destructive" className="absolute top-2 right-2">
-                              {Math.round(
-                                ((product.original_price - product.current_price) / product.original_price) * 100,
+                            <CardContent className="p-4">
+                              <h3 className="font-semibold text-lg mb-2">{brand.name}</h3>
+                              <p className="text-sm text-muted-foreground line-clamp-2">{brand.description}</p>
+                            </CardContent>
+                          </Card>
+                        </a>
+                      ))
+                    ) : type === "bundles" ? (
+                      // Render Bundles
+                      allItems.map((bundle: any) => (
+                        <Link key={bundle.id} href={`/product/bundle-${bundle.id}`}>
+                          <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
+                            <div className="relative aspect-square overflow-hidden bg-muted">
+                              <Image
+                                src={bundle.image_url || "/placeholder.svg?height=300&width=300"}
+                                alt={bundle.name}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform"
+                                loading="lazy"
+                              />
+                              <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">Bundle</Badge>
+                              {bundle.original_price && bundle.original_price > bundle.bundle_price && (
+                                <Badge variant="destructive" className="absolute top-2 right-2">
+                                  Save Rs. {(bundle.original_price - bundle.bundle_price).toLocaleString()}
+                                </Badge>
                               )}
-                              % OFF
-                            </Badge>
-                          )}
-                          <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              size="icon"
-                              variant="secondary"
-                              className="h-8 w-8"
-                              onClick={(e) => handleAddToWishlist(product.id, e)}
-                            >
-                              <Heart className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="secondary"
-                              className="h-8 w-8"
-                              onClick={(e) => handleAddToCart(product.id, e)}
-                            >
-                              <ShoppingCart className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <CardContent className="p-3">
-                          <p className="text-xs text-muted-foreground mb-1">{product.category_name}</p>
-                          <h3 className="font-medium text-sm line-clamp-2 mb-2">{product.name}</h3>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-primary">
-                              Rs. {Number(product.current_price).toLocaleString()}
-                            </span>
-                            <span className="text-xs text-muted-foreground line-through">
-                              Rs. {Number(product.original_price).toLocaleString()}
-                            </span>
-                            <Badge variant="secondary" className="text-[11px] px-2 py-0">
-                              {Math.max(
-                                0,
-                                Math.round(
-                                  ((Number(product.original_price) - Number(product.current_price)) / Number(product.original_price || 1)) *
-                                    100,
-                                ),
-                              )}%
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))
+                            </div>
+                            <CardContent className="p-3">
+                              <h3 className="font-medium text-sm line-clamp-2 mb-2">{bundle.name}</h3>
+                              <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{bundle.description}</p>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-primary">
+                                  Rs. {Number(bundle.bundle_price).toLocaleString()}
+                                </span>
+                                {bundle.original_price && bundle.original_price > bundle.bundle_price && (
+                                  <span className="text-xs text-muted-foreground line-through">
+                                    Rs. {Number(bundle.original_price).toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      ))
+                    ) : (
+                      // Render Products
+                      allItems.map((product: any) => (
+                        <Link key={product.id} href={`/product/${product.slug}`}>
+                          <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
+                            <div className="relative aspect-square overflow-hidden bg-muted">
+                              <Image
+                                src={product.image_url || "/placeholder.svg?height=300&width=300"}
+                                alt={product.name}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform"
+                                loading="lazy"
+                              />
+                              {product.is_new_arrival && (
+                                <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground">New</Badge>
+                              )}
+                              {product.original_price > product.current_price && (
+                                <Badge variant="destructive" className="absolute top-2 right-2">
+                                  {Math.round(
+                                    ((product.original_price - product.current_price) / product.original_price) * 100,
+                                  )}
+                                  % OFF
+                                </Badge>
+                              )}
+                              <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  size="icon"
+                                  variant="secondary"
+                                  className="h-8 w-8"
+                                  onClick={(e) => handleAddToWishlist(product.id, e)}
+                                >
+                                  <Heart className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="secondary"
+                                  className="h-8 w-8"
+                                  onClick={(e) => handleAddToCart(product.id, e)}
+                                >
+                                  <ShoppingCart className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                            <CardContent className="p-3">
+                              <p className="text-xs text-muted-foreground mb-1">{product.category_name}</p>
+                              <h3 className="font-medium text-sm line-clamp-2 mb-2">{product.name}</h3>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-primary">
+                                  Rs. {Number(product.current_price).toLocaleString()}
+                                </span>
+                                <span className="text-xs text-muted-foreground line-through">
+                                  Rs. {Number(product.original_price).toLocaleString()}
+                                </span>
+                                <Badge variant="secondary" className="text-[11px] px-2 py-0">
+                                  {Math.max(
+                                    0,
+                                    Math.round(
+                                      ((Number(product.original_price) - Number(product.current_price)) / Number(product.original_price || 1)) *
+                                        100,
+                                    ),
+                                  )}%
+                                </Badge>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      ))
+                    )}
+                  </div>
+                  {hasMore && (
+                    <div className="flex justify-center mt-8">
+                      <Button
+                        onClick={() => setOffset(offset + 12)}
+                        disabled={itemsLoading}
+                        size="lg"
+                      >
+                        {itemsLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Loading...
+                          </>
+                        ) : (
+                          "Load More"
+                        )}
+                      </Button>
+                    </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           </div>

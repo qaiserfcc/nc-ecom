@@ -190,6 +190,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                         alt={`${product.name} ${index + 1}`}
                         fill
                         className="object-cover"
+                        loading="lazy"
                       />
                     </button>
                   ))}

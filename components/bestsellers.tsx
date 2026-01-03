@@ -207,6 +207,7 @@ export default function Bestsellers() {
                         src={product.image_url || "/placeholder.svg"}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                        loading="lazy"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
                       {discount && (
