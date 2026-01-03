@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Edit, Trash2, Plus, Loader2, AlertCircle } from "lucide-react"
+import { Edit, Trash2, Plus, Loader2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -16,8 +16,16 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 export default function AdminBannersPage() {
   const { data, isLoading, mutate } = useSWR("/api/banners", fetcher)
   const [deleteError, setDeleteError] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
   const banners = data?.banners || []
+  const total = banners.length
+  const totalPages = Math.ceil(total / itemsPerPage)
+  const displayedBanners = banners.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
 
   const handleDelete = async (bannerId: number) => {
     if (!confirm("Are you sure you want to delete this banner?")) return
@@ -118,7 +126,7 @@ export default function AdminBannersPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {banners.map((banner: any) => (
+                  {displayedBanners.map((banner: any) => (
                     <TableRow key={banner.id}>
                       <TableCell>
                         <div className="w-16 h-10 rounded border overflow-hidden bg-muted">
@@ -183,6 +191,32 @@ export default function AdminBannersPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
       )}
     </div>
   )

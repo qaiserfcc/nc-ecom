@@ -27,8 +27,10 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   const [addingToCart, setAddingToCart] = useState(false)
 
   const { data, isLoading, error } = useSWR(`/api/products/${slug}`, fetcher)
+  const { data: discountData } = useSWR("/api/discounts/active", fetcher)
 
   const product = data?.product
+  const activeDiscount = discountData?.discount
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
@@ -109,8 +111,19 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
   const variants = product.variants || []
   const selectedVariantData = variants.find((v: any) => v.id === selectedVariant)
-  const finalPrice =
-    Number(product.current_price) + (selectedVariantData ? Number(selectedVariantData.price_modifier) : 0)
+  
+  const calculateDiscountedPrice = (price: number) => {
+    if (!activeDiscount) return price
+    
+    if (activeDiscount.discount_type === "percentage") {
+      return price - (price * activeDiscount.discount_value) / 100
+    } else {
+      return Math.max(0, price - activeDiscount.discount_value)
+    }
+  }
+  
+  const basePrice = Number(product.current_price) + (selectedVariantData ? Number(selectedVariantData.price_modifier) : 0)
+  const finalPrice = calculateDiscountedPrice(basePrice)
   const discount = Math.round(((product.original_price - product.current_price) / product.original_price) * 100)
 
   return (
@@ -154,9 +167,11 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 {product.is_new_arrival && (
                   <Badge className="absolute top-4 left-4 bg-secondary text-secondary-foreground">New Arrival</Badge>
                 )}
-                {discount > 0 && (
-                  <Badge variant="destructive" className="absolute top-4 right-4">
-                    {discount}% OFF
+                {activeDiscount && (
+                  <Badge className="absolute top-4 right-4 bg-primary text-primary-foreground">
+                    {activeDiscount.discount_type === "percentage"
+                      ? `${activeDiscount.discount_value}% OFF`
+                      : `Rs. ${activeDiscount.discount_value} OFF`}
                   </Badge>
                 )}
               </div>
@@ -190,13 +205,33 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
               </div>
 
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-3xl font-bold text-primary">Rs. {finalPrice.toLocaleString()}</span>
-                <span className="text-lg text-muted-foreground line-through">
-                  Rs. {Number(product.original_price).toLocaleString()}
-                </span>
-                <Badge variant="secondary" className="text-sm">
-                  {Math.max(0, discount)}% OFF
-                </Badge>
+                {activeDiscount ? (
+                  <>
+                    <span className="text-lg text-muted-foreground line-through">
+                      Rs. {basePrice.toLocaleString()}
+                    </span>
+                    <span className="text-3xl font-bold text-primary">Rs. {Math.round(finalPrice).toLocaleString()}</span>
+                    <Badge className="text-sm bg-primary text-primary-foreground">
+                      {activeDiscount.discount_type === "percentage"
+                        ? `${activeDiscount.discount_value}% OFF`
+                        : `Rs. ${activeDiscount.discount_value} OFF`}
+                    </Badge>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-3xl font-bold text-primary">Rs. {basePrice.toLocaleString()}</span>
+                    {discount > 0 && (
+                      <>
+                        <span className="text-lg text-muted-foreground line-through">
+                          Rs. {Number(product.original_price).toLocaleString()}
+                        </span>
+                        <Badge variant="secondary" className="text-sm">
+                          {Math.max(0, discount)}% OFF
+                        </Badge>
+                      </>
+                    )}
+                  </>
+                )}
               </div>
 
               <p className="text-muted-foreground">{product.short_description || product.description}</p>
