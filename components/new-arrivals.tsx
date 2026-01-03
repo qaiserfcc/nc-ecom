@@ -144,11 +144,10 @@ export default function NewArrivals() {
 
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {products.map((product) => {
-            const discount = calculateDiscount(product.original_price, product.current_price)
             return (
               <Card
                 key={product.id}
-                className="overflow-hidden hover:shadow-xl transition duration-300 bg-white/80 backdrop-blur-sm border-border/70"
+                className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-border/70 group"
               >
                 <CardContent className="p-0">
                   <Link href={`/product/${product.slug}`}>
@@ -156,15 +155,9 @@ export default function NewArrivals() {
                       <img
                         src={product.image_url || "/placeholder.svg"}
                         alt={product.name}
-                        className="w-full h-full object-cover hover:scale-110 transition duration-500"
+                        className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
-                      <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-[11px] font-bold px-2 py-1 rounded-full shadow-sm">
-                        New
-                      </div>
-                      <div className="absolute top-2 right-2 bg-destructive text-white text-[11px] font-bold px-2 py-1 rounded-full shadow-sm">
-                        {discount}% OFF
-                      </div>
                     </div>
                   </Link>
                   <div className="p-3 sm:p-4 space-y-2">
@@ -177,12 +170,6 @@ export default function NewArrivals() {
                       <span className="text-primary font-bold text-sm sm:text-base">
                         Rs. {product.current_price.toLocaleString()}
                       </span>
-                      <span className="text-xs sm:text-sm text-muted-foreground line-through">
-                        Rs. {product.original_price.toLocaleString()}
-                      </span>
-                      <Badge variant="secondary" className="text-[11px] px-2 py-0">
-                        {discount}%
-                      </Badge>
                     </div>
                     <div className="flex gap-2">
                       <Button

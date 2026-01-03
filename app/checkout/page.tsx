@@ -165,89 +165,110 @@ export default function CheckoutPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-background">
+      <main className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-2xl md:text-3xl font-bold mb-6">Checkout</h1>
+          <div className="mb-8 animate-fade-in">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Secure Checkout</h1>
+            <p className="text-muted-foreground">Complete your purchase securely</p>
+          </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Checkout Form */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
               {error && (
-                <Alert variant="destructive">
+                <Alert variant="destructive" className="border-destructive/50 bg-destructive/10 animate-fade-in">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
 
-              <Card>
-                <CardHeader>
+              <Card className="border-border/50 shadow-md hover:shadow-lg transition-shadow duration-300">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border/50">
                   <CardTitle>Shipping Information</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 pt-6">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
-                      <Input id="name" value={user?.name || ""} disabled />
+                      <Label htmlFor="name" className="font-semibold">Full Name</Label>
+                      <Input 
+                        id="name" 
+                        value={user?.name || ""} 
+                        disabled 
+                        className="bg-muted/50 cursor-not-allowed"
+                      />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" value={user?.email || ""} disabled />
+                      <Label htmlFor="email" className="font-semibold">Email</Label>
+                      <Input 
+                        id="email" 
+                        type="email" 
+                        value={user?.email || ""} 
+                        disabled 
+                        className="bg-muted/50 cursor-not-allowed"
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="phone" className="font-semibold">Phone Number</Label>
                     <Input
                       id="phone"
                       type="tel"
                       placeholder="Enter your phone number"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
+                      className="focus:ring-2 focus:ring-primary/50 transition-ring"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="address">Shipping Address *</Label>
+                    <Label htmlFor="address" className="font-semibold">Shipping Address <span className="text-destructive">*</span></Label>
                     <Textarea
                       id="address"
                       placeholder="Enter your complete address with city and postal code"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       rows={3}
+                      className="focus:ring-2 focus:ring-primary/50 transition-ring resize-none"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="notes">Order Notes (Optional)</Label>
+                    <Label htmlFor="notes" className="font-semibold">Order Notes (Optional)</Label>
                     <Textarea
                       id="notes"
                       placeholder="Any special instructions for delivery"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       rows={2}
+                      className="focus:ring-2 focus:ring-primary/50 transition-ring resize-none"
                     />
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
+              <Card className="border-border/50 shadow-md hover:shadow-lg transition-shadow duration-300">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border/50">
                   <CardTitle>Payment Method</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <div className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50">
+                    <div className="flex items-center space-x-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-muted/50 hover:border-primary/50 transition-all duration-200 group">
                       <RadioGroupItem value="cash_on_delivery" id="cod" />
-                      <Label htmlFor="cod" className="flex items-center gap-3 cursor-pointer flex-1">
-                        <Banknote className="w-5 h-5 text-primary" />
-                        <div>
-                          <p className="font-medium">Cash on Delivery</p>
+                      <Label htmlFor="cod" className="flex items-center gap-4 cursor-pointer flex-1">
+                        <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                          <Banknote className="w-5 h-5 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold">Cash on Delivery</p>
                           <p className="text-sm text-muted-foreground">Pay when you receive your order</p>
                         </div>
                       </Label>
                     </div>
-                    <div className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 opacity-50">
+                    <div className="flex items-center space-x-3 p-4 border border-border/50 rounded-lg cursor-not-allowed opacity-50">
                       <RadioGroupItem value="card" id="card" disabled />
-                      <Label htmlFor="card" className="flex items-center gap-3 cursor-pointer flex-1">
-                        <CreditCard className="w-5 h-5" />
-                        <div>
-                          <p className="font-medium">Credit/Debit Card</p>
+                      <Label htmlFor="card" className="flex items-center gap-4 cursor-not-allowed flex-1">
+                        <div className="p-2 bg-muted rounded-lg">
+                          <CreditCard className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-muted-foreground">Credit/Debit Card</p>
                           <p className="text-sm text-muted-foreground">Coming soon</p>
                         </div>
                       </Label>
@@ -259,71 +280,79 @@ export default function CheckoutPage() {
 
             {/* Order Summary */}
             <div>
-              <Card className="sticky top-24">
-                <CardHeader>
-                  <CardTitle>Order Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3 max-h-60 overflow-y-auto">
-                    {items.map((item: any) => {
-                      const baseOriginal = Number(item.original_price) + (Number(item.price_modifier) || 0)
-                      const baseFinal = Number(item.current_price) + (Number(item.price_modifier) || 0)
-                      const lineOriginal = baseOriginal * item.quantity
-                      const lineFinal = baseFinal * item.quantity
-                      const lineDiscount = baseOriginal > 0 ? Math.round(((baseOriginal - baseFinal) / baseOriginal) * 100) : 0
-                      return (
-                        <div key={item.id} className="flex gap-3">
-                          <div className="relative w-16 h-16 rounded overflow-hidden bg-muted shrink-0">
-                            <Image
-                              src={item.image_url || "/placeholder.svg?height=64&width=64"}
-                              alt={item.name}
-                              fill
-                              className="object-cover"
-                            />
-                            {lineDiscount > 0 && (
-                              <Badge variant="secondary" className="absolute top-1 right-1 text-[10px] px-1.5 py-0">
-                                {lineDiscount}%
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium line-clamp-1">{item.name}</p>
-                            <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                              <span className="text-primary">Rs. {lineFinal.toLocaleString()}</span>
-                              <span className="text-muted-foreground line-through">Rs. {lineOriginal.toLocaleString()}</span>
+              <div className="sticky top-24 animate-fade-in" style={{ animationDelay: '200ms' }}>
+                <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 shadow-lg">
+                  <CardHeader className="pb-3 border-b border-primary/10">
+                    <CardTitle className="text-xl">Order Summary</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">{items.length} item{items.length !== 1 ? 's' : ''} in your order</p>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="space-y-3 max-h-64 overflow-y-auto pr-2 mb-4">
+                      {items.map((item: any, index: number) => {
+                        const baseOriginal = Number(item.original_price) + (Number(item.price_modifier) || 0)
+                        const baseFinal = Number(item.current_price) + (Number(item.price_modifier) || 0)
+                        const lineOriginal = baseOriginal * item.quantity
+                        const lineFinal = baseFinal * item.quantity
+                        const lineDiscount = baseOriginal > 0 ? Math.round(((baseOriginal - baseFinal) / baseOriginal) * 100) : 0
+                        return (
+                          <div key={item.id} className="flex gap-3 pb-3 border-b border-border/20 last:border-0 hover:bg-white/30 p-2 rounded transition-colors">
+                            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-muted to-muted/50 shrink-0">
+                              <Image
+                                src={item.image_url || "/placeholder.svg?height=64&width=64"}
+                                alt={item.name}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold line-clamp-1">{item.name}</p>
+                              <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                              <div className="flex items-center gap-2 text-sm font-medium mt-1">
+                                <span className="text-primary">Rs. {lineFinal.toLocaleString()}</span>
+                              </div>
                             </div>
                           </div>
+                        )
+                      })}
+                    </div>
+                    <Separator className="my-4" />
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span className="font-semibold">Rs. {totals.original.toLocaleString()}</span>
+                      </div>
+                      {totalDiscount > 0 && (
+                        <div className="flex justify-between items-center text-sm text-green-600">
+                          <span className="font-medium">Discount</span>
+                          <span className="font-bold">-Rs. {totalDiscount.toLocaleString()}</span>
                         </div>
-                      )
-                    })}
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Original</span>
-                    <span className="line-through">Rs. {totals.original.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-green-600">
-                    <span>Discount</span>
-                    <span>-Rs. {totalDiscount.toLocaleString()} ({totalDiscountPercent}%)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Shipping</span>
-                    <span className="text-green-600">Free</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total</span>
-                    <span className="text-primary">Rs. {totals.final.toLocaleString()}</span>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full" size="lg" onClick={handlePlaceOrder} disabled={loading}>
-                    {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Place Order
-                  </Button>
-                </CardFooter>
-              </Card>
+                      )}
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Shipping</span>
+                        <span className="text-green-600 font-medium">Free</span>
+                      </div>
+                      <Separator />
+                      <div className="bg-white/50 rounded-lg p-3 border border-primary/20">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-foreground">Total Amount</span>
+                          <span className="text-2xl font-bold text-primary">Rs. {totals.final.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="border-t border-primary/10 bg-white/30">
+                    <Button 
+                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg transition-all duration-300 py-6 text-base font-semibold" 
+                      onClick={handlePlaceOrder} 
+                      disabled={loading}
+                    >
+                      {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      {loading ? "Processing..." : "Place Order →"}
+                    </Button>
+                  </CardFooter>
+                </Card>
+                <p className="text-xs text-muted-foreground text-center mt-4">Your order is secure and encrypted. We never store your card details.</p>
+              </div>
             </div>
           </div>
         </div>

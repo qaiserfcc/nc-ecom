@@ -85,22 +85,16 @@ export default function Bundles() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {bundles.map((bundle) => {
-            const savings = calculateSavings(bundle.original_price, bundle.bundle_price)
             return (
-              <Card key={bundle.id} className="overflow-hidden hover:shadow-lg transition">
+              <Card key={bundle.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
                 <CardContent className="p-0">
                   <Link href={`/bundle/${bundle.id}`}>
                     <div className="relative overflow-hidden bg-muted h-40 sm:h-48">
                       <img
                         src={bundle.image_url || "/placeholder.svg"}
                         alt={bundle.name}
-                        className="w-full h-full object-cover hover:scale-110 transition duration-300"
+                        className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
                       />
-                      {savings > 0 && (
-                        <div className="absolute top-2 left-2 bg-secondary text-accent font-bold px-3 py-1 rounded text-xs sm:text-sm">
-                          Save Rs. {savings.toLocaleString()}
-                        </div>
-                      )}
                     </div>
                   </Link>
                   <div className="p-4 sm:p-6">
@@ -111,11 +105,6 @@ export default function Bundles() {
                     </Link>
                     <div className="flex items-center justify-between mb-4">
                       <span className="text-lg sm:text-xl font-bold text-primary">Rs. {bundle.bundle_price.toLocaleString()}</span>
-                      {bundle.original_price > bundle.bundle_price && (
-                        <span className="text-xs sm:text-sm text-muted-foreground line-through">
-                          Rs. {bundle.original_price.toLocaleString()}
-                        </span>
-                      )}
                     </div>
                     <div className="flex gap-2">
                       <Link href={`/bundle/${bundle.id}`} className="flex-1">
