@@ -49,12 +49,51 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < products.length; i++) {
       const product = products[i]
       try {
+        // Validate required fields
+        if (!product.brand_id) {
+          throw new Error("brand_id is required for all products")
+        }
+
+        // Handle category by name (case-insensitive)
+        let categoryId = product.category_id
+        if (product.category_name) {
+          // Check if category exists (case-insensitive)
+          const existingCategory = await sql`
+            SELECT id FROM categories 
+            WHERE LOWER(name) = LOWER(${product.category_name})
+            LIMIT 1
+          `
+          
+          if (existingCategory.length > 0) {
+            categoryId = existingCategory[0].id
+          } else {
+            // Create new category
+            const slug = product.category_name
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-+|-+$/g, '')
+            
+            const newCategory = await sql`
+              INSERT INTO categories (name, slug, description)
+              VALUES (${product.category_name}, ${slug}, ${product.category_description || ''})
+              RETURNING id
+            `
+            categoryId = newCategory[0].id
+          }
+        }
+
+        if (!categoryId) {
+          throw new Error("Either category_id or category_name is required")
+        }
+
         const localImageUrl = await downloadAndStoreImage(product.image_url)
         const result = await sql`
-          INSERT INTO products (category_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url)
-          VALUES (${product.category_id}, ${product.name}, ${product.slug}, ${product.description || ""}, ${product.short_description || ""}, ${product.original_price}, ${product.current_price}, ${product.stock_quantity || 0}, ${product.is_featured || false}, ${product.is_new_arrival || false}, ${localImageUrl})
+          INSERT INTO products (category_id, brand_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url)
+          VALUES (${categoryId}, ${product.brand_id}, ${product.name}, ${product.slug}, ${product.description || ""}, ${product.short_description || ""}, ${product.original_price}, ${product.current_price}, ${product.stock_quantity || 0}, ${product.is_featured || false}, ${product.is_new_arrival || false}, ${localImageUrl})
           ON CONFLICT (slug) DO UPDATE SET
             name = EXCLUDED.name,
+            category_id = EXCLUDED.category_id,
+            brand_id = EXCLUDED.brand_id,
             description = EXCLUDED.description,
             short_description = EXCLUDED.short_description,
             original_price = EXCLUDED.original_price,

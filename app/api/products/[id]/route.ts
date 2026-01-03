@@ -12,6 +12,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     
     const result = await sql`
       SELECT p.*, c.name as category_name, c.slug as category_slug,
+             b.name as brand_name, b.slug as brand_slug, b.logo_url as brand_logo,
              COALESCE(
                (SELECT json_agg(json_build_object('id', pi.id, 'image_url', pi.image_url, 'is_primary', pi.is_primary))
                 FROM product_images pi WHERE pi.product_id = p.id), '[]'
@@ -22,6 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
              ) as variants
       FROM products p
       JOIN categories c ON p.category_id = c.id
+      JOIN brand_partnerships b ON p.brand_id = b.id
       WHERE ${!Number.isNaN(productId) ? sql`p.id = ${productId}` : sql`p.slug = ${id}`}
     `
 
@@ -55,6 +57,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const body = await request.json()
     const {
       category_id,
+      brand_id,
       name,
       slug,
       description,
@@ -72,6 +75,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const result = await sql`
       UPDATE products SET
         category_id = COALESCE(${category_id}, category_id),
+        brand_id = COALESCE(${brand_id}, brand_id),
         name = COALESCE(${name}, name),
         slug = COALESCE(${slug}, slug),
         description = COALESCE(${description}, description),

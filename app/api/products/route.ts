@@ -60,6 +60,7 @@ export async function GET(request: NextRequest) {
 
     const products = await sql`
       SELECT p.*, c.name as category_name, c.slug as category_slug,
+             b.name as brand_name, b.slug as brand_slug, b.logo_url as brand_logo,
              COALESCE(
                (SELECT json_agg(json_build_object('id', pi.id, 'image_url', pi.image_url, 'is_primary', pi.is_primary))
                 FROM product_images pi WHERE pi.product_id = p.id), '[]'::json
@@ -70,6 +71,7 @@ export async function GET(request: NextRequest) {
              ) as variants
       FROM products p
       JOIN categories c ON p.category_id = c.id
+      JOIN brand_partnerships b ON p.brand_id = b.id
       WHERE p.id IS NOT NULL ${filters.length > 0 ? sql.unsafe(`AND ${filters.join(" AND ")}`) : sql``}
       ORDER BY p.${sql.unsafe(sortField)} ${sql.unsafe(sortOrder)}
       LIMIT ${limit} OFFSET ${offset}
@@ -78,6 +80,8 @@ export async function GET(request: NextRequest) {
     const countResult = await sql`
       SELECT COUNT(*)::int as total
       FROM products p
+      JOIN categories c ON p.category_id = c.id
+      JOIN brand_partnerships b ON p.brand_id = b.id
       JOIN categories c ON p.category_id = c.id
       WHERE p.id IS NOT NULL ${countFilters.length > 0 ? sql.unsafe(`AND ${countFilters.join(" AND ")}`) : sql``}
     `
@@ -123,6 +127,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const {
       category_id,
+      brand_id,
       name,
       slug,
       description,
@@ -137,10 +142,15 @@ export async function POST(request: NextRequest) {
       variants,
     } = body
 
+    // Validate required fields
+    if (!brand_id) {
+      return NextResponse.json({ error: "brand_id is required" }, { status: 400 })
+    }
+
     // Insert product
     const result = await sql`
-      INSERT INTO products (category_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url)
-      VALUES (${category_id}, ${name}, ${slug}, ${description}, ${short_description}, ${original_price}, ${current_price}, ${stock_quantity || 0}, ${is_featured || false}, ${is_new_arrival || false}, ${image_url})
+      INSERT INTO products (category_id, brand_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url)
+      VALUES (${category_id}, ${brand_id}, ${name}, ${slug}, ${description}, ${short_description}, ${original_price}, ${current_price}, ${stock_quantity || 0}, ${is_featured || false}, ${is_new_arrival || false}, ${image_url})
       RETURNING *
     `
 

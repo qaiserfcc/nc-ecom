@@ -23,10 +23,23 @@ CREATE TABLE IF NOT EXISTS categories (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create brand_partnerships table (must be before products)
+CREATE TABLE IF NOT EXISTS brand_partnerships (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  slug TEXT,
+  logo_url TEXT,
+  website_url TEXT,
+  description TEXT,
+  is_featured BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create products table
 CREATE TABLE IF NOT EXISTS products (
   id SERIAL PRIMARY KEY,
   category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  brand_id INTEGER NOT NULL REFERENCES brand_partnerships(id) ON DELETE RESTRICT,
   name TEXT NOT NULL,
   slug TEXT NOT NULL UNIQUE,
   description TEXT,
@@ -143,17 +156,6 @@ CREATE TABLE IF NOT EXISTS analytics (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create brand_partnerships table
-CREATE TABLE IF NOT EXISTS brand_partnerships (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL UNIQUE,
-  logo_url TEXT,
-  website_url TEXT,
-  description TEXT,
-  is_featured BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Create product_bundles table
 CREATE TABLE IF NOT EXISTS product_bundles (
   id SERIAL PRIMARY KEY,
@@ -175,6 +177,7 @@ CREATE TABLE IF NOT EXISTS bundle_items (
 
 -- Create indexes for performance
 CREATE INDEX idx_products_category ON products(category_id);
+CREATE INDEX idx_products_brand ON products(brand_id);
 CREATE INDEX idx_products_slug ON products(slug);
 CREATE INDEX idx_products_featured ON products(is_featured);
 CREATE INDEX idx_products_new ON products(is_new_arrival);

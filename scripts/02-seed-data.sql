@@ -7,38 +7,38 @@ INSERT INTO categories (name, slug, description, image_url) VALUES
 ON CONFLICT (slug) DO NOTHING;
 
 -- Seed products - Skincare
-INSERT INTO products (category_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url) VALUES
-((SELECT id FROM categories WHERE slug = 'skincare'), 'Vitamin C Serum', 'vitamin-c-serum', 'Premium vitamin C serum for reducing wrinkles and brightening skin. Promotes shiny and healthier skin.', 'Anti-aging vitamin C serum', 1560.00, 1099.00, 45, TRUE, FALSE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'skincare'), 'Pinkish Lips & Cheek Tint', 'pinkish-lips-cheek-tint', 'Organic liquid stain for lips that nourishes and hydrates all day. A customer favorite.', 'Natural lip and cheek tint', 1000.00, 599.00, 60, TRUE, FALSE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'skincare'), 'Glow Facial Kit', 'glow-facial-kit', 'Complete facial kit with deep cleansing and anti-aging properties. 4x results in one kit.', 'All-in-one facial treatment', 6865.00, 4599.00, 25, TRUE, TRUE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'skincare'), 'Niacinamide Serum', 'niacinamide-serum', 'Strengthens skin barrier and boosts immunity. Perfect for sensitive skin.', 'Skin barrier strengthening serum', 1560.00, 1099.00, 35, FALSE, FALSE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'skincare'), 'Tea Tree Anti Acne Face Wash', 'tea-tree-face-wash', 'Prevents acne eruptions and removes excess oil. Reduces blackheads and whiteheads.', 'Anti-acne face wash', 800.00, 599.00, 50, FALSE, TRUE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'skincare'), 'Hand & Foot Glowing Cream', 'hand-foot-cream', 'Formulated with multi-vitamins. Moisturizes, soothes and makes skin soft and glowing.', 'Moisturizing hand and foot cream', 1276.00, 899.00, 40, FALSE, FALSE, '/placeholder.svg?height=400&width=400')
+INSERT INTO products (category_id, brand_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url) VALUES
+((SELECT id FROM categories WHERE slug = 'skincare'), (SELECT id FROM brand_partnerships WHERE slug = 'nature-pure'), 'Vitamin C Serum', 'vitamin-c-serum', 'Premium vitamin C serum for reducing wrinkles and brightening skin. Promotes shiny and healthier skin.', 'Anti-aging vitamin C serum', 1560.00, 1099.00, 45, TRUE, FALSE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'skincare'), (SELECT id FROM brand_partnerships WHERE slug = 'pure-botanicals'), 'Pinkish Lips & Cheek Tint', 'pinkish-lips-cheek-tint', 'Organic liquid stain for lips that nourishes and hydrates all day. A customer favorite.', 'Natural lip and cheek tint', 1000.00, 599.00, 60, TRUE, FALSE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'skincare'), (SELECT id FROM brand_partnerships WHERE slug = 'nature-pure'), 'Glow Facial Kit', 'glow-facial-kit', 'Complete facial kit with deep cleansing and anti-aging properties. 4x results in one kit.', 'All-in-one facial treatment', 6865.00, 4599.00, 25, TRUE, TRUE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'skincare'), (SELECT id FROM brand_partnerships WHERE slug = 'nature-pure'), 'Niacinamide Serum', 'niacinamide-serum', 'Strengthens skin barrier and boosts immunity. Perfect for sensitive skin.', 'Skin barrier strengthening serum', 1560.00, 1099.00, 35, FALSE, FALSE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'skincare'), (SELECT id FROM brand_partnerships WHERE slug = 'pure-botanicals'), 'Tea Tree Anti Acne Face Wash', 'tea-tree-face-wash', 'Prevents acne eruptions and removes excess oil. Reduces blackheads and whiteheads.', 'Anti-acne face wash', 800.00, 599.00, 50, FALSE, TRUE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'skincare'), (SELECT id FROM brand_partnerships WHERE slug = 'organic-essentials'), 'Hand & Foot Glowing Cream', 'hand-foot-cream', 'Formulated with multi-vitamins. Moisturizes, soothes and makes skin soft and glowing.', 'Moisturizing hand and foot cream', 1276.00, 899.00, 40, FALSE, FALSE, '/placeholder.svg?height=400&width=400')
 ON CONFLICT (slug) DO NOTHING;
 
 -- Seed products - Haircare
-INSERT INTO products (category_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url) VALUES
-((SELECT id FROM categories WHERE slug = 'haircare'), 'Red Onion Oil', 'red-onion-oil', 'Reduces hair fall and accelerates hair regrowth. Trending formula with proven results.', 'Hair growth onion oil', 1560.00, 1099.00, 70, TRUE, FALSE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'haircare'), 'Henna Hair and Beard Dye', 'henna-dye', 'Prevents premature hair greying and improves scalp health. Natural color in chocolate and coffee shades.', 'Natural henna dye', 1134.00, 799.00, 55, FALSE, FALSE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'haircare'), 'Rosemary Infused Oil', 'rosemary-oil', 'Deeply hydrates hair, controls sebum production and reduces blemishes. 100% pure organic.', 'Premium rosemary oil', 1844.00, 1299.00, 30, TRUE, TRUE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'haircare'), 'Argan Hair Serum', 'argan-serum', 'Strengthens hair and adds shine. Perfect for dry and damaged hair.', 'Argan hair serum', 1400.00, 999.00, 38, FALSE, FALSE, '/placeholder.svg?height=400&width=400')
+INSERT INTO products (category_id, brand_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url) VALUES
+((SELECT id FROM categories WHERE slug = 'haircare'), (SELECT id FROM brand_partnerships WHERE slug = 'organic-essentials'), 'Red Onion Oil', 'red-onion-oil', 'Reduces hair fall and accelerates hair regrowth. Trending formula with proven results.', 'Hair growth onion oil', 1560.00, 1099.00, 70, TRUE, FALSE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'haircare'), (SELECT id FROM brand_partnerships WHERE slug = 'pure-botanicals'), 'Henna Hair and Beard Dye', 'henna-dye', 'Prevents premature hair greying and improves scalp health. Natural color in chocolate and coffee shades.', 'Natural henna dye', 1134.00, 799.00, 55, FALSE, FALSE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'haircare'), (SELECT id FROM brand_partnerships WHERE slug = 'organic-essentials'), 'Rosemary Infused Oil', 'rosemary-oil', 'Deeply hydrates hair, controls sebum production and reduces blemishes. 100% pure organic.', 'Premium rosemary oil', 1844.00, 1299.00, 30, TRUE, TRUE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'haircare'), (SELECT id FROM brand_partnerships WHERE slug = 'organic-essentials'), 'Argan Hair Serum', 'argan-serum', 'Strengthens hair and adds shine. Perfect for dry and damaged hair.', 'Argan hair serum', 1400.00, 999.00, 38, FALSE, FALSE, '/placeholder.svg?height=400&width=400')
 ON CONFLICT (slug) DO NOTHING;
 
 -- Seed products - Foods & Supplements
-INSERT INTO products (category_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url) VALUES
-((SELECT id FROM categories WHERE slug = 'foods-supplements'), 'Chia Seeds', 'chia-seeds', 'High in fiber and protein. Aids in weight loss and boosts metabolism.', 'Organic chia seeds', 2412.00, 1699.00, 100, TRUE, FALSE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'foods-supplements'), 'Mix Seeds Pack', 'mix-seeds', 'Rich in antioxidants and metabolism booster. Good source of Omega-3 fatty acids.', 'Superfood seed mix', 1560.00, 1099.00, 85, FALSE, FALSE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'foods-supplements'), 'Sidr Beri Honey', 'sidr-beri-honey', 'Pure natural honey with 100% purity guaranteed. Rich in antioxidants and minerals.', 'Premium sidr honey', 1699.00, 1699.00, 60, TRUE, TRUE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'foods-supplements'), 'Desi Cow Ghee', 'desi-cow-ghee', 'Pure clarified butter from grass-fed cows. Traditional superfood for health.', 'Organic cow ghee', 2500.00, 1999.00, 50, TRUE, FALSE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'foods-supplements'), 'Almond Butter', 'almond-butter', 'Rich in protein and healthy fats. Perfect for fitness enthusiasts and health-conscious people.', 'Natural almond butter', 2000.00, 1499.00, 45, FALSE, TRUE, '/placeholder.svg?height=400&width=400')
+INSERT INTO products (category_id, brand_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url) VALUES
+((SELECT id FROM categories WHERE slug = 'foods-supplements'), (SELECT id FROM brand_partnerships WHERE slug = 'green-wellness'), 'Chia Seeds', 'chia-seeds', 'High in fiber and protein. Aids in weight loss and boosts metabolism.', 'Organic chia seeds', 2412.00, 1699.00, 100, TRUE, FALSE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'foods-supplements'), (SELECT id FROM brand_partnerships WHERE slug = 'green-wellness'), 'Mix Seeds Pack', 'mix-seeds', 'Rich in antioxidants and metabolism booster. Good source of Omega-3 fatty acids.', 'Superfood seed mix', 1560.00, 1099.00, 85, FALSE, FALSE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'foods-supplements'), (SELECT id FROM brand_partnerships WHERE slug = 'organic-essentials'), 'Sidr Beri Honey', 'sidr-beri-honey', 'Pure natural honey with 100% purity guaranteed. Rich in antioxidants and minerals.', 'Premium sidr honey', 1699.00, 1699.00, 60, TRUE, TRUE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'foods-supplements'), (SELECT id FROM brand_partnerships WHERE slug = 'green-wellness'), 'Desi Cow Ghee', 'desi-cow-ghee', 'Pure clarified butter from grass-fed cows. Traditional superfood for health.', 'Organic cow ghee', 2500.00, 1999.00, 50, TRUE, FALSE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'foods-supplements'), (SELECT id FROM brand_partnerships WHERE slug = 'green-wellness'), 'Almond Butter', 'almond-butter', 'Rich in protein and healthy fats. Perfect for fitness enthusiasts and health-conscious people.', 'Natural almond butter', 2000.00, 1499.00, 45, FALSE, TRUE, '/placeholder.svg?height=400&width=400')
 ON CONFLICT (slug) DO NOTHING;
 
 -- Seed products - Cosmetics
-INSERT INTO products (category_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url) VALUES
-((SELECT id FROM categories WHERE slug = 'cosmetics'), 'Activated Charcoal Teeth Whitening', 'charcoal-teeth-whitener', 'Whitens teeth naturally and kills cavity-causing bacteria. Eliminates bad breath.', 'Natural teeth whitening', 1418.00, 999.00, 75, TRUE, FALSE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'cosmetics'), 'Rice Facial Kit', 'rice-facial-kit', 'Revitalize your skin with rice extract. Complete bright and glow kit.', 'Rice facial treatment', 6865.00, 4599.00, 20, TRUE, TRUE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'cosmetics'), 'Halawa Finger Wax', 'halawa-wax', 'Natural hair removal wax made with apple extract. Gentle on skin.', 'Natural waxing product', 1200.00, 990.00, 40, FALSE, FALSE, '/placeholder.svg?height=400&width=400'),
-((SELECT id FROM categories WHERE slug = 'cosmetics'), 'Red Apple Moisturizing Cream', 'apple-moisturizer', 'Illuminate your skins hydration with apple bliss. Rich and nourishing formula.', 'Apple moisturizing cream', 1200.00, 999.00, 50, FALSE, FALSE, '/placeholder.svg?height=400&width=400')
+INSERT INTO products (category_id, brand_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url) VALUES
+((SELECT id FROM categories WHERE slug = 'cosmetics'), (SELECT id FROM brand_partnerships WHERE slug = 'pure-botanicals'), 'Activated Charcoal Teeth Whitening', 'charcoal-teeth-whitener', 'Whitens teeth naturally and kills cavity-causing bacteria. Eliminates bad breath.', 'Natural teeth whitening', 1418.00, 999.00, 75, TRUE, FALSE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'cosmetics'), (SELECT id FROM brand_partnerships WHERE slug = 'nature-pure'), 'Rice Facial Kit', 'rice-facial-kit', 'Revitalize your skin with rice extract. Complete bright and glow kit.', 'Rice facial treatment', 6865.00, 4599.00, 20, TRUE, TRUE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'cosmetics'), (SELECT id FROM brand_partnerships WHERE slug = 'pure-botanicals'), 'Halawa Finger Wax', 'halawa-wax', 'Natural hair removal wax made with apple extract. Gentle on skin.', 'Natural waxing product', 1200.00, 990.00, 40, FALSE, FALSE, '/placeholder.svg?height=400&width=400'),
+((SELECT id FROM categories WHERE slug = 'cosmetics'), (SELECT id FROM brand_partnerships WHERE slug = 'nature-pure'), 'Red Apple Moisturizing Cream', 'apple-moisturizer', 'Illuminate your skins hydration with apple bliss. Rich and nourishing formula.', 'Apple moisturizing cream', 1200.00, 999.00, 50, FALSE, FALSE, '/placeholder.svg?height=400&width=400')
 ON CONFLICT (slug) DO NOTHING;
 
 -- Seed product bundles
@@ -60,24 +60,26 @@ INSERT INTO bundle_items (bundle_id, product_id, quantity) VALUES
 ((SELECT id FROM product_bundles WHERE name = 'Organic Health Pack'), (SELECT id FROM products WHERE slug = 'desi-cow-ghee'), 1);
 
 -- Seed brand partnerships
-INSERT INTO brand_partnerships (name, logo_url, website_url, description, is_featured) VALUES
-('Chiltanpure Organics', 'https://chiltanpure.com/wp-content/uploads/2023/11/chiltanpure-logo.png', 'https://chiltanpure.com', 'Official ChiltanPure brand from Pakistan with natural beauty and wellness essentials.', TRUE),
-('Nature Pure', '/placeholder.svg?height=100&width=100', 'https://naturepure.com', 'Natural and organic beauty solutions', TRUE),
-('Green Wellness', '/placeholder.svg?height=100&width=100', 'https://greenwellness.com', 'Holistic health and wellness products', FALSE),
-('Pure Botanicals', '/placeholder.svg?height=100&width=100', 'https://purebotanicals.com', 'Plant-based organic products', FALSE),
-('Organic Essentials', '/placeholder.svg?height=100&width=100', 'https://orgessentials.com', 'Essential oils and organic extracts', TRUE)
+INSERT INTO brand_partnerships (name, slug, logo_url, website_url, description, is_featured) VALUES
+('Chiltanpure Organics', 'chiltanpure-organics', 'https://chiltanpure.com/wp-content/uploads/2023/11/chiltanpure-logo.png', 'https://chiltanpure.com', 'Official ChiltanPure brand from Pakistan with natural beauty and wellness essentials.', TRUE),
+('Nature Pure', 'nature-pure', '/placeholder.svg?height=100&width=100', 'https://naturepure.com', 'Natural and organic beauty solutions', TRUE),
+('Green Wellness', 'green-wellness', '/placeholder.svg?height=100&width=100', 'https://greenwellness.com', 'Holistic health and wellness products', FALSE),
+('Pure Botanicals', 'pure-botanicals', '/placeholder.svg?height=100&width=100', 'https://purebotanicals.com', 'Plant-based organic products', FALSE),
+('Organic Essentials', 'organic-essentials', '/placeholder.svg?height=100&width=100', 'https://orgessentials.com', 'Essential oils and organic extracts', TRUE),
+('Unbranded', 'unbranded', '', '', 'Default brand for unbranded products', FALSE)
 ON CONFLICT (name) DO UPDATE SET
+	slug = EXCLUDED.slug,
 	logo_url = EXCLUDED.logo_url,
 	website_url = EXCLUDED.website_url,
 	description = EXCLUDED.description,
 	is_featured = EXCLUDED.is_featured;
 
 -- ChiltanPure best sellers (featured)
-INSERT INTO products (category_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url) VALUES
-((SELECT id FROM categories WHERE slug = 'haircare'), 'ChiltanPure Miracle Hair Growth Oil', 'chiltanpure-miracle-hair-oil', 'Signature ChiltanPure blend that supports hair regrowth and scalp health.', 'Bestselling growth oil from ChiltanPure.com', 2400.00, 1899.00, 80, TRUE, TRUE, 'https://chiltanpure.com/wp-content/uploads/2023/11/hair-growth-oil.jpg'),
-((SELECT id FROM categories WHERE slug = 'skincare'), 'ChiltanPure 24K Vitamin C Serum', 'chiltanpure-vitamin-c-serum', 'Brightening serum infused with vitamin C and gold flakes to revive dull skin.', 'Top-rated serum from ChiltanPure.com', 3200.00, 2399.00, 60, TRUE, FALSE, 'https://chiltanpure.com/wp-content/uploads/2023/11/vitamin-c-serum.jpg'),
-((SELECT id FROM categories WHERE slug = 'cosmetics'), 'ChiltanPure Pinkish Lip & Cheek Tint', 'chiltanpure-pinkish-tint', 'Lightweight tint with long-lasting natural pigment and nourishing oils.', 'Viral tint from ChiltanPure.com', 1800.00, 1299.00, 90, TRUE, TRUE, 'https://chiltanpure.com/wp-content/uploads/2023/11/pinkish-tint.jpg'),
-((SELECT id FROM categories WHERE slug = 'foods-supplements'), 'ChiltanPure Sidr Beri Honey', 'chiltanpure-sidr-beri-honey', 'Raw Sidr honey sourced and bottled by ChiltanPure for daily immunity.', 'Flagship honey from ChiltanPure.com', 2600.00, 2199.00, 70, TRUE, FALSE, 'https://chiltanpure.com/wp-content/uploads/2023/11/sidr-honey.jpg')
+INSERT INTO products (category_id, brand_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url) VALUES
+((SELECT id FROM categories WHERE slug = 'haircare'), (SELECT id FROM brand_partnerships WHERE slug = 'chiltanpure-organics'), 'ChiltanPure Miracle Hair Growth Oil', 'chiltanpure-miracle-hair-oil', 'Signature ChiltanPure blend that supports hair regrowth and scalp health.', 'Bestselling growth oil from ChiltanPure.com', 2400.00, 1899.00, 80, TRUE, TRUE, 'https://chiltanpure.com/wp-content/uploads/2023/11/hair-growth-oil.jpg'),
+((SELECT id FROM categories WHERE slug = 'skincare'), (SELECT id FROM brand_partnerships WHERE slug = 'chiltanpure-organics'), 'ChiltanPure 24K Vitamin C Serum', 'chiltanpure-vitamin-c-serum', 'Brightening serum infused with vitamin C and gold flakes to revive dull skin.', 'Top-rated serum from ChiltanPure.com', 3200.00, 2399.00, 60, TRUE, FALSE, 'https://chiltanpure.com/wp-content/uploads/2023/11/vitamin-c-serum.jpg'),
+((SELECT id FROM categories WHERE slug = 'cosmetics'), (SELECT id FROM brand_partnerships WHERE slug = 'chiltanpure-organics'), 'ChiltanPure Pinkish Lip & Cheek Tint', 'chiltanpure-pinkish-tint', 'Lightweight tint with long-lasting natural pigment and nourishing oils.', 'Viral tint from ChiltanPure.com', 1800.00, 1299.00, 90, TRUE, TRUE, 'https://chiltanpure.com/wp-content/uploads/2023/11/pinkish-tint.jpg'),
+((SELECT id FROM categories WHERE slug = 'foods-supplements'), (SELECT id FROM brand_partnerships WHERE slug = 'chiltanpure-organics'), 'ChiltanPure Sidr Beri Honey', 'chiltanpure-sidr-beri-honey', 'Raw Sidr honey sourced and bottled by ChiltanPure for daily immunity.', 'Flagship honey from ChiltanPure.com', 2600.00, 2199.00, 70, TRUE, FALSE, 'https://chiltanpure.com/wp-content/uploads/2023/11/sidr-honey.jpg')
 ON CONFLICT (slug) DO NOTHING;
 
 -- Seed sample discount
