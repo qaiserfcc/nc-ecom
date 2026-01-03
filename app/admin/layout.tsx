@@ -75,12 +75,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors cursor-pointer z-10 relative block ${
                   isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted text-foreground"
                 }`}
               >
-                <item.icon className="w-5 h-5" />
-                {item.label}
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                <span>{item.label}</span>
               </Link>
             )
           })}
@@ -113,11 +113,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <header className="md:hidden sticky top-0 z-50 flex items-center justify-between h-14 px-4 border-b bg-background">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="z-50">
               <Menu className="w-5 h-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64">
+          <SheetContent side="left" className="p-0 w-64 z-50">
             <Sidebar />
           </SheetContent>
         </Sheet>
