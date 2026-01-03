@@ -13,6 +13,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { OptimizedImage } from "@/components/optimized-image"
+import { VirtualizedProductGrid } from "@/components/virtualized-product-grid"
+import { PerformanceMetricsDisplay } from "@/components/performance-metrics-display"
+import { useServiceWorker } from "@/lib/hooks/use-service-worker"
+import { usePerformanceMonitoring } from "@/lib/hooks/use-performance-monitoring"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Slider } from "@/components/ui/slider"
@@ -28,6 +33,10 @@ function ShopContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { isAuthenticated } = useAuth()
+
+  // Initialize performance monitoring and service worker
+  const performanceMonitor = usePerformanceMonitoring()
+  const swStatus = useServiceWorker()
 
   const type = searchParams.get("type") || "products" // Get the type parameter
   const [search, setSearch] = useState(searchParams.get("search") || "")
@@ -503,12 +512,13 @@ function ShopContent() {
                                   {!productImages[product.id] ? (
                                     <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50" />
                                   ) : (
-                                    <Image
+                                    <OptimizedImage
                                       src={imageUrl}
                                       alt={product.name}
                                       fill
-                                      className="object-cover group-hover:scale-105 transition-transform"
+                                      className="group-hover:scale-105 transition-transform"
                                       loading="lazy"
+                                      onLoad={() => performanceMonitor.recordImageLoad(Date.now())}
                                     />
                                   )}
                                   {product.is_new_arrival && (
@@ -609,6 +619,16 @@ function ShopContent() {
         </div>
       </main>
       <Footer />
+      
+      {/* Performance Metrics Display - Only in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <PerformanceMetricsDisplay
+          metrics={performanceMonitor.getMetrics()}
+          logMetrics={performanceMonitor.logMetrics}
+          clearCache={swStatus.clearCache}
+          swIsRegistered={swStatus.isRegistered}
+        />
+      )}
     </>
   )
 }

@@ -3,11 +3,29 @@ import { neon } from "@neondatabase/serverless"
 
 const sql = neon(process.env.DATABASE_URL!)
 
-// GET product images by product IDs
+// Helper to convert image URL to WebP if supported by client
+function getImageUrl(imageUrl: string, acceptWebP: boolean): string {
+  if (!imageUrl) return imageUrl
+  
+  // If client supports WebP, suggest WebP version
+  // In production, this would convert to WebP via image service
+  if (acceptWebP && !imageUrl.includes('placeholder')) {
+    // Return URL that can be handled by image optimization service
+    // Format: original.jpg -> original.webp
+    const urlWithoutExt = imageUrl.substring(0, imageUrl.lastIndexOf('.'))
+    const webpUrl = `${urlWithoutExt}.webp`
+    return webpUrl
+  }
+  
+  return imageUrl
+}
+
+// GET product images by product IDs with format negotiation
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const idsParam = searchParams.get("ids") // Comma-separated product IDs
+    const format = searchParams.get("format") || "auto" // auto, webp, jpeg
 
     if (!idsParam) {
       return NextResponse.json({ error: "Missing ids parameter" }, { status: 400 })
@@ -19,6 +37,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ images: {} })
     }
 
+    // Check client's Accept header for WebP support
+    const acceptHeader = request.headers.get("accept") || ""
+    const acceptWebP = acceptHeader.includes("image/webp") || format === "webp"
+
     // Fetch images for the given product IDs
     const images = await sql`
       SELECT product_id, id, image_url, is_primary
@@ -27,7 +49,7 @@ export async function GET(request: NextRequest) {
       ORDER BY product_id, is_primary DESC, created_at ASC
     `
 
-    // Group images by product_id
+    // Group images by product_id with format negotiation
     const imagesByProduct: Record<number, any[]> = {}
     ids.forEach((id) => {
       imagesByProduct[id] = []
@@ -35,15 +57,27 @@ export async function GET(request: NextRequest) {
 
     images.forEach((img: any) => {
       if (imagesByProduct[img.product_id]) {
+        const imageUrl = getImageUrl(img.image_url, acceptWebP)
         imagesByProduct[img.product_id].push({
           id: img.id,
-          image_url: img.image_url,
+          image_url: imageUrl,
+          original_url: img.image_url, // Keep original for fallback
           is_primary: img.is_primary,
+          format: acceptWebP ? "webp" : "jpeg",
         })
       }
     })
 
-    return NextResponse.json({ images: imagesByProduct })
+    // Add cache headers for aggressive caching of images
+    const response = NextResponse.json({ images: imagesByProduct })
+    
+    // Cache images for 30 days (images don't change often)
+    response.headers.set(
+      "Cache-Control",
+      "public, max-age=2592000, immutable"
+    )
+    
+    return response
   } catch (error) {
     console.error("Error fetching product images:", error)
     return NextResponse.json({ error: "Failed to fetch images" }, { status: 500 })
