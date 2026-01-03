@@ -12,10 +12,13 @@ export default function AboutSection() {
               Namecheap is a community platform that shares its own profit with users by giving them more discount than
               the official price. We make quality products affordable through smart buying and profit sharing.
             </p>
+            <p className="text-muted-foreground mb-4 text-sm sm:text-base leading-relaxed">
+              <strong>First way:</strong> We buy in bulk to get 20% discount from suppliers, then sell individual 
+              items to you with 10% discount from retail price.
+            </p>
             <p className="text-muted-foreground mb-6 text-sm sm:text-base leading-relaxed">
-              <strong>First way:</strong> We buy in bulk to get 20% discount from suppliers, then sell individual items to you 
-              with 10% discount from retail price. <strong>Second way:</strong> Our referral program earns us 20% commission - 
-              we share half (10%) with you and keep 10% for operations.
+              <strong>Second way:</strong> Our referral program earns us 20% commission - we share half (10%) with 
+              you and keep 10% for operations.
             </p>
             <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
               Join our community where everyone wins - better prices for you, sustainable growth for us, and shared profits 

@@ -115,7 +115,7 @@ export default function WishlistPage() {
                         src={item.image_url || "/placeholder.svg?height=300&width=300"}
                         alt={item.name}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="object-cover group-hover:scale-105 transition-all duration-300"
                       />
                       {item.stock_quantity === 0 && (
                         <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
