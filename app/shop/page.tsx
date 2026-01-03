@@ -20,6 +20,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Search, Filter, Heart, ShoppingCart, Loader2, X } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
+import { ProductCardSkeleton } from "@/components/product-card-skeleton"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -41,6 +42,8 @@ function ShopContent() {
   const [offset, setOffset] = useState(0)
   const [allItems, setAllItems] = useState<any[]>([])
   const [hasMore, setHasMore] = useState(true)
+  const [prefetchedData, setPrefetchedData] = useState<any>(null)
+  const [loadingImages, setLoadingImages] = useState<Record<number, boolean>>({})
 
   // Build query string
   const buildQuery = useCallback((pageOffset: number = 0) => {
@@ -66,9 +69,68 @@ function ShopContent() {
     return `/api/products?${buildQuery(offset)}`
   }
 
-  const { data: itemsData, isLoading: itemsLoading } = useSWR(getApiEndpoint(), fetcher)
+  // For brands and bundles, use original endpoint; for products, use optimized flow
+  const isProductType = type === "products"
+  
+  const { data: itemsData, isLoading: itemsLoading } = useSWR(
+    isProductType ? `/api/products-lite?${buildQuery(offset)}` : getApiEndpoint(),
+    fetcher
+  )
+  
+  // Batch images into groups of 10 to avoid request size limits
+  const batchSize = 10
+  const productBatches = allItems.length > 0 
+    ? Array.from({ length: Math.ceil(allItems.length / batchSize) }).map((_, i) =>
+        allItems.slice(i * batchSize, (i + 1) * batchSize).map((p) => p.id).join(",")
+      )
+    : []
+  
+  // Fetch images in batches
+  const { data: imagesData } = useSWR(
+    isProductType && productBatches.length > 0
+      ? `/api/products-lite/images?ids=${productBatches[0]}`
+      : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  )
+  
+  // Prefetch next batch of images
+  const { data: nextBatchImagesData } = useSWR(
+    isProductType && productBatches.length > 1
+      ? `/api/products-lite/images?ids=${productBatches[1]}`
+      : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  )
+  
+  // Prefetch next page data
+  const { data: nextPageData } = useSWR(
+    isProductType && hasMore
+      ? `/api/products-lite?${buildQuery(offset + 12)}`
+      : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  )
+  
   const { data: categoriesData } = useSWR("/api/categories", fetcher)
   const { data: brandsData } = useSWR("/api/brands", fetcher)
+
+  // State to track loaded images
+  const [productImages, setProductImages] = useState<Record<number, any[]>>({})
+
+  // Handle image data when it arrives (batch 1)
+  useEffect(() => {
+    if (imagesData?.images) {
+      setProductImages((prev) => ({ ...prev, ...imagesData.images }))
+    }
+  }, [imagesData])
+  
+  // Handle next batch images when they arrive
+  useEffect(() => {
+    if (nextBatchImagesData?.images) {
+      setProductImages((prev) => ({ ...prev, ...nextBatchImagesData.images }))
+    }
+  }, [nextBatchImagesData])
 
   // Handle pagination - append new items to existing ones
   useEffect(() => {
@@ -94,6 +156,39 @@ function ShopContent() {
       setHasMore(itemsData?.pagination?.hasMore || false)
     }
   }, [itemsData, offset, type])
+  
+  // Load remaining image batches lazily
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+    if (productBatches.length > 2) {
+      // Load remaining batches after a delay
+      timeoutId = setTimeout(() => {
+        productBatches.slice(2).forEach((batch) => {
+          fetch(`/api/products-lite/images?ids=${batch}`)
+            .then((res) => res.json())
+            .then((data) => {
+              if (data?.images) {
+                setProductImages((prev) => ({ ...prev, ...data.images }))
+              }
+            })
+            .catch((err) => console.error("Error loading images batch:", err))
+        })
+      }, 500) // Delay remaining batch loads
+    }
+    return () => clearTimeout(timeoutId)
+  }, [productBatches])
+  
+  // Prefetch next page on demand
+  const prefetchNextPage = useCallback(() => {
+    if (hasMore && !itemsLoading && nextPageData) {
+      const newItems = nextPageData?.products || []
+      setPrefetchedData(newItems)
+    }
+  }, [hasMore, itemsLoading, nextPageData])
+  
+  useEffect(() => {
+    prefetchNextPage()
+  }, [prefetchNextPage])
   
   const categories = categoriesData?.categories || []
   const brands = brandsData?.brands || []
@@ -394,78 +489,105 @@ function ShopContent() {
                         </Link>
                       ))
                     ) : (
-                      // Render Products
-                      allItems.map((product: any) => (
-                        <Link key={product.id} href={`/product/${product.slug}`}>
-                          <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
-                            <div className="relative aspect-square overflow-hidden bg-muted">
-                              <Image
-                                src={product.image_url || "/placeholder.svg?height=300&width=300"}
-                                alt={product.name}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform"
-                                loading="lazy"
-                              />
-                              {product.is_new_arrival && (
-                                <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground">New</Badge>
-                              )}
-                              {product.original_price > product.current_price && (
-                                <Badge variant="destructive" className="absolute top-2 right-2">
-                                  {Math.round(
-                                    ((product.original_price - product.current_price) / product.original_price) * 100,
+                      // Render Products - with images loaded from separate endpoint
+                      <>
+                        {allItems.map((product: any) => {
+                          const productImageList = productImages[product.id] || []
+                          const primaryImage = productImageList.find((img: any) => img.is_primary) || productImageList[0]
+                          const imageUrl = primaryImage?.image_url || "/placeholder.svg?height=300&width=300"
+                          
+                          return (
+                            <Link key={product.id} href={`/product/${product.slug}`}>
+                              <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
+                                <div className="relative aspect-square overflow-hidden bg-muted">
+                                  {!productImages[product.id] ? (
+                                    <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50" />
+                                  ) : (
+                                    <Image
+                                      src={imageUrl}
+                                      alt={product.name}
+                                      fill
+                                      className="object-cover group-hover:scale-105 transition-transform"
+                                      loading="lazy"
+                                    />
                                   )}
-                                  % OFF
-                                </Badge>
-                              )}
-                              <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button
-                                  size="icon"
-                                  variant="secondary"
-                                  className="h-8 w-8"
-                                  onClick={(e) => handleAddToWishlist(product.id, e)}
-                                >
-                                  <Heart className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  size="icon"
-                                  variant="secondary"
-                                  className="h-8 w-8"
-                                  onClick={(e) => handleAddToCart(product.id, e)}
-                                >
-                                  <ShoppingCart className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                            <CardContent className="p-3">
-                              <p className="text-xs text-muted-foreground mb-1">{product.category_name}</p>
-                              <h3 className="font-medium text-sm line-clamp-2 mb-2">{product.name}</h3>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-primary">
-                                  Rs. {Number(product.current_price).toLocaleString()}
-                                </span>
-                                <span className="text-xs text-muted-foreground line-through">
-                                  Rs. {Number(product.original_price).toLocaleString()}
-                                </span>
-                                <Badge variant="secondary" className="text-[11px] px-2 py-0">
-                                  {Math.max(
-                                    0,
-                                    Math.round(
-                                      ((Number(product.original_price) - Number(product.current_price)) / Number(product.original_price || 1)) *
-                                        100,
-                                    ),
-                                  )}%
-                                </Badge>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </Link>
-                      ))
+                                  {product.is_new_arrival && (
+                                    <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground">New</Badge>
+                                  )}
+                                  {product.original_price > product.current_price && (
+                                    <Badge variant="destructive" className="absolute top-2 right-2">
+                                      {Math.round(
+                                        ((product.original_price - product.current_price) / product.original_price) * 100,
+                                      )}
+                                      % OFF
+                                    </Badge>
+                                  )}
+                                  <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                      size="icon"
+                                      variant="secondary"
+                                      className="h-8 w-8"
+                                      onClick={(e) => handleAddToWishlist(product.id, e)}
+                                    >
+                                      <Heart className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      size="icon"
+                                      variant="secondary"
+                                      className="h-8 w-8"
+                                      onClick={(e) => handleAddToCart(product.id, e)}
+                                    >
+                                      <ShoppingCart className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                                <CardContent className="p-3">
+                                  <p className="text-xs text-muted-foreground mb-1">{product.category_name}</p>
+                                  <h3 className="font-medium text-sm line-clamp-2 mb-2">{product.name}</h3>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-primary">
+                                      Rs. {Number(product.current_price).toLocaleString()}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground line-through">
+                                      Rs. {Number(product.original_price).toLocaleString()}
+                                    </span>
+                                    <Badge variant="secondary" className="text-[11px] px-2 py-0">
+                                      {Math.max(
+                                        0,
+                                        Math.round(
+                                          ((Number(product.original_price) - Number(product.current_price)) / Number(product.original_price || 1)) *
+                                            100,
+                                        ),
+                                      )}%
+                                    </Badge>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </Link>
+                          )
+                        })}
+                        {/* Show skeleton loaders while loading more products */}
+                        {itemsLoading && (
+                          <>
+                            {Array.from({ length: 4 }).map((_, i) => (
+                              <ProductCardSkeleton key={`skeleton-${i}`} />
+                            ))}
+                          </>
+                        )}
+                      </>
                     )}
                   </div>
                   {hasMore && (
                     <div className="flex justify-center mt-8">
                       <Button
-                        onClick={() => setOffset(offset + 12)}
+                        onClick={() => {
+                          setOffset(offset + 12)
+                          // Use prefetched data if available
+                          if (prefetchedData) {
+                            setAllItems(prev => [...prev, ...prefetchedData])
+                            setPrefetchedData(null)
+                          }
+                        }}
                         disabled={itemsLoading}
                         size="lg"
                       >
