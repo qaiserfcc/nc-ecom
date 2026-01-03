@@ -21,13 +21,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react"
+import { Plus, Pencil, Trash2, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export default function AdminDiscountsPage() {
-  const { data, isLoading, mutate } = useSWR("/api/discounts", fetcher)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+  const { data, isLoading, mutate } = useSWR(
+    `/api/discounts?limit=${itemsPerPage}&offset=${(currentPage - 1) * itemsPerPage}`,
+    fetcher
+  )
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [deleteId, setDeleteId] = useState<number | null>(null)
@@ -46,6 +51,8 @@ export default function AdminDiscountsPage() {
   const [applyToAll, setApplyToAll] = useState(true)
 
   const discounts = data?.discounts || []
+  const total = data?.pagination?.total || 0
+  const totalPages = Math.ceil(total / itemsPerPage)
 
   const resetForm = () => {
     setCode("")
@@ -335,6 +342,32 @@ export default function AdminDiscountsPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
       )}
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>

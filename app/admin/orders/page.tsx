@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, Eye } from "lucide-react"
+import { Loader2, Eye, ChevronLeft, ChevronRight } from "lucide-react"
 import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -24,12 +24,21 @@ const statusColors: Record<string, string> = {
 
 export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+  
   const { data, isLoading, mutate } = useSWR(
     `/api/orders${statusFilter !== "all" ? `?status=${statusFilter}` : ""}`,
     fetcher,
   )
 
   const orders = data?.orders || []
+  const total = orders.length
+  const totalPages = Math.ceil(total / itemsPerPage)
+  const displayedOrders = orders.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
 
   const updateStatus = async (orderId: number, status: string) => {
     try {
@@ -58,7 +67,10 @@ export default function AdminOrdersPage() {
           <h1 className="text-2xl md:text-3xl font-bold">Orders</h1>
           <p className="text-muted-foreground">Manage customer orders</p>
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={(v) => {
+          setStatusFilter(v)
+          setCurrentPage(1)
+        }}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
@@ -101,7 +113,7 @@ export default function AdminOrdersPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {orders.map((order: any) => (
+                  {displayedOrders.map((order: any) => (
                     <TableRow key={order.id}>
                       <TableCell>
                         <Link href={`/admin/orders/${order.id}`} className="font-medium hover:text-primary">
@@ -150,6 +162,32 @@ export default function AdminOrdersPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
       )}
     </div>
   )

@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Plus, Search, Pencil, Trash2, Loader2, Upload } from "lucide-react"
+import { Plus, Search, Pencil, Trash2, Loader2, Upload, ChevronLeft, ChevronRight } from "lucide-react"
 import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -28,10 +28,17 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState("")
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
-  const { data, isLoading, mutate } = useSWR(`/api/products?search=${search}&limit=100`, fetcher)
+  const { data, isLoading, mutate } = useSWR(
+    `/api/products?search=${search}&limit=${itemsPerPage}&offset=${(currentPage - 1) * itemsPerPage}`,
+    fetcher
+  )
 
   const products = data?.products || []
+  const total = data?.pagination?.total || 0
+  const totalPages = Math.ceil(total / itemsPerPage)
 
   const handleDelete = async () => {
     if (!deleteId) return
@@ -82,7 +89,10 @@ export default function AdminProductsPage() {
         <Input
           placeholder="Search products..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value)
+            setCurrentPage(1)
+          }}
           className="pl-10"
         />
       </div>
@@ -180,6 +190,32 @@ export default function AdminProductsPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
       )}
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
