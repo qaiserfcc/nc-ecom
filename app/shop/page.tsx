@@ -396,11 +396,18 @@ function ShopContent() {
                             <span className="font-bold text-primary">
                               Rs. {Number(product.current_price).toLocaleString()}
                             </span>
-                            {product.original_price > product.current_price && (
-                              <span className="text-xs text-muted-foreground line-through">
-                                Rs. {Number(product.original_price).toLocaleString()}
-                              </span>
-                            )}
+                            <span className="text-xs text-muted-foreground line-through">
+                              Rs. {Number(product.original_price).toLocaleString()}
+                            </span>
+                            <Badge variant="secondary" className="text-[11px] px-2 py-0">
+                              {Math.max(
+                                0,
+                                Math.round(
+                                  ((Number(product.original_price) - Number(product.current_price)) / Number(product.original_price || 1)) *
+                                    100,
+                                ),
+                              )}%
+                            </Badge>
                           </div>
                         </CardContent>
                       </Card>

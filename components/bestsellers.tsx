@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Heart, ShoppingCart, Loader2 } from "lucide-react"
+import { useAuth } from "@/lib/hooks/use-auth"
 
 interface Product {
   id: number
@@ -17,9 +20,12 @@ interface Product {
 }
 
 export default function Bestsellers() {
+  const router = useRouter()
+  const { isAuthenticated } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [pendingId, setPendingId] = useState<number | null>(null)
 
   useEffect(() => {
     async function fetchProducts() {
@@ -43,9 +49,37 @@ export default function Bestsellers() {
   }, [])
 
   const calculateDiscount = (original: number, current: number) => {
-    if (!original || original <= current) return "0%"
-    const discount = Math.round(((original - current) / original) * 100)
-    return `${discount}%`
+    if (!original) return 0
+    return Math.max(0, Math.round(((original - current) / original) * 100))
+  }
+
+  const handleAdd = async (productId: number) => {
+    if (!isAuthenticated) {
+      router.push("/signin")
+      return
+    }
+    setPendingId(productId)
+    await fetch("/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ product_id: productId, quantity: 1 }),
+    })
+    setPendingId(null)
+    router.push("/cart")
+  }
+
+  const handleWishlist = async (productId: number) => {
+    if (!isAuthenticated) {
+      router.push("/signin")
+      return
+    }
+    setPendingId(productId)
+    await fetch("/api/wishlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ product_id: productId }),
+    })
+    setPendingId(null)
   }
 
   if (loading) {
@@ -93,45 +127,64 @@ export default function Bestsellers() {
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {products.map((product) => {
             const discount = calculateDiscount(product.original_price, product.current_price)
+            const badgeLabel = `${discount}% OFF`
             return (
-              <Card key={product.id} className="overflow-hidden hover:shadow-lg transition">
+              <Card
+                key={product.id}
+                className="overflow-hidden hover:shadow-xl transition duration-300 bg-white/80 backdrop-blur-sm border-border/70"
+              >
                 <CardContent className="p-0">
                   <Link href={`/product/${product.slug}`}>
-                    <div className="relative overflow-hidden bg-muted h-40 sm:h-48">
+                    <div className="relative overflow-hidden bg-gradient-to-br from-secondary/20 via-white to-primary/10 h-40 sm:h-48">
                       <img
                         src={product.image_url || "/placeholder.svg"}
                         alt={product.name}
-                        className="w-full h-full object-cover hover:scale-110 transition duration-300"
+                        className="w-full h-full object-cover hover:scale-110 transition duration-500"
                       />
-                      {discount !== "0%" && (
-                        <div className="absolute top-2 right-2 bg-destructive text-white text-xs font-bold px-2 py-1 rounded">
-                          {discount}
-                        </div>
-                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
+                      <div className="absolute top-2 left-2 px-2 py-1 text-[11px] font-semibold rounded-full bg-white/80 text-foreground shadow-sm">
+                        {discount > 0 ? badgeLabel : "Best pick"}
+                      </div>
                     </div>
                   </Link>
-                  <div className="p-3 sm:p-4">
+                  <div className="p-3 sm:p-4 space-y-2">
                     <Link href={`/product/${product.slug}`}>
                       <h3 className="font-semibold text-sm sm:text-base line-clamp-2 text-foreground hover:text-primary">
                         {product.name}
                       </h3>
                     </Link>
-                    <div className="flex items-center gap-2 my-2">
+                    <div className="flex items-center gap-2">
                       <span className="text-primary font-bold text-sm sm:text-base">
                         Rs. {product.current_price.toLocaleString()}
                       </span>
-                      {product.original_price > product.current_price && (
-                        <span className="text-xs sm:text-sm text-muted-foreground line-through">
-                          Rs. {product.original_price.toLocaleString()}
-                        </span>
-                      )}
+                      <span className="text-xs sm:text-sm text-muted-foreground line-through">
+                        Rs. {product.original_price.toLocaleString()}
+                      </span>
+                      <Badge variant="secondary" className="text-[11px] px-2 py-0">
+                        {discount}%
+                      </Badge>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" className="flex-1 h-8 text-xs sm:text-sm">
-                        <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                        Add
+                      <Button
+                        size="sm"
+                        className="flex-1 h-9 text-xs sm:text-sm"
+                        disabled={pendingId === product.id || product.stock_quantity === 0}
+                        onClick={() => handleAdd(product.id)}
+                      >
+                        {pendingId === product.id ? (
+                          <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 animate-spin" />
+                        ) : (
+                          <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                        )}
+                        {product.stock_quantity === 0 ? "Out" : "Add"}
                       </Button>
-                      <Button size="sm" variant="outline" className="flex-1 h-8 bg-transparent">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 h-9 bg-transparent"
+                        disabled={pendingId === product.id}
+                        onClick={() => handleWishlist(product.id)}
+                      >
                         <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
                       </Button>
                     </div>

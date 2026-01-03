@@ -163,28 +163,39 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                   <CardTitle className="text-lg">Order Items</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {order.items?.map((item: any) => (
-                    <div key={item.id} className="flex gap-4">
-                      <div className="relative w-20 h-20 rounded overflow-hidden bg-muted shrink-0">
-                        <Image
-                          src={item.product_image || "/placeholder.svg?height=80&width=80"}
-                          alt={item.product_name}
-                          fill
-                          className="object-cover"
-                        />
+                  {order.items?.map((item: any) => {
+                    const baseOriginal = Number(item.original_price_at_purchase ?? item.price_at_purchase)
+                    const baseFinal = Number(item.price_at_purchase)
+                    const lineOriginal = baseOriginal * item.quantity
+                    const lineFinal = baseFinal * item.quantity
+                    const lineDiscountPercent = baseOriginal > 0 ? Math.round(((baseOriginal - baseFinal) / baseOriginal) * 100) : 0
+                    return (
+                      <div key={item.id} className="flex gap-4">
+                        <div className="relative w-20 h-20 rounded overflow-hidden bg-muted shrink-0">
+                          <Image
+                            src={item.product_image || "/placeholder.svg?height=80&width=80"}
+                            alt={item.product_name}
+                            fill
+                            className="object-cover"
+                          />
+                          {lineDiscountPercent > 0 && (
+                            <Badge variant="secondary" className="absolute top-2 right-2 text-[11px] px-2 py-0">
+                              {lineDiscountPercent}%
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium">{item.product_name}</h3>
+                          <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-primary">Rs. {lineFinal.toLocaleString()}</p>
+                            <p className="text-sm text-muted-foreground line-through">Rs. {lineOriginal.toLocaleString()}</p>
+                          </div>
+                        </div>
+                        <p className="font-medium">Rs. {lineFinal.toLocaleString()}</p>
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium">{item.product_name}</h3>
-                        <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
-                        <p className="font-medium text-primary">
-                          Rs. {Number(item.price_at_purchase).toLocaleString()}
-                        </p>
-                      </div>
-                      <p className="font-medium">
-                        Rs. {(Number(item.price_at_purchase) * item.quantity).toLocaleString()}
-                      </p>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </CardContent>
               </Card>
             </div>
@@ -197,15 +208,22 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span>Rs. {Number(order.subtotal).toLocaleString()}</span>
+                    <span className="text-muted-foreground">Original</span>
+                    <span className="line-through">
+                      Rs. {(Number(order.subtotal) + Number(order.discount_applied || 0)).toLocaleString()}
+                    </span>
                   </div>
-                  {Number(order.discount_applied) > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount</span>
-                      <span>-Rs. {Number(order.discount_applied).toLocaleString()}</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount</span>
+                    <span>
+                      -Rs. {Number(order.discount_applied || 0).toLocaleString()} (
+                      {Number(order.subtotal) + Number(order.discount_applied || 0) > 0
+                        ? Math.round((Number(order.discount_applied || 0) /
+                            (Number(order.subtotal) + Number(order.discount_applied || 0))) * 100)
+                        : 0}
+                      %)
+                    </span>
+                  </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Shipping</span>
                     <span className="text-green-600">Free</span>

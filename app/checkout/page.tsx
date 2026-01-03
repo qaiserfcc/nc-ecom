@@ -15,6 +15,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Loader2, CreditCard, Banknote, ShoppingBag, CheckCircle } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 
@@ -37,6 +38,19 @@ export default function CheckoutPage() {
 
   const items = cartData?.items || []
   const subtotal = cartData?.subtotal || 0
+  const totals = items.reduce(
+    (acc: { original: number; final: number }, item: any) => {
+      const baseOriginal = Number(item.original_price) + (Number(item.price_modifier) || 0)
+      const baseFinal = Number(item.current_price) + (Number(item.price_modifier) || 0)
+      return {
+        original: acc.original + baseOriginal * item.quantity,
+        final: acc.final + baseFinal * item.quantity,
+      }
+    },
+    { original: 0, final: 0 },
+  )
+  const totalDiscount = Math.max(0, totals.original - totals.final)
+  const totalDiscountPercent = totals.original > 0 ? Math.round((totalDiscount / totals.original) * 100) : 0
 
   // Pre-fill address from profile
   useState(() => {
@@ -248,7 +262,11 @@ export default function CheckoutPage() {
                 <CardContent className="space-y-4">
                   <div className="space-y-3 max-h-60 overflow-y-auto">
                     {items.map((item: any) => {
-                      const itemPrice = Number(item.current_price) + (Number(item.price_modifier) || 0)
+                      const baseOriginal = Number(item.original_price) + (Number(item.price_modifier) || 0)
+                      const baseFinal = Number(item.current_price) + (Number(item.price_modifier) || 0)
+                      const lineOriginal = baseOriginal * item.quantity
+                      const lineFinal = baseFinal * item.quantity
+                      const lineDiscount = baseOriginal > 0 ? Math.round(((baseOriginal - baseFinal) / baseOriginal) * 100) : 0
                       return (
                         <div key={item.id} className="flex gap-3">
                           <div className="relative w-16 h-16 rounded overflow-hidden bg-muted shrink-0">
@@ -258,13 +276,19 @@ export default function CheckoutPage() {
                               fill
                               className="object-cover"
                             />
+                            {lineDiscount > 0 && (
+                              <Badge variant="secondary" className="absolute top-1 right-1 text-[10px] px-1.5 py-0">
+                                {lineDiscount}%
+                              </Badge>
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium line-clamp-1">{item.name}</p>
                             <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                            <p className="text-sm font-medium text-primary">
-                              Rs. {(itemPrice * item.quantity).toLocaleString()}
-                            </p>
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                              <span className="text-primary">Rs. {lineFinal.toLocaleString()}</span>
+                              <span className="text-muted-foreground line-through">Rs. {lineOriginal.toLocaleString()}</span>
+                            </div>
                           </div>
                         </div>
                       )
@@ -272,21 +296,21 @@ export default function CheckoutPage() {
                   </div>
                   <Separator />
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span>Rs. {subtotal.toLocaleString()}</span>
+                    <span className="text-muted-foreground">Original</span>
+                    <span className="line-through">Rs. {totals.original.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount</span>
+                    <span>-Rs. {totalDiscount.toLocaleString()} ({totalDiscountPercent}%)</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Shipping</span>
                     <span className="text-green-600">Free</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Discount</span>
-                    <span className="text-green-600">Applied at checkout</span>
-                  </div>
                   <Separator />
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span className="text-primary">Rs. {subtotal.toLocaleString()}</span>
+                    <span className="text-primary">Rs. {totals.final.toLocaleString()}</span>
                   </div>
                 </CardContent>
                 <CardFooter>

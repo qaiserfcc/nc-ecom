@@ -124,5 +124,13 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: radial-gradient(circle at 20% 20%, color-mix(in oklch, var(--secondary) 20%, transparent) 0, transparent 35%),
+      radial-gradient(circle at 80% 0%, color-mix(in oklch, var(--primary) 18%, transparent) 0, transparent 38%),
+      linear-gradient(145deg, color-mix(in oklch, var(--background) 94%, transparent), color-mix(in oklch, var(--background) 90%, transparent));
+    background-attachment: fixed;
+  }
+
+  main {
+    backdrop-filter: saturate(1.2);
   }
 }

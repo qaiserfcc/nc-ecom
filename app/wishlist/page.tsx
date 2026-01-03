@@ -8,6 +8,7 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Trash2, ShoppingCart, Loader2, Heart } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 
@@ -108,11 +109,12 @@ export default function WishlistPage() {
                     <h3 className="font-medium text-sm line-clamp-2 mb-2">{item.name}</h3>
                     <div className="flex items-center gap-2 mb-3">
                       <span className="font-bold text-primary">Rs. {Number(item.current_price).toLocaleString()}</span>
-                      {item.original_price > item.current_price && (
-                        <span className="text-xs text-muted-foreground line-through">
-                          Rs. {Number(item.original_price).toLocaleString()}
-                        </span>
-                      )}
+                      <span className="text-xs text-muted-foreground line-through">
+                        Rs. {Number(item.original_price).toLocaleString()}
+                      </span>
+                      <Badge variant="secondary" className="text-[11px] px-2 py-0">
+                        {Math.max(0, Math.round(((Number(item.original_price) - Number(item.current_price)) / Number(item.original_price)) * 100))}%
+                      </Badge>
                     </div>
                     <div className="flex gap-2">
                       <Button

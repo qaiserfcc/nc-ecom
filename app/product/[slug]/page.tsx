@@ -181,13 +181,14 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 <h1 className="text-2xl md:text-3xl font-bold text-balance">{product.name}</h1>
               </div>
 
-              <div className="flex items-baseline gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-3xl font-bold text-primary">Rs. {finalPrice.toLocaleString()}</span>
-                {product.original_price > product.current_price && (
-                  <span className="text-lg text-muted-foreground line-through">
-                    Rs. {Number(product.original_price).toLocaleString()}
-                  </span>
-                )}
+                <span className="text-lg text-muted-foreground line-through">
+                  Rs. {Number(product.original_price).toLocaleString()}
+                </span>
+                <Badge variant="secondary" className="text-sm">
+                  {Math.max(0, discount)}% OFF
+                </Badge>
               </div>
 
               <p className="text-muted-foreground">{product.short_description || product.description}</p>

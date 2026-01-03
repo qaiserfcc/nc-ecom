@@ -9,6 +9,7 @@ import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
 import { Minus, Plus, Trash2, Loader2, ShoppingBag } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 
@@ -21,6 +22,19 @@ export default function CartPage() {
 
   const items = data?.items || []
   const subtotal = data?.subtotal || 0
+  const totals = items.reduce(
+    (acc: { original: number; final: number }, item: any) => {
+      const baseOriginal = Number(item.original_price) + (Number(item.price_modifier) || 0)
+      const baseFinal = Number(item.current_price) + (Number(item.price_modifier) || 0)
+      return {
+        original: acc.original + baseOriginal * item.quantity,
+        final: acc.final + baseFinal * item.quantity,
+      }
+    },
+    { original: 0, final: 0 },
+  )
+  const totalDiscount = Math.max(0, totals.original - totals.final)
+  const totalDiscountPercent = totals.original > 0 ? Math.round((totalDiscount / totals.original) * 100) : 0
 
   const updateQuantity = async (itemId: number, quantity: number) => {
     await fetch("/api/cart", {
@@ -95,9 +109,13 @@ export default function CartPage() {
               {/* Cart Items */}
               <div className="lg:col-span-2 space-y-4">
                 {items.map((item: any) => {
-                  const itemPrice = Number(item.current_price) + (Number(item.price_modifier) || 0)
+                  const baseOriginal = Number(item.original_price) + (Number(item.price_modifier) || 0)
+                  const baseFinal = Number(item.current_price) + (Number(item.price_modifier) || 0)
+                  const lineOriginal = baseOriginal * item.quantity
+                  const lineFinal = baseFinal * item.quantity
+                  const lineDiscountPercent = baseOriginal > 0 ? Math.round(((baseOriginal - baseFinal) / baseOriginal) * 100) : 0
                   return (
-                    <Card key={item.id}>
+                    <Card key={item.id} className="bg-white/85 backdrop-blur-sm">
                       <CardContent className="p-4">
                         <div className="flex gap-4">
                           <div className="relative w-24 h-24 rounded-md overflow-hidden bg-muted shrink-0">
@@ -107,6 +125,11 @@ export default function CartPage() {
                               fill
                               className="object-cover"
                             />
+                            {lineDiscountPercent > 0 && (
+                              <Badge variant="secondary" className="absolute top-2 right-2 text-[11px] px-2 py-0">
+                                {lineDiscountPercent}% OFF
+                              </Badge>
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <Link href={`/product/${item.slug}`} className="hover:text-primary">
@@ -117,7 +140,12 @@ export default function CartPage() {
                                 {item.variant_name}: {item.variant_value}
                               </p>
                             )}
-                            <p className="font-bold text-primary mt-1">Rs. {itemPrice.toLocaleString()}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="font-bold text-primary">Rs. {lineFinal.toLocaleString()}</span>
+                              <span className="text-sm text-muted-foreground line-through">
+                                Rs. {lineOriginal.toLocaleString()}
+                              </span>
+                            </div>
                           </div>
                           <div className="flex flex-col items-end justify-between">
                             <Button
@@ -173,8 +201,12 @@ export default function CartPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Subtotal ({data?.itemCount} items)</span>
-                      <span>Rs. {subtotal.toLocaleString()}</span>
+                      <span className="text-muted-foreground">Original ({data?.itemCount} items)</span>
+                      <span className="line-through">Rs. {totals.original.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-green-600">
+                      <span>Discount</span>
+                      <span>-Rs. {totalDiscount.toLocaleString()} ({totalDiscountPercent}%)</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Shipping</span>
@@ -183,9 +215,9 @@ export default function CartPage() {
                     <Separator />
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total</span>
-                      <span className="text-primary">Rs. {subtotal.toLocaleString()}</span>
+                      <span className="text-primary">Rs. {totals.final.toLocaleString()}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">Discounts will be applied automatically at checkout</p>
+                    <p className="text-xs text-muted-foreground">Runtime promos applied automatically</p>
                   </CardContent>
                   <CardFooter>
                     <Button className="w-full" size="lg" asChild>
