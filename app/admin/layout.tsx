@@ -59,7 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const Sidebar = () => (
     <div className="flex flex-col h-full">
       <div className="p-4 border-b">
-        <button onClick={() => router.push("/")} className="flex items-center gap-2 hover:cursor-pointer">
+        <button onClick={() => router.push("/")} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
             NC
           </div>
@@ -74,12 +74,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <button
                 key={item.href}
                 onClick={() => router.push(item.href)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:cursor-pointer ${
-                  isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted text-foreground"
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer relative z-10 ${
+                  isActive 
+                    ? "bg-primary text-primary-foreground shadow-md" 
+                    : "text-foreground hover:bg-muted hover:shadow-sm"
                 }`}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
-                <span className="text-left">{item.label}</span>
+                <span className="text-left font-medium">{item.label}</span>
               </button>
             )
           })}
@@ -88,13 +90,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="p-4 border-t space-y-2">
         <button
           onClick={() => router.push("/")}
-          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition hover:cursor-pointer"
+          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-all duration-200 cursor-pointer font-medium"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4 flex-shrink-0" />
           Back to Store
         </button>
-        <Button variant="ghost" className="w-full justify-start text-destructive hover:cursor-pointer" onClick={handleSignOut}>
-          <LogOut className="w-4 h-4 mr-2" />
+        <Button variant="ghost" className="w-full justify-start text-destructive hover:bg-destructive/10 cursor-pointer font-medium" onClick={handleSignOut}>
+          <LogOut className="w-4 h-4 mr-2 flex-shrink-0" />
           Sign Out
         </Button>
       </div>
@@ -102,14 +104,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   )
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-muted/30 flex">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:w-64 md:flex-col border-r bg-background">
+      <aside className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 md:left-0 md:z-40 border-r bg-background">
         <Sidebar />
       </aside>
 
       {/* Mobile Header */}
-      <header className="md:hidden sticky top-0 z-50 flex items-center justify-between h-14 px-4 border-b bg-background">
+      <header className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between h-14 px-4 border-b bg-background">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="z-50">
@@ -125,7 +127,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </header>
 
       {/* Main Content */}
-      <main className="md:pl-64">
+      <main className="w-full md:ml-64 md:pt-0 pt-14">
         <div className="p-4 md:p-6 lg:p-8">{children}</div>
       </main>
     </div>
