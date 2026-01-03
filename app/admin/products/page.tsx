@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Plus, Search, Pencil, Trash2, Loader2, Upload } from "lucide-react"
+import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -36,10 +37,17 @@ export default function AdminProductsPage() {
     if (!deleteId) return
     setDeleting(true)
     try {
-      await fetch(`/api/products/${deleteId}`, { method: "DELETE" })
+      const res = await fetch(`/api/products/${deleteId}`, { method: "DELETE" })
+      if (!res.ok) {
+        const error = await res.json()
+        notify.error(error.error || "Failed to delete product")
+        return
+      }
+      notify.success("Product deleted successfully")
       await mutate()
     } catch (error) {
-      console.error("Failed to delete:", error)
+      notify.error("Failed to delete product")
+      console.error("Delete error:", error)
     } finally {
       setDeleting(false)
       setDeleteId(null)

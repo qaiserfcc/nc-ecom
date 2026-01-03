@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Search, Loader2, Edit, Trash2, Plus } from "lucide-react"
+import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -25,13 +26,14 @@ export default function AdminUsersPage() {
       const response = await fetch(`/api/users/${userId}`, { method: "DELETE" })
       if (!response.ok) {
         const errorData = await response.json()
-        alert(`Error: ${errorData.error || "Failed to delete user"}`)
+        notify.error(errorData.error || "Failed to delete user")
         return
       }
+      notify.success("User deleted successfully")
       mutate()
     } catch (error) {
+      notify.error("Error deleting user")
       console.error("Delete failed:", error)
-      alert("Error deleting user")
     }
   }
 

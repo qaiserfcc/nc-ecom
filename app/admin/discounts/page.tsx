@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react"
+import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -94,24 +95,27 @@ export default function AdminDiscountsPage() {
         apply_to_all: applyToAll,
       }
 
-      if (editingId) {
-        await fetch(`/api/discounts/${editingId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        })
-      } else {
-        await fetch("/api/discounts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        })
+      const url = editingId ? `/api/discounts/${editingId}` : "/api/discounts"
+      const method = editingId ? "PUT" : "POST"
+      
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        notify.error(error.error || "Failed to save discount")
+        return
       }
 
+      notify.success(editingId ? "Discount updated successfully" : "Discount created successfully")
       await mutate()
       setDialogOpen(false)
       resetForm()
     } catch (error) {
+      notify.error("Failed to save discount")
       console.error("Failed to save:", error)
     } finally {
       setSaving(false)
@@ -121,9 +125,16 @@ export default function AdminDiscountsPage() {
   const handleDelete = async () => {
     if (!deleteId) return
     try {
-      await fetch(`/api/discounts/${deleteId}`, { method: "DELETE" })
+      const res = await fetch(`/api/discounts/${deleteId}`, { method: "DELETE" })
+      if (!res.ok) {
+        const error = await res.json()
+        notify.error(error.error || "Failed to delete discount")
+        return
+      }
+      notify.success("Discount deleted successfully")
       await mutate()
     } catch (error) {
+      notify.error("Failed to delete discount")
       console.error("Failed to delete:", error)
     } finally {
       setDeleteId(null)

@@ -23,6 +23,8 @@ export async function GET(request: NextRequest) {
     const offset = Number.parseInt(searchParams.get("offset") || "0")
 
     let orders
+    let countResult
+
     if (session.user.role === "admin") {
       // Admin sees all orders
       if (status) {
@@ -41,6 +43,9 @@ export async function GET(request: NextRequest) {
           ORDER BY o.created_at DESC
           LIMIT ${limit} OFFSET ${offset}
         `
+        countResult = await sql`
+          SELECT COUNT(*)::int as total FROM orders WHERE status = ${status}
+        `
       } else {
         orders = await sql`
           SELECT o.*, u.name as customer_name, u.email as customer_email,
@@ -55,6 +60,9 @@ export async function GET(request: NextRequest) {
           JOIN users u ON o.user_id = u.id
           ORDER BY o.created_at DESC
           LIMIT ${limit} OFFSET ${offset}
+        `
+        countResult = await sql`
+          SELECT COUNT(*)::int as total FROM orders
         `
       }
     } else {
@@ -73,9 +81,22 @@ export async function GET(request: NextRequest) {
         ORDER BY o.created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `
+      countResult = await sql`
+        SELECT COUNT(*)::int as total FROM orders WHERE user_id = ${session.user.id}::uuid
+      `
     }
 
-    return NextResponse.json({ orders })
+    const total = countResult[0]?.total ?? 0
+
+    return NextResponse.json({
+      orders,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + orders.length < total,
+      },
+    })
   } catch (error) {
     console.error("Get orders error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

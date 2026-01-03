@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Loader2, Eye } from "lucide-react"
+import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -31,12 +32,23 @@ export default function AdminOrdersPage() {
   const orders = data?.orders || []
 
   const updateStatus = async (orderId: number, status: string) => {
-    await fetch(`/api/orders/${orderId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    })
-    mutate()
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      })
+      if (!res.ok) {
+        const error = await res.json()
+        notify.error(error.error || "Failed to update order status")
+        return
+      }
+      notify.success("Order status updated successfully")
+      mutate()
+    } catch (error) {
+      notify.error("Failed to update order status")
+      console.error("Update error:", error)
+    }
   }
 
   return (

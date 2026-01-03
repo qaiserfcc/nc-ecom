@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Loader2, Plus, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { notify } from "@/lib/utils/notifications"
 
 interface Bundle {
   id: number
@@ -54,12 +55,14 @@ export default function BundlesPage() {
   const fetchBundles = async () => {
     try {
       setLoading(true)
-      const response = await fetch("/api/bundles?all=true")
+      const response = await fetch("/api/bundles?limit=1000")
       if (!response.ok) throw new Error("Failed to fetch bundles")
       const data = await response.json()
       setBundles(data.bundles || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load bundles")
+      const message = err instanceof Error ? err.message : "Failed to load bundles"
+      setError(message)
+      notify.error(message)
     } finally {
       setLoading(false)
     }
@@ -72,9 +75,11 @@ export default function BundlesPage() {
       setDeleting(id)
       const response = await fetch(`/api/bundles/${id}`, { method: "DELETE" })
       if (!response.ok) throw new Error("Failed to delete bundle")
+      notify.success("Bundle deleted successfully")
       setBundles(bundles.filter((b) => b.id !== id))
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete bundle")
+      const message = err instanceof Error ? err.message : "Failed to delete bundle"
+      notify.error(message)
     } finally {
       setDeleting(null)
     }

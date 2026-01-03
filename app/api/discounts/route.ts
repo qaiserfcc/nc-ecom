@@ -3,18 +3,54 @@ import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
 
 // GET discounts (admin only)
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session || session.user.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const discounts = await sql`
-      SELECT * FROM discounts ORDER BY created_at DESC
-    `
+    const { searchParams } = new URL(request.url)
+    const search = searchParams.get("search")
+    const limit = Number.parseInt(searchParams.get("limit") || "50")
+    const offset = Number.parseInt(searchParams.get("offset") || "0")
 
-    return NextResponse.json({ discounts })
+    let discounts
+    let countResult
+
+    if (search) {
+      discounts = await sql`
+        SELECT * FROM discounts
+        WHERE code ILIKE ${"%" + search + "%"} OR name ILIKE ${"%" + search + "%"}
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `
+      countResult = await sql`
+        SELECT COUNT(*)::int as total FROM discounts
+        WHERE code ILIKE ${"%" + search + "%"} OR name ILIKE ${"%" + search + "%"}
+      `
+    } else {
+      discounts = await sql`
+        SELECT * FROM discounts
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `
+      countResult = await sql`
+        SELECT COUNT(*)::int as total FROM discounts
+      `
+    }
+
+    const total = countResult[0]?.total ?? 0
+
+    return NextResponse.json({
+      discounts,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + discounts.length < total,
+      },
+    })
   } catch (error) {
     console.error("Get discounts error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

@@ -3,12 +3,16 @@ import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
 
 // GET wishlist items
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const { searchParams } = new URL(request.url)
+    const limit = Number.parseInt(searchParams.get("limit") || "50")
+    const offset = Number.parseInt(searchParams.get("offset") || "0")
 
     const items = await sql`
       SELECT w.*, p.name, p.slug, p.image_url, p.current_price, p.original_price, p.stock_quantity,
@@ -18,9 +22,24 @@ export async function GET() {
       JOIN categories c ON p.category_id = c.id
       WHERE w.user_id = ${session.user.id}::uuid
       ORDER BY w.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
     `
 
-    return NextResponse.json({ items, count: items.length })
+    const countResult = await sql`
+      SELECT COUNT(*)::int as total FROM wishlists WHERE user_id = ${session.user.id}::uuid
+    `
+
+    const total = countResult[0]?.total ?? 0
+
+    return NextResponse.json({
+      items,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + items.length < total,
+      },
+    })
   } catch (error) {
     console.error("Get wishlist error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

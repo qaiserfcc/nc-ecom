@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
     const offset = Number.parseInt(searchParams.get("offset") || "0")
 
     let users
+    let countResult
+
     if (search) {
       users = await sql`
         SELECT id, email, name, phone, address, city, postal_code, country, role, created_at,
@@ -29,6 +31,11 @@ export async function GET(request: NextRequest) {
         ORDER BY created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `
+      countResult = await sql`
+        SELECT COUNT(*)::int as total FROM users
+        WHERE (name ILIKE ${"%" + search + "%"} OR email ILIKE ${"%" + search + "%"})
+          AND (${role}::text IS NULL OR role = ${role})
+      `
     } else {
       users = await sql`
         SELECT id, email, name, phone, address, city, postal_code, country, role, created_at,
@@ -39,13 +46,22 @@ export async function GET(request: NextRequest) {
         ORDER BY created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `
+      countResult = await sql`
+        SELECT COUNT(*)::int as total FROM users
+        WHERE (${role}::text IS NULL OR role = ${role})
+      `
     }
 
-    const countResult = await sql`SELECT COUNT(*) as total FROM users`
+    const total = countResult[0]?.total ?? 0
 
     return NextResponse.json({
       users,
-      total: Number.parseInt(countResult[0].total),
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + users.length < total,
+      },
     })
   } catch (error) {
     console.error("Get users error:", error)

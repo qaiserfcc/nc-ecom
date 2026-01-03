@@ -5,32 +5,49 @@ import { getSession } from "@/lib/auth"
 // GET all banners (public and admin)
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
+    const { searchParams } = new URL(request.url)
     const activeOnly = searchParams.get("active") === "true"
+    const limit = Number.parseInt(searchParams.get("limit") || "50")
+    const offset = Number.parseInt(searchParams.get("offset") || "0")
 
-    let query = sql`
-      SELECT id, title, description, image_url, link_url, is_active, sort_order, created_at
-      FROM homepage_banners
-    `
+    let banners
+    let countResult
 
     if (activeOnly) {
-      query = sql`
+      banners = await sql`
         SELECT id, title, description, image_url, link_url, is_active, sort_order, created_at
         FROM homepage_banners
         WHERE is_active = true
         ORDER BY sort_order ASC
+        LIMIT ${limit} OFFSET ${offset}
+      `
+      countResult = await sql`
+        SELECT COUNT(*)::int as total FROM homepage_banners
+        WHERE is_active = true
       `
     } else {
-      query = sql`
+      banners = await sql`
         SELECT id, title, description, image_url, link_url, is_active, sort_order, created_at
         FROM homepage_banners
         ORDER BY sort_order ASC
+        LIMIT ${limit} OFFSET ${offset}
+      `
+      countResult = await sql`
+        SELECT COUNT(*)::int as total FROM homepage_banners
       `
     }
 
-    const banners = await query
+    const total = countResult[0]?.total ?? 0
 
-    return NextResponse.json({ banners })
+    return NextResponse.json({
+      banners,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + banners.length < total,
+      },
+    })
   } catch (error: any) {
     console.error("Get banners error:", error)
     return NextResponse.json(

@@ -5,53 +5,65 @@ import { sql } from "@/lib/db"
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
-    const all = searchParams.get("all") === "true"
+    const search = searchParams.get("search")
+    const limit = Number.parseInt(searchParams.get("limit") || "50")
+    const offset = Number.parseInt(searchParams.get("offset") || "0")
 
     let bundles
-    if (all) {
-      bundles = await sql`
-        SELECT pb.*,
-               COALESCE(
-                 (SELECT json_agg(json_build_object(
-                   'id', bi.id, 'product_id', bi.product_id, 'quantity', bi.quantity,
-                   'product_name', p.name, 'product_image', p.image_url, 'product_price', p.current_price
-                 ))
-                 FROM bundle_items bi
-                 JOIN products p ON bi.product_id = p.id
-                 WHERE bi.bundle_id = pb.id), '[]'
-               ) as items,
-               (SELECT SUM(p.current_price * bi.quantity)
-                FROM bundle_items bi
-                JOIN products p ON bi.product_id = p.id
-                WHERE bi.bundle_id = pb.id) as original_price,
-               (SELECT COUNT(*) FROM bundle_items WHERE bundle_id = pb.id) as item_count
-        FROM product_bundles pb
+    let countResult
+
+    const bundleQuery = `
+      SELECT pb.*,
+             COALESCE(
+               (SELECT json_agg(json_build_object(
+                 'id', bi.id, 'product_id', bi.product_id, 'quantity', bi.quantity,
+                 'product_name', p.name, 'product_image', p.image_url, 'product_price', p.current_price
+               ))
+               FROM bundle_items bi
+               JOIN products p ON bi.product_id = p.id
+               WHERE bi.bundle_id = pb.id), '[]'
+             ) as items,
+             (SELECT SUM(p.current_price * bi.quantity)
+              FROM bundle_items bi
+              JOIN products p ON bi.product_id = p.id
+              WHERE bi.bundle_id = pb.id) as original_price,
+             (SELECT COUNT(*) FROM bundle_items WHERE bundle_id = pb.id) as item_count
+      FROM product_bundles pb
+    `
+
+    if (search) {
+      bundles = await sql.unsafe(`
+        ${bundleQuery}
+        WHERE pb.name ILIKE '%${search}%' OR pb.description ILIKE '%${search}%'
         ORDER BY pb.created_at DESC
-      `
+        LIMIT ${limit} OFFSET ${offset}
+      `)
+      countResult = await sql.unsafe(`
+        SELECT COUNT(*)::int as total FROM product_bundles pb
+        WHERE pb.name ILIKE '%${search}%' OR pb.description ILIKE '%${search}%'
+      `)
     } else {
-      bundles = await sql`
-        SELECT pb.*,
-               COALESCE(
-                 (SELECT json_agg(json_build_object(
-                   'id', bi.id, 'product_id', bi.product_id, 'quantity', bi.quantity,
-                   'product_name', p.name, 'product_image', p.image_url, 'product_price', p.current_price
-                 ))
-                 FROM bundle_items bi
-                 JOIN products p ON bi.product_id = p.id
-                 WHERE bi.bundle_id = pb.id), '[]'
-               ) as items,
-               (SELECT SUM(p.current_price * bi.quantity)
-                FROM bundle_items bi
-                JOIN products p ON bi.product_id = p.id
-                WHERE bi.bundle_id = pb.id) as original_price,
-               (SELECT COUNT(*) FROM bundle_items WHERE bundle_id = pb.id) as item_count
-        FROM product_bundles pb
-        WHERE pb.is_active = true
+      bundles = await sql.unsafe(`
+        ${bundleQuery}
         ORDER BY pb.created_at DESC
-      `
+        LIMIT ${limit} OFFSET ${offset}
+      `)
+      countResult = await sql.unsafe(`
+        SELECT COUNT(*)::int as total FROM product_bundles pb
+      `)
     }
 
-    return NextResponse.json({ bundles })
+    const total = countResult[0]?.total ?? 0
+
+    return NextResponse.json({
+      bundles,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + bundles.length < total,
+      },
+    })
   } catch (error) {
     console.error("Get bundles error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

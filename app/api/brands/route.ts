@@ -5,22 +5,46 @@ import { sql } from "@/lib/db"
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
-    const all = searchParams.get("all") === "true"
+    const search = searchParams.get("search")
+    const limit = Number.parseInt(searchParams.get("limit") || "50")
+    const offset = Number.parseInt(searchParams.get("offset") || "0")
 
     let brands
-    if (all) {
+    let countResult
+
+    if (search) {
       brands = await sql`
         SELECT * FROM brand_partnerships 
+        WHERE name ILIKE ${"%" + search + "%"}
         ORDER BY is_featured DESC, name ASC
+        LIMIT ${limit} OFFSET ${offset}
+      `
+      countResult = await sql`
+        SELECT COUNT(*)::int as total FROM brand_partnerships
+        WHERE name ILIKE ${"%" + search + "%"}
       `
     } else {
       brands = await sql`
         SELECT * FROM brand_partnerships 
         ORDER BY is_featured DESC, name ASC
+        LIMIT ${limit} OFFSET ${offset}
+      `
+      countResult = await sql`
+        SELECT COUNT(*)::int as total FROM brand_partnerships
       `
     }
 
-    return NextResponse.json({ brands })
+    const total = countResult[0]?.total ?? 0
+
+    return NextResponse.json({
+      brands,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + brands.length < total,
+      },
+    })
   } catch (error) {
     console.error("Get brands error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

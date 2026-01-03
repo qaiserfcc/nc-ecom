@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Edit, Trash2, Plus, Loader2, AlertCircle } from "lucide-react"
+import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -26,13 +27,18 @@ export default function AdminBannersPage() {
       const response = await fetch(`/api/banners/${bannerId}`, { method: "DELETE" })
       if (!response.ok) {
         const errorData = await response.json()
-        setDeleteError(errorData.error || "Failed to delete banner")
+        const message = errorData.error || "Failed to delete banner"
+        setDeleteError(message)
+        notify.error(message)
         return
       }
+      notify.success("Banner deleted successfully")
       mutate()
     } catch (error) {
+      const message = "Error deleting banner"
+      setDeleteError(message)
+      notify.error(message)
       console.error("Delete failed:", error)
-      setDeleteError("Error deleting banner")
     }
   }
 
@@ -52,13 +58,15 @@ export default function AdminBannersPage() {
       })
 
       if (!response.ok) {
-        setDeleteError("Failed to toggle banner")
+        const error = await response.json()
+        notify.error(error.error || "Failed to toggle banner")
         return
       }
+      notify.success("Banner updated successfully")
       mutate()
     } catch (error) {
+      notify.error("Error toggling banner")
       console.error("Toggle failed:", error)
-      setDeleteError("Error toggling banner")
     }
   }
 

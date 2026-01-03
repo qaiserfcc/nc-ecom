@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Loader2, Plus, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { notify } from "@/lib/utils/notifications"
 
 interface Brand {
   id: number
@@ -53,12 +54,14 @@ export default function BrandsPage() {
   const fetchBrands = async () => {
     try {
       setLoading(true)
-      const response = await fetch("/api/brands?all=true")
+      const response = await fetch("/api/brands?limit=1000")
       if (!response.ok) throw new Error("Failed to fetch brands")
       const data = await response.json()
       setBrands(data.brands || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load brands")
+      const message = err instanceof Error ? err.message : "Failed to load brands"
+      setError(message)
+      notify.error(message)
     } finally {
       setLoading(false)
     }
@@ -71,9 +74,11 @@ export default function BrandsPage() {
       setDeleting(id)
       const response = await fetch(`/api/brands/${id}`, { method: "DELETE" })
       if (!response.ok) throw new Error("Failed to delete brand")
+      notify.success("Brand deleted successfully")
       setBrands(brands.filter((b) => b.id !== id))
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete brand")
+      const message = err instanceof Error ? err.message : "Failed to delete brand"
+      notify.error(message)
     } finally {
       setDeleting(null)
     }
@@ -87,9 +92,11 @@ export default function BrandsPage() {
         body: JSON.stringify({ is_featured: !currentStatus }),
       })
       if (!response.ok) throw new Error("Failed to update brand")
+      notify.success("Brand updated successfully")
       setBrands(brands.map((b) => (b.id === id ? { ...b, is_featured: !currentStatus } : b)))
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to toggle featured status")
+      const message = err instanceof Error ? err.message : "Failed to toggle featured status"
+      notify.error(message)
     }
   }
 
