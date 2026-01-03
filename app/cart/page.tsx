@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Minus, Plus, Trash2, Loader2, ShoppingBag } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
+import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -37,22 +38,37 @@ export default function CartPage() {
   const totalDiscountPercent = totals.original > 0 ? Math.round((totalDiscount / totals.original) * 100) : 0
 
   const updateQuantity = async (itemId: number, quantity: number) => {
-    await fetch("/api/cart", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ item_id: itemId, quantity }),
-    })
-    mutate()
+    try {
+      await fetch("/api/cart", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ item_id: itemId, quantity }),
+      })
+      mutate()
+      notify.success("Quantity updated")
+    } catch (error) {
+      notify.error("Failed to update quantity")
+    }
   }
 
   const removeItem = async (itemId: number) => {
-    await fetch(`/api/cart?id=${itemId}`, { method: "DELETE" })
-    mutate()
+    try {
+      await fetch(`/api/cart?id=${itemId}`, { method: "DELETE" })
+      mutate()
+      notify.success("Item removed from cart")
+    } catch (error) {
+      notify.error("Failed to remove item")
+    }
   }
 
   const clearCart = async () => {
-    await fetch("/api/cart", { method: "DELETE" })
-    mutate()
+    try {
+      await fetch("/api/cart", { method: "DELETE" })
+      mutate()
+      notify.success("Cart cleared")
+    } catch (error) {
+      notify.error("Failed to clear cart")
+    }
   }
 
   if (authLoading) {

@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Trash2, ShoppingCart, Loader2, Heart } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
+import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -22,18 +23,28 @@ export default function WishlistPage() {
   const items = data?.items || []
 
   const removeFromWishlist = async (productId: number) => {
-    await fetch(`/api/wishlist?product_id=${productId}`, { method: "DELETE" })
-    mutate()
+    try {
+      await fetch(`/api/wishlist?product_id=${productId}`, { method: "DELETE" })
+      mutate()
+      notify.success("Removed from wishlist")
+    } catch (error) {
+      notify.error("Failed to remove from wishlist")
+    }
   }
 
   const addToCart = async (productId: number) => {
-    await fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ product_id: productId, quantity: 1 }),
-    })
-    await removeFromWishlist(productId)
-    router.push("/cart")
+    try {
+      await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_id: productId, quantity: 1 }),
+      })
+      await removeFromWishlist(productId)
+      notify.success("Added to cart")
+      router.push("/cart")
+    } catch (error) {
+      notify.error("Failed to add to cart")
+    }
   }
 
   if (authLoading) {

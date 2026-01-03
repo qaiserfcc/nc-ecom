@@ -18,6 +18,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, CreditCard, Banknote, ShoppingBag, CheckCircle } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
+import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -67,7 +68,7 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     if (!address.trim()) {
-      setError("Please enter your shipping address")
+      notify.error("Please enter your shipping address")
       return
     }
 
@@ -92,8 +93,11 @@ export default function CheckoutPage() {
 
       setOrderPlaced(true)
       setOrderNumber(data.order.order_number)
+      notify.success("Order placed successfully!", `Order number: ${data.order.order_number}`)
     } catch (err: any) {
-      setError(err.message)
+      const errorMessage = err.message
+      setError(errorMessage)
+      notify.error("Failed to place order", errorMessage)
     } finally {
       setLoading(false)
     }

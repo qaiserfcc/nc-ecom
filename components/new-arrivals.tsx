@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Heart, ShoppingCart, Loader2, ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/lib/hooks/use-auth"
+import { notify } from "@/lib/utils/notifications"
 
 interface Product {
   id: number
@@ -54,13 +55,19 @@ export default function NewArrivals() {
       return
     }
     setPendingId(productId)
-    await fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ product_id: productId, quantity: 1 }),
-    })
-    setPendingId(null)
-    router.push("/cart")
+    try {
+      await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_id: productId, quantity: 1 }),
+      })
+      notify.success("Added to cart")
+      router.push("/cart")
+    } catch (error) {
+      notify.error("Failed to add to cart")
+    } finally {
+      setPendingId(null)
+    }
   }
 
   const handleWishlist = async (productId: number) => {
@@ -69,12 +76,18 @@ export default function NewArrivals() {
       return
     }
     setPendingId(productId)
-    await fetch("/api/wishlist", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ product_id: productId }),
-    })
-    setPendingId(null)
+    try {
+      await fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_id: productId }),
+      })
+      notify.success("Added to wishlist")
+    } catch (error) {
+      notify.error("Failed to add to wishlist")
+    } finally {
+      setPendingId(null)
+    }
   }
   if (loading) {
     return (

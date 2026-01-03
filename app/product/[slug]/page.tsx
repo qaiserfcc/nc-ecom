@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Heart, ShoppingCart, Minus, Plus, Truck, Shield, RotateCcw, Loader2, ChevronLeft } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
+import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -46,9 +47,11 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
           quantity,
         }),
       })
+      notify.success("Added to cart")
       router.push("/cart")
     } catch (error) {
       console.error("Failed to add to cart:", error)
+      notify.error("Failed to add to cart")
     } finally {
       setAddingToCart(false)
     }
@@ -60,11 +63,16 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
       return
     }
 
-    await fetch("/api/wishlist", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ product_id: product.id }),
-    })
+    try {
+      await fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_id: product.id }),
+      })
+      notify.success("Added to wishlist")
+    } catch (error) {
+      notify.error("Failed to add to wishlist")
+    }
   }
 
   if (isLoading) {

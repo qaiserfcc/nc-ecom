@@ -19,6 +19,7 @@ import { Slider } from "@/components/ui/slider"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Search, Filter, Heart, ShoppingCart, Loader2, X } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
+import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -87,11 +88,16 @@ function ShopContent() {
       router.push("/signin")
       return
     }
-    await fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ product_id: productId, quantity: 1 }),
-    })
+    try {
+      await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_id: productId, quantity: 1 }),
+      })
+      notify.success("Added to cart")
+    } catch (error) {
+      notify.error("Failed to add to cart")
+    }
   }
 
   const handleAddToWishlist = async (productId: number, e: React.MouseEvent) => {
@@ -100,11 +106,16 @@ function ShopContent() {
       router.push("/signin")
       return
     }
-    await fetch("/api/wishlist", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ product_id: productId }),
-    })
+    try {
+      await fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_id: productId }),
+      })
+      notify.success("Added to wishlist")
+    } catch (error) {
+      notify.error("Failed to add to wishlist")
+    }
   }
 
   const clearFilters = () => {
