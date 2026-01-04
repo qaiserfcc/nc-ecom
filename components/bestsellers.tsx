@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Heart, ShoppingCart, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Heart, ShoppingCart, Loader2, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
 import { cacheService } from "@/lib/cache-service"
@@ -35,9 +35,6 @@ export default function Bestsellers() {
   const [error, setError] = useState<string | null>(null)
   const [pendingId, setPendingId] = useState<number | null>(null)
   const [discount, setDiscount] = useState<Discount | null>(null)
-  const [offset, setOffset] = useState(0)
-  const [hasMore, setHasMore] = useState(false)
-  const [loadingMore, setLoadingMore] = useState(false)
 
   const ITEMS_PER_PAGE = 12
 
@@ -47,7 +44,7 @@ export default function Bestsellers() {
         setLoading(true)
         
         // Check cache first
-        const cacheKey = `/api/products?featured=true&limit=${ITEMS_PER_PAGE}&offset=${offset}`
+        const cacheKey = `/api/products?featured=true&limit=${ITEMS_PER_PAGE}&offset=0`
         let productsData = cacheService.get(cacheKey)
         
         if (!productsData) {
@@ -59,14 +56,7 @@ export default function Bestsellers() {
           cacheService.set(cacheKey, productsData, 5 * 60 * 1000) // 5 min cache
         }
         
-        if (offset === 0) {
-          setProducts(productsData.products || [])
-        } else {
-          setProducts(prev => [...prev, ...(productsData.products || [])])
-          setLoadingMore(false)
-        }
-        
-        setHasMore(productsData.pagination?.hasMore || false)
+        setProducts(productsData.products || [])
         
         // Handle discount fetch separately
         if (offset === 0) {
@@ -85,7 +75,7 @@ export default function Bestsellers() {
     }
 
     fetchData()
-  }, [offset])
+  }, [])
 
   const calculateDiscount = (original: number, current: number) => {
     if (!original) return 0
@@ -199,24 +189,24 @@ export default function Bestsellers() {
     )
   }
 
-  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE)
-  const displayedProducts = products.slice(
-    offset,
-    offset + ITEMS_PER_PAGE
-  )
-
-  const handleLoadMore = () => {
-    setLoadingMore(true)
-    setOffset(offset + ITEMS_PER_PAGE)
-  }
+  const displayedProducts = products.slice(0, ITEMS_PER_PAGE)
 
   return (
     <section className="py-8 sm:py-12 md:py-16">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-foreground">Best Sellers</h2>
-        <p className="text-center text-muted-foreground mb-8 sm:mb-12">
-          Our most loved products by thousands of customers
-        </p>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Best Sellers</h2>
+            <p className="text-muted-foreground text-sm mt-2">
+              Our most loved products by thousands of customers
+            </p>
+          </div>
+          <Link href="/shop?featured=true">
+            <Button variant="outline" className="hidden sm:flex items-center gap-2 bg-transparent">
+              View All <ArrowRight className="w-4 h-4" />
+            </Button>
+          </Link>
+        </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {displayedProducts.map((product) => {
@@ -298,24 +288,13 @@ export default function Bestsellers() {
           })}
         </div>
 
-        {hasMore && (
-          <div className="flex justify-center mt-8">
-            <Button
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-              size="lg"
-            >
-              {loadingMore ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                "Load More"
-              )}
+        <div className="flex justify-center mt-8 sm:hidden">
+          <Link href="/shop?featured=true" className="w-full">
+            <Button variant="outline" className="w-full items-center gap-2 bg-transparent">
+              View All <ArrowRight className="w-4 h-4" />
             </Button>
-          </div>
-        )}
+          </Link>
+        </div>
       </div>
     </section>
   )

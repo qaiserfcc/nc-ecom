@@ -104,9 +104,6 @@ export default function CheckoutPage() {
     } finally {
       setLoading(false)
     }
-    } finally {
-      setLoading(false)
-    }
   }
 
   if (authLoading || cartLoading) {
