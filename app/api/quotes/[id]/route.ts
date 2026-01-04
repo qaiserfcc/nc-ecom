@@ -5,7 +5,7 @@ import { verifyAuth } from "@/lib/auth"
 // GET /api/quotes/[id] - Get a single quote
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await verifyAuth(request)
@@ -14,7 +14,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = params
+    const { id } = await params
     
     let result
     if (authResult.isAdmin) {
@@ -49,7 +49,7 @@ export async function GET(
 // PATCH /api/quotes/[id] - Update a quote (admin only)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await verifyAuth(request)
@@ -58,7 +58,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Admin access required" }, { status: 403 })
     }
 
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     const { status, quoted_price, admin_notes } = body
 
@@ -124,7 +124,7 @@ export async function PATCH(
 // DELETE /api/quotes/[id] - Delete a quote (admin or owner)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await verifyAuth(request)
@@ -133,7 +133,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = params
+    const { id } = await params
     
     let result
     if (authResult.isAdmin) {

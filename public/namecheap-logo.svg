@@ -2,16 +2,39 @@
   <defs>
     <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFA500;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF8C00;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3a3a3a;stop-opacity:1" />
     </linearGradient>
   </defs>
   
-  <!-- Background rounded rectangle with gradient -->
-  <rect x="10" y="10" width="180" height="180" rx="20" ry="20" fill="url(#logoGradient)"/>
+  <!-- Background circle with gradient -->
+  <circle cx="100" cy="100" r="90" fill="url(#logoGradient)"/>
   
-  <!-- NC text -->
-  <text x="100" y="120" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="#1a1a1a" text-anchor="middle">NC</text>
+  <!-- Shopping cart icon -->
+  <g transform="translate(100, 95)">
+    <!-- Cart body -->
+    <path d="M -30 -25 L -25 5 L 20 5 L 25 -25 Z" fill="url(#cartGradient)" stroke="#1a1a1a" stroke-width="2"/>
+    
+    <!-- Cart handle -->
+    <path d="M -35 -25 L -30 -25 M 25 -25 L 30 -25" stroke="#1a1a1a" stroke-width="2" fill="none"/>
+    <path d="M -35 -30 Q -35 -25 -30 -25" stroke="#1a1a1a" stroke-width="2" fill="none"/>
+    
+    <!-- Wheels -->
+    <circle cx="-15" cy="15" r="4" fill="#1a1a1a"/>
+    <circle cx="10" cy="15" r="4" fill="#1a1a1a"/>
+    
+    <!-- Price tag symbol inside cart -->
+    <path d="M -10 -10 L 5 -10 L 10 -5 L 10 0 L -10 0 Z" fill="#FFD700" stroke="#1a1a1a" stroke-width="1.5"/>
+    <circle cx="2" cy="-5" r="2" fill="#1a1a1a"/>
+  </g>
   
-  <!-- Subtle shadow for depth -->
-  <rect x="10" y="10" width="180" height="180" rx="20" ry="20" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="2"/>
+  <!-- Brand text below -->
+  <text x="100" y="165" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1a1a1a" text-anchor="middle">Namecheap</text>
+  
+  <!-- Subtle outer ring -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>
 </svg>
