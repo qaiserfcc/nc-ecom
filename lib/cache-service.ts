@@ -27,9 +27,18 @@ class CacheService {
   }
 
   /**
-   * Set item in cache with optional TTL
+   * Set item in cache with optional TTL - only if data is valid
    */
   set<T>(key: string, data: T, ttl: number = this.defaultTTL): void {
+    // Don't cache null, undefined, or empty objects
+    if (!data) return
+    
+    // If it's an array, ensure it's not empty
+    if (Array.isArray(data) && data.length === 0) return
+    
+    // If it's an object, ensure it has content
+    if (typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length === 0) return
+    
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
@@ -56,6 +65,18 @@ class CacheService {
    */
   clear(): void {
     this.cache.clear()
+  }
+
+  /**
+   * Clear cache entries matching a pattern
+   */
+  clearPattern(pattern: string): void {
+    const regex = new RegExp(pattern)
+    for (const key of this.cache.keys()) {
+      if (regex.test(key)) {
+        this.cache.delete(key)
+      }
+    }
   }
 
   /**

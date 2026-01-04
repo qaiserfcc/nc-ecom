@@ -30,7 +30,7 @@ export default function BundlesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [deleting, setDeleting] = useState<number | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
+  const itemsPerPage = 12
 
   useEffect(() => {
     fetchBundles()

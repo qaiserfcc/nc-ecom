@@ -25,7 +25,7 @@ const statusColors: Record<string, string> = {
 export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
+  const itemsPerPage = 12
   
   const { data, isLoading, mutate } = useSWR(
     `/api/orders${statusFilter !== "all" ? `?status=${statusFilter}` : ""}`,

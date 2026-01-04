@@ -16,7 +16,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 export default function AdminUsersPage() {
   const [search, setSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
+  const itemsPerPage = 12
   
   const { data, isLoading, mutate } = useSWR(`/api/users?search=${search}`, fetcher)
 

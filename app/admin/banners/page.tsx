@@ -17,7 +17,7 @@ export default function AdminBannersPage() {
   const { data, isLoading, mutate } = useSWR("/api/banners", fetcher)
   const [deleteError, setDeleteError] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
+  const itemsPerPage = 12
 
   const banners = data?.banners || []
   const total = banners.length

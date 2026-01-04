@@ -28,7 +28,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export default function AdminDiscountsPage() {
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
+  const itemsPerPage = 12
   const { data, isLoading, mutate } = useSWR(
     `/api/discounts?limit=${itemsPerPage}&offset=${(currentPage - 1) * itemsPerPage}`,
     fetcher

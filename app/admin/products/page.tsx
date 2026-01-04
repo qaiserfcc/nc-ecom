@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Plus, Search, Pencil, Trash2, Loader2, Upload, ChevronLeft, ChevronRight } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -29,7 +30,7 @@ export default function AdminProductsPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
+  const itemsPerPage = 12
 
   const { data, isLoading, mutate } = useSWR(
     `/api/products?search=${search}&limit=${itemsPerPage}&offset=${(currentPage - 1) * itemsPerPage}`,
@@ -113,17 +114,17 @@ export default function AdminProductsPage() {
       ) : (
         <Card>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
+            <div className="w-full overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-16">Image</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
+                    <TableHead className="max-w-xs">Name</TableHead>
+                    <TableHead className="max-w-xs">Category</TableHead>
                     <TableHead className="text-right">Price</TableHead>
                     <TableHead className="text-right">Stock</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-right w-24">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -140,12 +141,35 @@ export default function AdminProductsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div>
-                          <p className="font-medium line-clamp-1">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">{product.slug}</p>
-                        </div>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="cursor-help">
+                                <p className="font-medium truncate max-w-xs">{product.name}</p>
+                                <p className="text-xs text-muted-foreground truncate max-w-xs">{product.slug}</p>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <div className="space-y-1">
+                                <p className="font-semibold">{product.name}</p>
+                                <p className="text-xs">{product.slug}</p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </TableCell>
-                      <TableCell>{product.category_name}</TableCell>
+                      <TableCell>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <p className="truncate max-w-xs cursor-help">{product.category_name}</p>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{product.category_name}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
                       <TableCell className="text-right">
                         <div>
                           <p className="font-medium">Rs. {Number(product.current_price).toLocaleString()}</p>

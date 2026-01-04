@@ -31,7 +31,7 @@ export async function GET() {
       WHERE a.event_type = 'view' AND a.created_at >= CURRENT_DATE - INTERVAL '30 days'
       GROUP BY p.id, p.name, p.slug, p.image_url
       ORDER BY view_count DESC
-      LIMIT 10
+      LIMIT 12
     `
 
     // Get recent orders

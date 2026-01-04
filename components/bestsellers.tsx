@@ -35,19 +35,11 @@ export default function Bestsellers() {
   const [error, setError] = useState<string | null>(null)
   const [pendingId, setPendingId] = useState<number | null>(null)
   const [discount, setDiscount] = useState<Discount | null>(null)
-  const [currentPage, setCurrentPage] = useState(0)
-  const [isMobile, setIsMobile] = useState(false)
+  const [offset, setOffset] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
 
-  const productsPerPage = isMobile ? 6 : 10
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
-  }, [])
+  const ITEMS_PER_PAGE = 12
 
   useEffect(() => {
     async function fetchData() {
@@ -55,7 +47,7 @@ export default function Bestsellers() {
         setLoading(true)
         
         // Check cache first
-        const cacheKey = "/api/products?featured=true&limit=10"
+        const cacheKey = `/api/products?featured=true&limit=${ITEMS_PER_PAGE}&offset=${offset}`
         let productsData = cacheService.get(cacheKey)
         
         if (!productsData) {
@@ -67,13 +59,22 @@ export default function Bestsellers() {
           cacheService.set(cacheKey, productsData, 5 * 60 * 1000) // 5 min cache
         }
         
-        setProducts(productsData.products || [])
+        if (offset === 0) {
+          setProducts(productsData.products || [])
+        } else {
+          setProducts(prev => [...prev, ...(productsData.products || [])])
+          setLoadingMore(false)
+        }
+        
+        setHasMore(productsData.pagination?.hasMore || false)
         
         // Handle discount fetch separately
-        const discountRes = await fetch("/api/discounts/active")
-        if (discountRes.ok) {
-          const discountData = await discountRes.json()
-          setDiscount(discountData.discount || null)
+        if (offset === 0) {
+          const discountRes = await fetch("/api/discounts/active")
+          if (discountRes.ok) {
+            const discountData = await discountRes.json()
+            setDiscount(discountData.discount || null)
+          }
         }
       } catch (err) {
         console.error("Error fetching data:", err)
@@ -84,7 +85,7 @@ export default function Bestsellers() {
     }
 
     fetchData()
-  }, [])
+  }, [offset])
 
   const calculateDiscount = (original: number, current: number) => {
     if (!original) return 0
@@ -198,18 +199,15 @@ export default function Bestsellers() {
     )
   }
 
-  const totalPages = Math.ceil(products.length / productsPerPage)
+  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE)
   const displayedProducts = products.slice(
-    currentPage * productsPerPage,
-    (currentPage + 1) * productsPerPage
+    offset,
+    offset + ITEMS_PER_PAGE
   )
 
-  const handlePrevPage = () => {
-    setCurrentPage((prev) => Math.max(0, prev - 1))
-  }
-
-  const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))
+  const handleLoadMore = () => {
+    setLoadingMore(true)
+    setOffset(offset + ITEMS_PER_PAGE)
   }
 
   return (
@@ -300,26 +298,21 @@ export default function Bestsellers() {
           })}
         </div>
 
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-8">
+        {hasMore && (
+          <div className="flex justify-center mt-8">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrevPage}
-              disabled={currentPage === 0}
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              size="lg"
             >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              Page {currentPage + 1} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages - 1}
-            >
-              <ChevronRight className="w-4 h-4" />
+              {loadingMore ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                "Load More"
+              )}
             </Button>
           </div>
         )}

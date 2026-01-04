@@ -16,9 +16,9 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get("maxPrice")
     const sort = searchParams.get("sort") || "created_at"
     const order = searchParams.get("order") || "desc"
-    // Max limit is 10 per API call, default to 10
-    const rawLimit = Number.parseInt(searchParams.get("limit") || "10")
-    const limit = Math.min(rawLimit, 10)
+    // Max limit is 12 per API call, default to 12
+    const rawLimit = Number.parseInt(searchParams.get("limit") || "12")
+    const limit = Math.min(rawLimit, 12)
     const offset = Number.parseInt(searchParams.get("offset") || "0")
 
     const filters: string[] = []

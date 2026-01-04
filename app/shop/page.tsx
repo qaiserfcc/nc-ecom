@@ -30,10 +30,19 @@ const fetcher = async (url: string) => {
   const cached = cacheService.get(url)
   if (cached) return cached
   
-  // Fetch and cache
+  // Fetch data
   const res = await fetch(url)
+  if (!res.ok) {
+    throw new Error(`API error: ${res.status}`)
+  }
+  
   const data = await res.json()
-  cacheService.set(url, data, 5 * 60 * 1000) // 5 minute cache
+  
+  // Only cache if data is valid and not empty
+  if (data && Object.keys(data).length > 0) {
+    cacheService.set(url, data, 5 * 60 * 1000) // 5 minute cache
+  }
+  
   return data
 }
 
@@ -68,7 +77,7 @@ function ShopContent() {
     if (sortOrder) params.set("order", sortOrder)
     if (featuredOnly) params.set("featured", "true")
     if (newOnly) params.set("new", "true")
-    params.set("limit", "10") // Changed from 12 to 10 to match API enforcement
+    params.set("limit", "12") // Changed from 10 to 12 for new pagination size
     params.set("offset", pageOffset.toString())
     return params.toString()
   }, [search, category, brandFilter, priceRange, sortBy, sortOrder, featuredOnly, newOnly])
@@ -112,8 +121,12 @@ function ShopContent() {
   const categories = categoriesData?.categories || []
   const brands = brandsData?.brands || []
 
-  // Reset pagination when filters change
+  // Reset pagination when filters change and clear related cache
   useEffect(() => {
+    // Clear cache for product-related endpoints when filters change
+    cacheService.clearPattern('/api/products')
+    cacheService.clearPattern('/api/bundles')
+    cacheService.clearPattern('/api/brands')
     setOffset(0)
     setAllItems([])
   }, [search, category, brandFilter, priceRange, sortBy, sortOrder, featuredOnly, newOnly])

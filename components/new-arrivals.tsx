@@ -33,35 +33,39 @@ export default function NewArrivals() {
   const [error, setError] = useState<string | null>(null)
   const [pendingId, setPendingId] = useState<number | null>(null)
   const [discount, setDiscount] = useState<Discount | null>(null)
-  const [currentPage, setCurrentPage] = useState(0)
-  const [isMobile, setIsMobile] = useState(false)
+  const [offset, setOffset] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
 
-  const productsPerPage = isMobile ? 6 : 10
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
-  }, [])
+  const ITEMS_PER_PAGE = 12
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        if (offset === 0) {
+          setLoading(true)
+        }
+        
         const [productsRes, discountRes] = await Promise.all([
-          fetch("/api/products?new=true&limit=50"),
-          fetch("/api/discounts/active"),
+          fetch(`/api/products?new=true&limit=${ITEMS_PER_PAGE}&offset=${offset}`),
+          offset === 0 ? fetch("/api/discounts/active") : Promise.resolve(null),
         ])
         
         if (!productsRes.ok) throw new Error("Failed to fetch new arrivals")
         
         const productsData = await productsRes.json()
-        setProducts(productsData.products || [])
+        
+        if (offset === 0) {
+          setProducts(productsData.products || [])
+        } else {
+          setProducts(prev => [...prev, ...(productsData.products || [])])
+          setLoadingMore(false)
+        }
+        
+        setHasMore(productsData.pagination?.hasMore || false)
         
         // Handle discount fetch separately to avoid breaking if it fails
-        if (discountRes.ok) {
+        if (offset === 0 && discountRes && discountRes.ok) {
           const discountData = await discountRes.json()
           setDiscount(discountData.discount || null)
         }
@@ -73,7 +77,7 @@ export default function NewArrivals() {
     }
 
     fetchData()
-  }, [])
+  }, [offset])
 
   const calculateDiscount = (original: number, current: number): number => {
     if (original <= 0) return 0
@@ -169,18 +173,11 @@ export default function NewArrivals() {
     )
   }
 
-  const totalPages = Math.ceil(products.length / productsPerPage)
-  const displayedProducts = products.slice(
-    currentPage * productsPerPage,
-    (currentPage + 1) * productsPerPage
-  )
+  const displayedProducts = products.slice(offset, offset + ITEMS_PER_PAGE)
 
-  const handlePrevPage = () => {
-    setCurrentPage((prev) => Math.max(0, prev - 1))
-  }
-
-  const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))
+  const handleLoadMore = () => {
+    setLoadingMore(true)
+    setOffset(offset + ITEMS_PER_PAGE)
   }
 
   return (
@@ -278,26 +275,21 @@ export default function NewArrivals() {
           })}
         </div>
 
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-8">
+        {hasMore && (
+          <div className="flex justify-center mt-8">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrevPage}
-              disabled={currentPage === 0}
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              size="lg"
             >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              Page {currentPage + 1} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages - 1}
-            >
-              <ChevronRight className="w-4 h-4" />
+              {loadingMore ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                "Load More"
+              )}
             </Button>
           </div>
         )}
