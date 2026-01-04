@@ -38,6 +38,7 @@ class StorageProvider {
   private getConfig(): StorageConfig {
     // Auto-detect storage type based on environment variables
     if (process.env.AWS_S3_BUCKET && process.env.AWS_REGION) {
+      console.log('[Storage] Detected AWS S3 configuration')
       return {
         type: 's3',
         s3: {
@@ -50,6 +51,7 @@ class StorageProvider {
     }
 
     if (process.env.VERCEL_BLOB_TOKEN) {
+      console.log('[Storage] Detected Vercel Blob configuration')
       return {
         type: 'vercel-blob',
         vercelBlob: {
@@ -59,6 +61,7 @@ class StorageProvider {
     }
 
     // Default to local storage
+    console.log('[Storage] Using local filesystem storage')
     return {
       type: 'local',
       local: {
@@ -73,6 +76,9 @@ class StorageProvider {
     mimeType: string = 'application/octet-stream'
   ): Promise<UploadResult> {
     const config = this.getConfig()
+
+    // Log which storage backend is being used (helpful for debugging)
+    console.log(`[Storage] Using ${config.type} storage for file: ${filename}`)
 
     switch (config.type) {
       case 's3':
