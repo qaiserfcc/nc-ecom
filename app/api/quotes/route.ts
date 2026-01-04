@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
-import { verifyAuth } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 
 // GET /api/quotes - Get all quotes (admin gets all, users get their own)
 export async function GET(request: NextRequest) {
   try {
-    const authResult = await verifyAuth(request)
+    const session = await getSession()
     
-    if (!authResult.user) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     let sql = ""
     let params: any[] = []
     
-    if (authResult.isAdmin) {
+    if (session.user.role === "admin") {
       // Admin gets all quotes
       sql = `
         SELECT q.*, u.name as user_name, u.email as user_email 
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         SELECT * FROM quotes 
         WHERE user_id = $1
       `
-      params = [authResult.user.id]
+      params = [session.user.id]
       
       if (status) {
         sql += " AND status = $2"
@@ -62,9 +62,9 @@ export async function GET(request: NextRequest) {
 // POST /api/quotes - Create a new quote request
 export async function POST(request: NextRequest) {
   try {
-    const authResult = await verifyAuth(request)
+    const session = await getSession()
     
-    if (!authResult.user) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
        VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending')
        RETURNING *`,
       [
-        authResult.user.id,
+        session.user.id,
         customer_name,
         customer_email,
         customer_phone || null,

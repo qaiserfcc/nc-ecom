@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
-import { verifyAuth } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 
 // GET /api/quotes/[id] - Get a single quote
 export async function GET(
@@ -8,16 +8,16 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await verifyAuth(request)
+    const session = await getSession()
     
-    if (!authResult.user) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { id } = await params
     
     let result
-    if (authResult.isAdmin) {
+    if (session.user.role === "admin") {
       result = await query(
         `SELECT q.*, u.name as user_name, u.email as user_email 
          FROM quotes q
@@ -28,7 +28,7 @@ export async function GET(
     } else {
       result = await query(
         `SELECT * FROM quotes WHERE id = $1 AND user_id = $2`,
-        [id, authResult.user.id]
+        [id, session.user.id]
       )
     }
 
@@ -52,9 +52,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await verifyAuth(request)
+    const session = await getSession()
     
-    if (!authResult.isAdmin) {
+    if (!session || session.user.role !== "admin") {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 })
     }
 
@@ -127,21 +127,21 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await verifyAuth(request)
+    const session = await getSession()
     
-    if (!authResult.user) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { id } = await params
     
     let result
-    if (authResult.isAdmin) {
+    if (session.user.role === "admin") {
       result = await query(`DELETE FROM quotes WHERE id = $1 RETURNING *`, [id])
     } else {
       result = await query(
         `DELETE FROM quotes WHERE id = $1 AND user_id = $2 RETURNING *`,
-        [id, authResult.user.id]
+        [id, session.user.id]
       )
     }
 
