@@ -68,12 +68,13 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     if (!address.trim()) {
-      notify.error("Please enter your shipping address")
+      notify.error("Missing information", "Please enter your shipping address")
       return
     }
 
     setLoading(true)
     setError("")
+    const toastId = notify.loading("Processing your order...")
 
     try {
       const res = await fetch("/api/orders", {
@@ -93,11 +94,16 @@ export default function CheckoutPage() {
 
       setOrderPlaced(true)
       setOrderNumber(data.order.order_number)
-      notify.success("Order placed successfully!", `Order number: ${data.order.order_number}`)
+      notify.dismiss(toastId)
+      notify.success("Order placed successfully!", `Order #${data.order.order_number} confirmed`)
     } catch (err: any) {
       const errorMessage = err.message
       setError(errorMessage)
+      notify.dismiss(toastId)
       notify.error("Failed to place order", errorMessage)
+    } finally {
+      setLoading(false)
+    }
     } finally {
       setLoading(false)
     }

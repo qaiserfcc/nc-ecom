@@ -17,11 +17,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Slider } from "@/components/ui/slider"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Search, Filter, Heart, ShoppingCart, Loader2, X } from "lucide-react"
+import { Search, Filter, Heart, ShoppingCart, Loader2, X, Check } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
+import { cacheService } from "@/lib/cache-service"
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+// SVG blur placeholder
+const blurSvg = `data:image/svg+xml;base64,Cjxzdmcgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGZpbHRlciBpZD0iYmx1ciI+CiAgICA8ZmVHYXVzc2lhbkJsdXIgaW49IlNvdXJjZUdyYXBoaWMiIHN0ZERldmlhdGlvbj0iOCIgLz4KICA8L2ZpbHRlcj4KICAKICBYZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNlNWU3ZWIiIGZpbHRlcj0idXJsKCNibHVyKSIgLz4KPC9zdmc+Cg==`
+
+const fetcher = async (url: string) => {
+  // Check cache first
+  const cached = cacheService.get(url)
+  if (cached) return cached
+  
+  // Fetch and cache
+  const res = await fetch(url)
+  const data = await res.json()
+  cacheService.set(url, data, 5 * 60 * 1000) // 5 minute cache
+  return data
+}
 
 function ShopContent() {
   const router = useRouter()
@@ -54,7 +68,7 @@ function ShopContent() {
     if (sortOrder) params.set("order", sortOrder)
     if (featuredOnly) params.set("featured", "true")
     if (newOnly) params.set("new", "true")
-    params.set("limit", "12")
+    params.set("limit", "10") // Changed from 12 to 10 to match API enforcement
     params.set("offset", pageOffset.toString())
     return params.toString()
   }, [search, category, brandFilter, priceRange, sortBy, sortOrder, featuredOnly, newOnly])
@@ -114,36 +128,56 @@ function ShopContent() {
   const handleAddToCart = async (productId: number, e: React.MouseEvent) => {
     e.preventDefault()
     if (!isAuthenticated) {
+      notify.warning("Please sign in", "You need to be logged in to add items to cart")
       router.push("/signin")
       return
     }
+    
+    const toastId = notify.loading("Adding to cart...")
     try {
-      await fetch("/api/cart", {
+      const response = await fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ product_id: productId, quantity: 1 }),
       })
-      notify.success("Added to cart")
+      
+      if (!response.ok) {
+        throw new Error("Failed to add to cart")
+      }
+      
+      notify.dismiss(toastId)
+      notify.success("Added to cart!", "View your cart now")
     } catch (error) {
-      notify.error("Failed to add to cart")
+      notify.dismiss(toastId)
+      notify.error("Failed to add to cart", error instanceof Error ? error.message : "Please try again")
     }
   }
 
   const handleAddToWishlist = async (productId: number, e: React.MouseEvent) => {
     e.preventDefault()
     if (!isAuthenticated) {
+      notify.warning("Please sign in", "You need to be logged in to add items to wishlist")
       router.push("/signin")
       return
     }
+    
+    const toastId = notify.loading("Adding to wishlist...")
     try {
-      await fetch("/api/wishlist", {
+      const response = await fetch("/api/wishlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ product_id: productId }),
       })
-      notify.success("Added to wishlist")
+      
+      if (!response.ok) {
+        throw new Error("Failed to add to wishlist")
+      }
+      
+      notify.dismiss(toastId)
+      notify.success("Added to wishlist!", "Check your wishlist anytime")
     } catch (error) {
-      notify.error("Failed to add to wishlist")
+      notify.dismiss(toastId)
+      notify.error("Failed to add to wishlist", error instanceof Error ? error.message : "Please try again")
     }
   }
 
@@ -405,6 +439,8 @@ function ShopContent() {
                                 fill
                                 className="object-cover group-hover:scale-105 transition-transform"
                                 loading="lazy"
+                                placeholder="blur"
+                                blurDataURL={blurSvg}
                               />
                               {product.is_new_arrival && (
                                 <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground">New</Badge>

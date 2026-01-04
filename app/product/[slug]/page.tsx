@@ -34,13 +34,16 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
+      notify.warning("Please sign in", "You need to be logged in to add items to cart")
       router.push("/signin")
       return
     }
 
     setAddingToCart(true)
+    const toastId = notify.loading("Adding to cart...")
+    
     try {
-      await fetch("/api/cart", {
+      const response = await fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -49,11 +52,18 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
           quantity,
         }),
       })
-      notify.success("Added to cart")
-      router.push("/cart")
+      
+      if (!response.ok) {
+        throw new Error("Failed to add to cart")
+      }
+      
+      notify.dismiss(toastId)
+      notify.success("Added to cart!", `${quantity} item(s) added - view your cart`)
+      setTimeout(() => router.push("/cart"), 1500)
     } catch (error) {
       console.error("Failed to add to cart:", error)
-      notify.error("Failed to add to cart")
+      notify.dismiss(toastId)
+      notify.error("Failed to add to cart", error instanceof Error ? error.message : "Please try again")
     } finally {
       setAddingToCart(false)
     }
@@ -61,19 +71,28 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
   const handleAddToWishlist = async () => {
     if (!isAuthenticated) {
+      notify.warning("Please sign in", "You need to be logged in to add items to wishlist")
       router.push("/signin")
       return
     }
 
+    const toastId = notify.loading("Adding to wishlist...")
     try {
-      await fetch("/api/wishlist", {
+      const response = await fetch("/api/wishlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ product_id: product.id }),
       })
-      notify.success("Added to wishlist")
+      
+      if (!response.ok) {
+        throw new Error("Failed to add to wishlist")
+      }
+      
+      notify.dismiss(toastId)
+      notify.success("Added to wishlist!", "View your wishlist anytime")
     } catch (error) {
-      notify.error("Failed to add to wishlist")
+      notify.dismiss(toastId)
+      notify.error("Failed to add to wishlist", error instanceof Error ? error.message : "Please try again")
     }
   }
 

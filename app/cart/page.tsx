@@ -38,36 +38,62 @@ export default function CartPage() {
   const totalDiscountPercent = totals.original > 0 ? Math.round((totalDiscount / totals.original) * 100) : 0
 
   const updateQuantity = async (itemId: number, quantity: number) => {
+    if (quantity < 1) return
+    
+    const toastId = notify.loading("Updating quantity...")
     try {
-      await fetch("/api/cart", {
+      const response = await fetch("/api/cart", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ item_id: itemId, quantity }),
       })
+      
+      if (!response.ok) {
+        throw new Error("Failed to update quantity")
+      }
+      
       mutate()
-      notify.success("Quantity updated")
+      notify.dismiss(toastId)
+      notify.success("Quantity updated", `Item quantity set to ${quantity}`)
     } catch (error) {
-      notify.error("Failed to update quantity")
+      notify.dismiss(toastId)
+      notify.error("Failed to update quantity", error instanceof Error ? error.message : "Please try again")
     }
   }
 
   const removeItem = async (itemId: number) => {
+    const toastId = notify.loading("Removing item from cart...")
     try {
-      await fetch(`/api/cart?id=${itemId}`, { method: "DELETE" })
+      const response = await fetch(`/api/cart?id=${itemId}`, { method: "DELETE" })
+      
+      if (!response.ok) {
+        throw new Error("Failed to remove item")
+      }
+      
       mutate()
-      notify.success("Item removed from cart")
+      notify.dismiss(toastId)
+      notify.success("Item removed", "Item has been removed from your cart")
     } catch (error) {
-      notify.error("Failed to remove item")
+      notify.dismiss(toastId)
+      notify.error("Failed to remove item", error instanceof Error ? error.message : "Please try again")
     }
   }
 
   const clearCart = async () => {
+    const toastId = notify.loading("Clearing cart...")
     try {
-      await fetch("/api/cart", { method: "DELETE" })
+      const response = await fetch("/api/cart", { method: "DELETE" })
+      
+      if (!response.ok) {
+        throw new Error("Failed to clear cart")
+      }
+      
       mutate()
-      notify.success("Cart cleared")
+      notify.dismiss(toastId)
+      notify.success("Cart cleared", "All items have been removed from your cart")
     } catch (error) {
-      notify.error("Failed to clear cart")
+      notify.dismiss(toastId)
+      notify.error("Failed to clear cart", error instanceof Error ? error.message : "Please try again")
     }
   }
 

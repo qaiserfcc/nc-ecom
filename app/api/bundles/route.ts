@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const search = searchParams.get("search")
-    const limit = Number.parseInt(searchParams.get("limit") || "50")
+    const limit = Math.min(Number.parseInt(searchParams.get("limit") || "10"), 10)
     const offset = Number.parseInt(searchParams.get("offset") || "0")
 
     let bundles

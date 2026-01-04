@@ -16,7 +16,9 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get("maxPrice")
     const sort = searchParams.get("sort") || "created_at"
     const order = searchParams.get("order") || "desc"
-    const limit = Number.parseInt(searchParams.get("limit") || "50")
+    // Max limit is 10 per API call, default to 10
+    const rawLimit = Number.parseInt(searchParams.get("limit") || "10")
+    const limit = Math.min(rawLimit, 10)
     const offset = Number.parseInt(searchParams.get("offset") || "0")
 
     const filters: string[] = []
@@ -110,8 +112,12 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Get products error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Get products error:", error instanceof Error ? error.message : String(error))
+    console.error("Full error:", error)
+    return NextResponse.json({ 
+      error: "Internal server error",
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 })
   }
 }
 

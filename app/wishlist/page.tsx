@@ -23,27 +23,43 @@ export default function WishlistPage() {
   const items = data?.items || []
 
   const removeFromWishlist = async (productId: number) => {
+    const toastId = notify.loading("Removing from wishlist...")
     try {
-      await fetch(`/api/wishlist?product_id=${productId}`, { method: "DELETE" })
+      const response = await fetch(`/api/wishlist?product_id=${productId}`, { method: "DELETE" })
+      
+      if (!response.ok) {
+        throw new Error("Failed to remove from wishlist")
+      }
+      
       mutate()
-      notify.success("Removed from wishlist")
+      notify.dismiss(toastId)
+      notify.success("Removed from wishlist", "Item has been removed from your wishlist")
     } catch (error) {
-      notify.error("Failed to remove from wishlist")
+      notify.dismiss(toastId)
+      notify.error("Failed to remove from wishlist", error instanceof Error ? error.message : "Please try again")
     }
   }
 
   const addToCart = async (productId: number) => {
+    const toastId = notify.loading("Adding to cart...")
     try {
-      await fetch("/api/cart", {
+      const response = await fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ product_id: productId, quantity: 1 }),
       })
+      
+      if (!response.ok) {
+        throw new Error("Failed to add to cart")
+      }
+      
       await removeFromWishlist(productId)
-      notify.success("Added to cart")
-      router.push("/cart")
+      notify.dismiss(toastId)
+      notify.success("Added to cart!", "Redirecting to your cart...")
+      setTimeout(() => router.push("/cart"), 1500)
     } catch (error) {
-      notify.error("Failed to add to cart")
+      notify.dismiss(toastId)
+      notify.error("Failed to add to cart", error instanceof Error ? error.message : "Please try again")
     }
   }
 

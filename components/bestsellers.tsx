@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Heart, ShoppingCart, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
+import { cacheService } from "@/lib/cache-service"
 
 interface Product {
   id: number
@@ -52,19 +53,24 @@ export default function Bestsellers() {
     async function fetchData() {
       try {
         setLoading(true)
-        const [productsRes, discountRes] = await Promise.all([
-          fetch("/api/products?featured=true&limit=50"),
-          fetch("/api/discounts/active"),
-        ])
         
-        if (!productsRes.ok) {
-          throw new Error("Failed to fetch products")
+        // Check cache first
+        const cacheKey = "/api/products?featured=true&limit=10"
+        let productsData = cacheService.get(cacheKey)
+        
+        if (!productsData) {
+          const productsRes = await fetch(cacheKey)
+          if (!productsRes.ok) {
+            throw new Error("Failed to fetch products")
+          }
+          productsData = await productsRes.json()
+          cacheService.set(cacheKey, productsData, 5 * 60 * 1000) // 5 min cache
         }
         
-        const productsData = await productsRes.json()
         setProducts(productsData.products || [])
         
-        // Handle discount fetch separately to avoid breaking if it fails
+        // Handle discount fetch separately
+        const discountRes = await fetch("/api/discounts/active")
         if (discountRes.ok) {
           const discountData = await discountRes.json()
           setDiscount(discountData.discount || null)
@@ -97,20 +103,31 @@ export default function Bestsellers() {
 
   const handleAdd = async (productId: number) => {
     if (!isAuthenticated) {
+      notify.warning("Please sign in", "You need to be logged in to add items to cart")
       router.push("/signin")
       return
     }
+    
     setPendingId(productId)
+    const toastId = notify.loading("Adding to cart...")
+    
     try {
-      await fetch("/api/cart", {
+      const response = await fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ product_id: productId, quantity: 1 }),
       })
-      notify.success("Added to cart")
-      router.push("/cart")
+      
+      if (!response.ok) {
+        throw new Error("Failed to add to cart")
+      }
+      
+      notify.dismiss(toastId)
+      notify.success("Added to cart!", "View your cart now")
+      setTimeout(() => router.push("/cart"), 1500)
     } catch (error) {
-      notify.error("Failed to add to cart")
+      notify.dismiss(toastId)
+      notify.error("Failed to add to cart", error instanceof Error ? error.message : "Please try again")
     } finally {
       setPendingId(null)
     }
@@ -118,19 +135,30 @@ export default function Bestsellers() {
 
   const handleWishlist = async (productId: number) => {
     if (!isAuthenticated) {
+      notify.warning("Please sign in", "You need to be logged in to add items to wishlist")
       router.push("/signin")
       return
     }
+    
     setPendingId(productId)
+    const toastId = notify.loading("Adding to wishlist...")
+    
     try {
-      await fetch("/api/wishlist", {
+      const response = await fetch("/api/wishlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ product_id: productId }),
       })
-      notify.success("Added to wishlist")
+      
+      if (!response.ok) {
+        throw new Error("Failed to add to wishlist")
+      }
+      
+      notify.dismiss(toastId)
+      notify.success("Added to wishlist!", "Check your wishlist anytime")
     } catch (error) {
-      notify.error("Failed to add to wishlist")
+      notify.dismiss(toastId)
+      notify.error("Failed to add to wishlist", error instanceof Error ? error.message : "Please try again")
     } finally {
       setPendingId(null)
     }
