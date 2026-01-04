@@ -48,6 +48,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [currentPrice, setCurrentPrice] = useState("")
   const [stockQuantity, setStockQuantity] = useState("")
   const [imageUrl, setImageUrl] = useState("")
+  const [thumbnailUrl, setThumbnailUrl] = useState("")
   const [isFeatured, setIsFeatured] = useState(false)
   const [isNewArrival, setIsNewArrival] = useState(false)
   const [variants, setVariants] = useState<Variant[]>([])
@@ -63,6 +64,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       setCurrentPrice(product.current_price?.toString() || "")
       setStockQuantity(product.stock_quantity?.toString() || "")
       setImageUrl(product.image_url || "")
+      setThumbnailUrl(product.thumbnail_url || "")
       setIsFeatured(product.is_featured || false)
       setIsNewArrival(product.is_new_arrival || false)
       setVariants(product.variants || [])
@@ -108,6 +110,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           current_price: Number.parseFloat(currentPrice),
           stock_quantity: Number.parseInt(stockQuantity) || 0,
           image_url: imageUrl,
+          thumbnail_url: thumbnailUrl,
           is_featured: isFeatured,
           is_new_arrival: isNewArrival,
           variants: variants.filter((v) => v.variant_name && v.variant_value),
@@ -251,6 +254,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               <ImageUpload
                 value={imageUrl}
                 onChange={setImageUrl}
+                onThumbnailChange={setThumbnailUrl}
                 label="Product Image"
               />
               <div className="space-y-3 pt-2">

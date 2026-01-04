@@ -552,9 +552,13 @@ function ShopContent() {
                         {allItems.map((product: any) => {
                           const productImageList = productImages[product.id] || []
                           const primaryImage = productImageList.find((img: any) => img.is_primary) || productImageList[0]
-                          
-                          // Get image URL with fallback chain
-                          const imageUrl = primaryImage?.image_url || "/placeholder.svg?height=300&width=300"
+
+                          // Get image URL with fallback chain, prefer optimized thumbnail
+                          const imageUrl =
+                            primaryImage?.image_url ||
+                            product.thumbnail_url ||
+                            product.image_url ||
+                            "/placeholder.svg?height=300&width=300"
                           const fallbackUrls = primaryImage?.format_options || ["/placeholder.svg?height=300&width=300"]
                           
                           return (

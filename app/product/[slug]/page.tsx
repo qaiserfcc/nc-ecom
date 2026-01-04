@@ -123,10 +123,18 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
     )
   }
 
+  const placeholderImage = "/placeholder.svg?height=600&width=600"
+
   const images =
     product.images?.length > 0
       ? product.images
-      : [{ id: 0, image_url: product.image_url || "/placeholder.svg?height=600&width=600", is_primary: true }]
+      : [
+          {
+            id: 0,
+            image_url: product.thumbnail_url || product.image_url || placeholderImage,
+            is_primary: true,
+          },
+        ]
 
   const variants = product.variants || []
   const selectedVariantData = variants.find((v: any) => v.id === selectedVariant)
@@ -177,7 +185,12 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
             <div className="space-y-4">
               <div className="relative aspect-square rounded-lg overflow-hidden bg-muted">
                 <Image
-                  src={images[selectedImage]?.image_url || "/placeholder.svg?height=600&width=600"}
+                  src={
+                    images[selectedImage]?.image_url ||
+                    product.thumbnail_url ||
+                    product.image_url ||
+                    placeholderImage
+                  }
                   alt={product.name}
                   fill
                   className="object-cover"
@@ -205,7 +218,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                       }`}
                     >
                       <Image
-                        src={img.image_url || "/placeholder.svg"}
+                        src={img.image_url || product.thumbnail_url || placeholderImage}
                         alt={`${product.name} ${index + 1}`}
                         fill
                         className="object-cover"

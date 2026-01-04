@@ -8,6 +8,7 @@ import { Upload, X, Image as ImageIcon } from "lucide-react"
 interface ImageUploadProps {
   value: string
   onChange: (value: string) => void
+  onThumbnailChange?: (value: string) => void
   onFileSelect?: (file: File) => void
   label?: string
   required?: boolean
@@ -16,6 +17,7 @@ interface ImageUploadProps {
 export function ImageUpload({
   value,
   onChange,
+  onThumbnailChange,
   onFileSelect,
   label = "Image",
   required = false,
@@ -23,13 +25,16 @@ export function ImageUpload({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [preview, setPreview] = useState(value)
+  const [optimizationInfo, setOptimizationInfo] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const placeholder = "/placeholder.svg?height=320&width=320"
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     setError("")
+      setOptimizationInfo("")
     setLoading(true)
 
     try {
@@ -40,20 +45,45 @@ export function ImageUpload({
         return
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        setError("File size must be less than 5MB")
+      if (file.size > 10 * 1024 * 1024) {
+        setError("File size must be less than 10MB")
         setLoading(false)
         return
       }
 
-      // Create preview
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string
-        setPreview(dataUrl)
-        onChange(dataUrl)
+      // Upload and optimize on server
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to upload image")
       }
-      reader.readAsDataURL(file)
+
+      const data = await response.json()
+      const mainUrl = data.url || placeholder
+      const thumbUrl = data.thumbnailUrl || ""
+
+      setPreview(mainUrl)
+      onChange(mainUrl)
+      
+      if (onThumbnailChange && thumbUrl) {
+        onThumbnailChange(thumbUrl)
+      }
+      
+      // Show optimization info
+      if (data.sizeReduction) {
+        const originalKB = Math.round(data.originalSize / 1024)
+        const optimizedKB = Math.round(data.optimizedSize / 1024)
+        setOptimizationInfo(
+          `Optimized: ${originalKB}KB → ${optimizedKB}KB (${data.sizeReduction} reduction)`
+        )
+      }
 
       if (onFileSelect) {
         onFileSelect(file)
@@ -68,6 +98,10 @@ export function ImageUpload({
   const clearImage = () => {
     setPreview("")
     onChange("")
+    if (onThumbnailChange) {
+      onThumbnailChange("")
+    }
+    setOptimizationInfo("")
     setError("")
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
@@ -88,6 +122,9 @@ export function ImageUpload({
               src={preview}
               alt="Preview"
               className="max-w-xs max-h-64 rounded-lg border border-border object-cover"
+              onError={(e) => {
+                e.currentTarget.src = placeholder
+              }}
             />
             <Button
               type="button"
@@ -115,7 +152,7 @@ export function ImageUpload({
         >
           <ImageIcon className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
           <p className="text-sm font-medium">Click to upload or drag and drop</p>
-          <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 5MB</p>
+          <p className="text-xs text-muted-foreground">PNG, JPG, WebP up to 10MB</p>
         </div>
       )}
 
@@ -138,8 +175,12 @@ export function ImageUpload({
       {loading && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <div className="w-4 h-4 border-2 border-muted-foreground border-t-primary rounded-full animate-spin" />
-          Processing image...
+          Optimizing image...
         </div>
+      )}
+
+      {optimizationInfo && !error && !loading && (
+        <p className="text-xs text-green-600">{optimizationInfo}</p>
       )}
 
       <input

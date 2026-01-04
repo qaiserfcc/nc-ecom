@@ -68,6 +68,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       is_featured,
       is_new_arrival,
       image_url,
+      thumbnail_url,
       images,
       variants,
     } = body
@@ -86,6 +87,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         is_featured = COALESCE(${is_featured}, is_featured),
         is_new_arrival = COALESCE(${is_new_arrival}, is_new_arrival),
         image_url = COALESCE(${image_url}, image_url),
+        thumbnail_url = COALESCE(${thumbnail_url}, thumbnail_url),
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ${Number.parseInt(id)}
       RETURNING *

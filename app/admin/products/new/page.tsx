@@ -46,6 +46,7 @@ export default function NewProductPage() {
   const [currentPrice, setCurrentPrice] = useState("")
   const [stockQuantity, setStockQuantity] = useState("")
   const [imageUrl, setImageUrl] = useState("")
+  const [thumbnailUrl, setThumbnailUrl] = useState("")
   const [isFeatured, setIsFeatured] = useState(false)
   const [isNewArrival, setIsNewArrival] = useState(false)
   const [variants, setVariants] = useState<Variant[]>([])
@@ -104,6 +105,7 @@ export default function NewProductPage() {
           current_price: Number.parseFloat(currentPrice),
           stock_quantity: Number.parseInt(stockQuantity) || 0,
           image_url: imageUrl,
+          thumbnail_url: thumbnailUrl,
           is_featured: isFeatured,
           is_new_arrival: isNewArrival,
           variants: variants.filter((v) => v.variant_name && v.variant_value),
@@ -251,6 +253,7 @@ export default function NewProductPage() {
               <ImageUpload
                 value={imageUrl}
                 onChange={setImageUrl}
+                onThumbnailChange={setThumbnailUrl}
                 label="Product Image"
               />
 

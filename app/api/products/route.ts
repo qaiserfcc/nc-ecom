@@ -143,6 +143,7 @@ export async function POST(request: NextRequest) {
       is_featured,
       is_new_arrival,
       image_url,
+      thumbnail_url,
       images,
       variants,
     } = body
@@ -154,8 +155,8 @@ export async function POST(request: NextRequest) {
 
     // Insert product
     const result = await sql`
-      INSERT INTO products (category_id, brand_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url)
-      VALUES (${category_id}, ${brand_id}, ${name}, ${slug}, ${description}, ${short_description}, ${original_price}, ${current_price}, ${stock_quantity || 0}, ${is_featured || false}, ${is_new_arrival || false}, ${image_url})
+      INSERT INTO products (category_id, brand_id, name, slug, description, short_description, original_price, current_price, stock_quantity, is_featured, is_new_arrival, image_url, thumbnail_url)
+      VALUES (${category_id}, ${brand_id}, ${name}, ${slug}, ${description}, ${short_description}, ${original_price}, ${current_price}, ${stock_quantity || 0}, ${is_featured || false}, ${is_new_arrival || false}, ${image_url}, ${thumbnail_url})
       RETURNING *
     `
 
