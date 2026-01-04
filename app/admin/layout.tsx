@@ -19,11 +19,13 @@ import {
   ChevronLeft,
   Loader2,
   Image,
+  FolderTree,
 } from "lucide-react"
 
 const sidebarItems = [
   { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/admin/products", icon: Package, label: "Products" },
+  { href: "/admin/categories", icon: FolderTree, label: "Categories" },
   { href: "/admin/bundles", icon: Package, label: "Bundles" },
   { href: "/admin/brands", icon: Package, label: "Brands" },
   { href: "/admin/orders", icon: ShoppingCart, label: "Orders" },

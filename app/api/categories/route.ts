@@ -16,8 +16,11 @@ export async function GET(request: NextRequest) {
     if (search) {
       categories = await sql`
         SELECT c.*, 
-               (SELECT COUNT(*) FROM products p WHERE p.category_id = c.id) as product_count
+               pc.name as parent_category_name,
+               (SELECT COUNT(*) FROM products p WHERE p.category_id = c.id) as product_count,
+               (SELECT COUNT(*) FROM categories sc WHERE sc.parent_category_id = c.id) as subcategory_count
         FROM categories c
+        LEFT JOIN categories pc ON c.parent_category_id = pc.id
         WHERE c.name ILIKE ${"%" + search + "%"}
         ORDER BY c.name ASC
         LIMIT ${limit} OFFSET ${offset}
@@ -29,8 +32,11 @@ export async function GET(request: NextRequest) {
     } else {
       categories = await sql`
         SELECT c.*, 
-               (SELECT COUNT(*) FROM products p WHERE p.category_id = c.id) as product_count
+               pc.name as parent_category_name,
+               (SELECT COUNT(*) FROM products p WHERE p.category_id = c.id) as product_count,
+               (SELECT COUNT(*) FROM categories sc WHERE sc.parent_category_id = c.id) as subcategory_count
         FROM categories c
+        LEFT JOIN categories pc ON c.parent_category_id = pc.id
         ORDER BY c.name ASC
         LIMIT ${limit} OFFSET ${offset}
       `
@@ -64,11 +70,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { name, slug, description, image_url } = await request.json()
+    const { name, slug, description, image_url, parent_category_id } = await request.json()
 
     const result = await sql`
-      INSERT INTO categories (name, slug, description, image_url)
-      VALUES (${name}, ${slug}, ${description}, ${image_url})
+      INSERT INTO categories (name, slug, description, image_url, parent_category_id)
+      VALUES (${name}, ${slug}, ${description}, ${image_url}, ${parent_category_id || null})
       RETURNING *
     `
 

@@ -46,6 +46,7 @@ export default function AdminProductsPage() {
   const [featureStatus, setFeatureStatus] = useState<"no-change" | "true" | "false">("no-change")
   const [newArrivalStatus, setNewArrivalStatus] = useState<"no-change" | "true" | "false">("no-change")
   const [bulkCategoryId, setBulkCategoryId] = useState("no-change")
+  const [bulkSubcategoryId, setBulkSubcategoryId] = useState("no-change")
   const [bulkBrandId, setBulkBrandId] = useState("no-change")
   const [optimizingImages, setOptimizingImages] = useState(false)
   const itemsPerPage = 12
@@ -55,14 +56,23 @@ export default function AdminProductsPage() {
     fetcher
   )
 
-  const { data: categoriesData } = useSWR("/api/categories", fetcher)
+  const { data: categoriesData } = useSWR("/api/categories?limit=1000", fetcher)
   const { data: brandsData } = useSWR("/api/brands", fetcher)
 
   const products = data?.products || []
   const total = data?.pagination?.total || 0
   const totalPages = Math.ceil(total / itemsPerPage)
-  const categories = categoriesData?.categories || []
+  const allCategories = categoriesData?.categories || []
   const brands = brandsData?.brands || []
+  
+  // Separate main categories and subcategories
+  const mainCategories = allCategories.filter((cat: any) => !cat.parent_category_id)
+  const subcategories = allCategories.filter((cat: any) => cat.parent_category_id)
+  
+  // Get subcategories for selected category
+  const selectedCategorySubcategories = bulkCategoryId !== "no-change" 
+    ? subcategories.filter((cat: any) => cat.parent_category_id === Number.parseInt(bulkCategoryId))
+    : []
 
   const allSelected = products.length > 0 && selectedIds.length === products.length
 
@@ -82,6 +92,7 @@ export default function AdminProductsPage() {
     setFeatureStatus("no-change")
     setNewArrivalStatus("no-change")
     setBulkCategoryId("no-change")
+    setBulkSubcategoryId("no-change")
     setBulkBrandId("no-change")
   }
 
@@ -115,7 +126,14 @@ export default function AdminProductsPage() {
     const payload: any = { ids: selectedIds }
     if (featureStatus !== "no-change") payload.is_featured = featureStatus === "true"
     if (newArrivalStatus !== "no-change") payload.is_new_arrival = newArrivalStatus === "true"
-    if (bulkCategoryId !== "no-change") payload.category_id = Number.parseInt(bulkCategoryId)
+    
+    // Use subcategory if selected, otherwise use main category
+    if (bulkSubcategoryId !== "no-change") {
+      payload.category_id = Number.parseInt(bulkSubcategoryId)
+    } else if (bulkCategoryId !== "no-change") {
+      payload.category_id = Number.parseInt(bulkCategoryId)
+    }
+    
     if (bulkBrandId !== "no-change") payload.brand_id = Number.parseInt(bulkBrandId)
 
     if (Object.keys(payload).length === 1) {
@@ -482,14 +500,23 @@ export default function AdminProductsPage() {
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium">Category</p>
-              <Select value={bulkCategoryId} onValueChange={setBulkCategoryId}>
+              <p className="text-sm font-medium">Main Category</p>
+              <Select 
+                value={bulkCategoryId} 
+                onValueChange={(value) => {
+                  setBulkCategoryId(value)
+                  // Reset subcategory when main category changes
+                  if (value === "no-change") {
+                    setBulkSubcategoryId("no-change")
+                  }
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="No change" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="no-change">No change</SelectItem>
-                  {categories.map((category: any) => (
+                  {mainCategories.map((category: any) => (
                     <SelectItem key={category.id} value={String(category.id)}>
                       {category.name}
                     </SelectItem>
@@ -497,6 +524,25 @@ export default function AdminProductsPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {selectedCategorySubcategories.length > 0 && bulkCategoryId !== "no-change" && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Subcategory (Optional)</p>
+                <Select value={bulkSubcategoryId} onValueChange={setBulkSubcategoryId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="No change" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no-change">No change</SelectItem>
+                    {selectedCategorySubcategories.map((category: any) => (
+                      <SelectItem key={category.id} value={String(category.id)}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-2">
               <p className="text-sm font-medium">Brand</p>
