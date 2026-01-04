@@ -118,7 +118,17 @@ class StorageProvider {
     if (!config.s3) throw new Error('S3 config missing')
 
     // Dynamically import AWS SDK v3 to avoid issues in non-S3 environments
-    const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3')
+    let S3Client, PutObjectCommand
+    try {
+      const awsModule = await import('@aws-sdk/client-s3')
+      S3Client = awsModule.S3Client
+      PutObjectCommand = awsModule.PutObjectCommand
+    } catch (error) {
+      throw new Error(
+        'AWS SDK not installed. Run: npm install @aws-sdk/client-s3\n' +
+        'Or switch to Vercel Blob storage by setting VERCEL_BLOB_TOKEN environment variable'
+      )
+    }
 
     const s3Client = new S3Client({
       region: config.s3.region,
