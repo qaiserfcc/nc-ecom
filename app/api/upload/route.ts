@@ -1,9 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { promises as fs } from "fs"
-import path from "path"
 import { randomUUID } from "crypto"
 import { getSession } from "@/lib/auth"
 import { optimizeImageBuffer } from "@/lib/image-optimizer"
+import { uploadImageBuffer } from "@/lib/storage"
 
 export const runtime = "nodejs"
 
@@ -45,22 +44,16 @@ export async function POST(request: NextRequest) {
       format: "webp",
     })
 
-    // Persist optimized files to /public/uploads
-    const uploadsDir = path.join(process.cwd(), "public", "uploads")
-    await fs.mkdir(uploadsDir, { recursive: true })
-
+    // Upload optimized files to storage (cloud or local)
     const baseName = randomUUID()
     const fullFilename = `${baseName}.${optimized.format}`
     const thumbFilename = `${baseName}-thumb.${optimized.format}`
 
-    const fullPath = path.join(uploadsDir, fullFilename)
-    const thumbPath = path.join(uploadsDir, thumbFilename)
+    const fullUrlResult = await uploadImageBuffer(optimized.fullBuffer, fullFilename, `image/${optimized.format}`)
+    const thumbUrlResult = await uploadImageBuffer(optimized.thumbnailBuffer, thumbFilename, `image/${optimized.format}`)
 
-    await fs.writeFile(fullPath, optimized.fullBuffer)
-    await fs.writeFile(thumbPath, optimized.thumbnailBuffer)
-
-    const fullUrl = `/uploads/${fullFilename}`
-    const thumbUrl = `/uploads/${thumbFilename}`
+    const fullUrl = fullUrlResult.url
+    const thumbUrl = thumbUrlResult.url
 
     // Calculate size reduction
     const reduction = Math.round(((file.size - optimized.fullImageSize) / file.size) * 100)

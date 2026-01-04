@@ -1,10 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { promises as fs } from "fs"
-import path from "path"
 import { randomUUID } from "crypto"
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
 import { optimizeImageBuffer } from "@/lib/image-optimizer"
+import { uploadImageBuffer } from "@/lib/storage"
 
 export const runtime = "nodejs"
 
@@ -35,17 +34,14 @@ async function downloadAndOptimizeImage(imageUrl?: string): Promise<{ imagePath:
     format: "webp",
   })
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads")
-  await fs.mkdir(uploadsDir, { recursive: true })
-
   const baseName = randomUUID()
   const mainFilename = `${baseName}.${optimized.format}`
   const thumbFilename = `${baseName}-thumb.${optimized.format}`
 
-  await fs.writeFile(path.join(uploadsDir, mainFilename), optimized.fullBuffer)
-  await fs.writeFile(path.join(uploadsDir, thumbFilename), optimized.thumbnailBuffer)
+  const mainResult = await uploadImageBuffer(optimized.fullBuffer, mainFilename, `image/${optimized.format}`)
+  const thumbResult = await uploadImageBuffer(optimized.thumbnailBuffer, thumbFilename, `image/${optimized.format}`)
 
-  return { imagePath: `/uploads/${mainFilename}`, thumbPath: `/uploads/${thumbFilename}` }
+  return { imagePath: mainResult.url, thumbPath: thumbResult.url }
 }
 
 // POST - Bulk upload products (admin only)

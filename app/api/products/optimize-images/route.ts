@@ -1,11 +1,11 @@
-import { promises as fs } from "fs"
-import path from "path"
 import { randomUUID } from "crypto"
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
 import { optimizeImageBuffer } from "@/lib/image-optimizer"
+import { uploadImageBuffer } from "@/lib/storage"
 
 export const runtime = "nodejs"
+export const maxDuration = 300 // 5 minutes for long-running optimization
 
 /**
  * POST /api/products/optimize-images
@@ -37,15 +37,6 @@ export async function POST(request: Request) {
       WHERE image_url IS NOT NULL AND image_url LIKE 'data:image%'
       LIMIT 1000
     `
-
-    const uploadDir = path.join(process.cwd(), "public", "uploads")
-
-    // Ensure uploads directory exists
-    try {
-      await fs.mkdir(uploadDir, { recursive: true })
-    } catch (error) {
-      console.error("Failed to create uploads directory:", error)
-    }
 
     const results = {
       productsProcessed: 0,
@@ -79,15 +70,12 @@ export async function POST(request: Request) {
         const filename = `product-${product.id}-${uuid}.webp`
         const thumbFilename = `product-${product.id}-${uuid}-thumb.webp`
 
-        const filepath = path.join(uploadDir, filename)
-        const thumbpath = path.join(uploadDir, thumbFilename)
+        // Upload to storage (cloud or local)
+        const imageResult = await uploadImageBuffer(fullBuffer, filename, 'image/webp')
+        const thumbnailResult = await uploadImageBuffer(thumbnailBuffer, thumbFilename, 'image/webp')
 
-        // Write files
-        await fs.writeFile(filepath, fullBuffer)
-        await fs.writeFile(thumbpath, thumbnailBuffer)
-
-        const imageUrl = `/uploads/${filename}`
-        const thumbnailUrl = `/uploads/${thumbFilename}`
+        const imageUrl = imageResult.url
+        const thumbnailUrl = thumbnailResult.url
 
         // Update product with new image and thumbnail URLs
         await sql`
@@ -127,12 +115,10 @@ export async function POST(request: Request) {
         const uuid = randomUUID()
         const filename = `product-img-${image.id}-${uuid}.webp`
 
-        const filepath = path.join(uploadDir, filename)
+        // Upload to storage (cloud or local)
+        const imageResult = await uploadImageBuffer(fullBuffer, filename, 'image/webp')
 
-        // Write file
-        await fs.writeFile(filepath, fullBuffer)
-
-        const imageUrl = `/uploads/${filename}`
+        const imageUrl = imageResult.url
 
         // Update product_images with new image URL
         await sql`

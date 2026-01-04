@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import {
   ShoppingCart,
   Heart,
@@ -52,9 +53,13 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
-              NC
-            </div>
+            <Image 
+              src="/logo-small.png" 
+              alt="Namecheap Logo" 
+              width={40} 
+              height={40} 
+              className="rounded-lg"
+            />
             <span className="text-xl font-bold text-primary hidden sm:inline">Namecheap</span>
           </Link>
 
