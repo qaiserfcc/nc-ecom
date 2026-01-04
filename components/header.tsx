@@ -78,9 +78,14 @@ export default function Header() {
               Brands
             </Link>
             {isAuthenticated && (
-              <Link href="/orders" className="text-foreground hover:text-primary font-medium transition">
-                Orders
-              </Link>
+              <>
+                <Link href="/orders" className="text-foreground hover:text-primary font-medium transition">
+                  Orders
+                </Link>
+                <Link href="/quote" className="text-foreground hover:text-primary font-medium transition">
+                  Quotes
+                </Link>
+              </>
             )}
             {isAdmin && (
               <Link href="/admin" className="text-primary font-medium transition flex items-center gap-1">
