@@ -247,26 +247,35 @@ export default function Bestsellers() {
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* Original Price - Strike out */}
-                        <span className="text-muted-foreground line-through text-xs">
-                          Rs. {product.original_price.toLocaleString()}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-muted-foreground/70">Official Price</span>
+                          <span className="text-muted-foreground line-through text-xs">
+                            Rs. {product.original_price.toLocaleString()}
+                          </span>
+                        </div>
                         {/* Current/Selling Price - Strike out */}
-                        <span className="text-muted-foreground line-through text-xs sm:text-sm">
-                          Rs. {product.current_price.toLocaleString()}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-muted-foreground/70">Selling Price</span>
+                          <span className="text-muted-foreground line-through text-xs sm:text-sm">
+                            Rs. {product.current_price.toLocaleString()}
+                          </span>
+                        </div>
                       </div>
                       {/* Namecheap Discounted Price - Not striked */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-primary font-bold text-sm sm:text-base">
-                          Rs. {Math.round(discountedPrice).toLocaleString()}
-                        </span>
-                        {discount && (
-                          <Badge variant="secondary" className="text-xs">
-                            {discount.discount_type === "percentage"
-                              ? `${discount.discount_value}% OFF`
-                              : `Rs. ${discount.discount_value} OFF`}
-                          </Badge>
-                        )}
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-semibold text-primary/80">Our Discounted Price</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-primary font-bold text-sm sm:text-base">
+                            Rs. {Math.round(discountedPrice).toLocaleString()}
+                          </span>
+                          {discount && (
+                            <Badge variant="secondary" className="text-xs">
+                              {discount.discount_type === "percentage"
+                                ? `${discount.discount_value}% OFF`
+                                : `Rs. ${discount.discount_value} OFF`}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex gap-2">

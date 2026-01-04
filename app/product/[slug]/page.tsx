@@ -237,34 +237,42 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 <h1 className="text-2xl md:text-3xl font-bold text-balance">{product.name}</h1>
               </div>
 
-              <div className="flex items-center gap-3 flex-wrap">
-                {activeDiscount ? (
-                  <>
+              {/* 3-Tier Pricing Display */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-4 flex-wrap">
+                  {/* Official Price */}
+                  <div className="flex flex-col">
+                    <span className="text-xs text-muted-foreground font-medium">Official Price</span>
+                    <span className="text-base text-muted-foreground line-through">
+                      Rs. {Number(product.original_price).toLocaleString()}
+                    </span>
+                  </div>
+                  
+                  {/* Selling Price */}
+                  <div className="flex flex-col">
+                    <span className="text-xs text-muted-foreground font-medium">Selling Price</span>
                     <span className="text-lg text-muted-foreground line-through">
                       Rs. {basePrice.toLocaleString()}
                     </span>
-                    <span className="text-3xl font-bold text-primary">Rs. {Math.round(finalPrice).toLocaleString()}</span>
-                    <Badge className="text-sm bg-primary text-primary-foreground">
-                      {activeDiscount.discount_type === "percentage"
-                        ? `${activeDiscount.discount_value}% OFF`
-                        : `Rs. ${activeDiscount.discount_value} OFF`}
-                    </Badge>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-3xl font-bold text-primary">Rs. {basePrice.toLocaleString()}</span>
-                    {discount > 0 && (
-                      <>
-                        <span className="text-lg text-muted-foreground line-through">
-                          Rs. {Number(product.original_price).toLocaleString()}
-                        </span>
-                        <Badge variant="secondary" className="text-sm">
-                          {Math.max(0, discount)}% OFF
-                        </Badge>
-                      </>
+                  </div>
+                </div>
+                
+                {/* Our Discounted Price */}
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold text-primary">Our Discounted Price (Extra Savings!)</span>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-3xl font-bold text-primary">
+                      Rs. {Math.round(activeDiscount ? finalPrice : basePrice).toLocaleString()}
+                    </span>
+                    {activeDiscount && (
+                      <Badge className="text-sm bg-primary text-primary-foreground">
+                        {activeDiscount.discount_type === "percentage"
+                          ? `${activeDiscount.discount_value}% OFF`
+                          : `Rs. ${activeDiscount.discount_value} OFF`}
+                      </Badge>
                     )}
-                  </>
-                )}
+                  </div>
+                </div>
               </div>
 
               <p className="text-muted-foreground">{product.short_description || product.description}</p>

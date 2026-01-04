@@ -4,13 +4,20 @@ import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import useEmblaCarousel from "embla-carousel-react"
-import Autoplay from "embla-carousel-autoplay"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Heart, ShoppingCart, Loader2, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
+
+// Dynamically import Autoplay to avoid build errors if package is missing
+let Autoplay: any = null
+try {
+  Autoplay = require("embla-carousel-autoplay").default
+} catch (e) {
+  console.warn("embla-carousel-autoplay not available, carousel will not auto-play")
+}
 
 interface Product {
   id: number
@@ -40,14 +47,14 @@ export default function NewArrivals() {
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
 
-  // Carousel setup with autoplay
+  // Carousel setup with autoplay (if available)
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { 
       loop: true,
       align: 'start',
       slidesToScroll: 1,
     },
-    [Autoplay({ delay: 3000, stopOnInteraction: false })]
+    Autoplay ? [Autoplay({ delay: 3000, stopOnInteraction: false })] : []
   )
 
   const scrollPrev = useCallback(() => {
@@ -251,24 +258,33 @@ export default function NewArrivals() {
                           </Link>
                           <div className="flex flex-col gap-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-muted-foreground line-through text-xs">
-                                Rs. {product.original_price.toLocaleString()}
-                              </span>
-                              <span className="text-muted-foreground line-through text-sm">
-                                Rs. {product.current_price.toLocaleString()}
-                              </span>
+                              <div className="flex flex-col">
+                                <span className="text-[10px] text-muted-foreground/70">Official</span>
+                                <span className="text-muted-foreground line-through text-xs">
+                                  Rs. {product.original_price.toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-[10px] text-muted-foreground/70">Selling</span>
+                                <span className="text-muted-foreground line-through text-sm">
+                                  Rs. {product.current_price.toLocaleString()}
+                                </span>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-primary font-bold text-base">
-                                Rs. {Math.round(discountedPrice).toLocaleString()}
-                              </span>
-                              {discount && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {discount.discount_type === "percentage"
-                                    ? `${discount.discount_value}% OFF`
-                                    : `Rs. ${discount.discount_value} OFF`}
-                                </Badge>
-                              )}
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] font-semibold text-primary/80">Our Price</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-primary font-bold text-base">
+                                  Rs. {Math.round(discountedPrice).toLocaleString()}
+                                </span>
+                                {discount && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {discount.discount_type === "percentage"
+                                      ? `${discount.discount_value}% OFF`
+                                      : `Rs. ${discount.discount_value} OFF`}
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                           </div>
                           <div className="flex gap-2">
@@ -360,26 +376,35 @@ export default function NewArrivals() {
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* Original Price - Strike out */}
-                        <span className="text-muted-foreground line-through text-xs">
-                          Rs. {product.original_price.toLocaleString()}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-muted-foreground/70">Official</span>
+                          <span className="text-muted-foreground line-through text-xs">
+                            Rs. {product.original_price.toLocaleString()}
+                          </span>
+                        </div>
                         {/* Current/Selling Price - Strike out */}
-                        <span className="text-muted-foreground line-through text-xs sm:text-sm">
-                          Rs. {product.current_price.toLocaleString()}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-muted-foreground/70">Selling</span>
+                          <span className="text-muted-foreground line-through text-xs sm:text-sm">
+                            Rs. {product.current_price.toLocaleString()}
+                          </span>
+                        </div>
                       </div>
                       {/* Namecheap Discounted Price - Not striked */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-primary font-bold text-sm sm:text-base">
-                          Rs. {Math.round(discountedPrice).toLocaleString()}
-                        </span>
-                        {discount && (
-                          <Badge variant="secondary" className="text-xs">
-                            {discount.discount_type === "percentage"
-                              ? `${discount.discount_value}% OFF`
-                              : `Rs. ${discount.discount_value} OFF`}
-                          </Badge>
-                        )}
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-semibold text-primary/80">Our Price</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-primary font-bold text-sm sm:text-base">
+                            Rs. {Math.round(discountedPrice).toLocaleString()}
+                          </span>
+                          {discount && (
+                            <Badge variant="secondary" className="text-xs">
+                              {discount.discount_type === "percentage"
+                                ? `${discount.discount_value}% OFF`
+                                : `Rs. ${discount.discount_value} OFF`}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex gap-2">
