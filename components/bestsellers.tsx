@@ -44,8 +44,10 @@ export default function Bestsellers() {
       try {
         setLoading(true)
         
+        const offset = 0
+        
         // Check cache first
-        const cacheKey = `/api/products?featured=true&limit=${ITEMS_PER_PAGE}&offset=0`
+        const cacheKey = `/api/products?featured=true&limit=${ITEMS_PER_PAGE}&offset=${offset}`
         let productsData = cacheService.get(cacheKey)
         
         if (!productsData) {
