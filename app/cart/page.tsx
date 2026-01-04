@@ -144,6 +144,7 @@ export default function CartPage() {
                                 alt={item.name}
                                 fill
                                 className="object-cover group-hover:scale-110 transition-transform duration-300"
+                                loading="lazy"
                               />
                             </div>
                             <div className="flex-1 min-w-0">

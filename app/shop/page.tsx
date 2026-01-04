@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useCallback, Suspense } from "react"
+import { useState, useCallback, Suspense, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -13,6 +13,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { OptimizedImage } from "@/components/optimized-image"
+import { VirtualizedProductGrid } from "@/components/virtualized-product-grid"
+import { PerformanceMetricsDisplay } from "@/components/performance-metrics-display"
+import { useServiceWorker } from "@/lib/hooks/use-service-worker"
+import { usePerformanceMonitoring } from "@/lib/hooks/use-performance-monitoring"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Slider } from "@/components/ui/slider"
@@ -20,6 +25,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Search, Filter, Heart, ShoppingCart, Loader2, X } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
+import { ProductCardSkeleton } from "@/components/product-card-skeleton"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -27,6 +33,10 @@ function ShopContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { isAuthenticated } = useAuth()
+
+  // Initialize performance monitoring and service worker
+  const performanceMonitor = usePerformanceMonitoring()
+  const swStatus = useServiceWorker()
 
   const type = searchParams.get("type") || "products" // Get the type parameter
   const [search, setSearch] = useState(searchParams.get("search") || "")
@@ -38,9 +48,14 @@ function ShopContent() {
   const [featuredOnly, setFeaturedOnly] = useState(false)
   const [newOnly, setNewOnly] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [offset, setOffset] = useState(0)
+  const [allItems, setAllItems] = useState<any[]>([])
+  const [hasMore, setHasMore] = useState(true)
+  const [prefetchedData, setPrefetchedData] = useState<any>(null)
+  const [loadingImages, setLoadingImages] = useState<Record<number, boolean>>({})
 
   // Build query string
-  const buildQuery = useCallback(() => {
+  const buildQuery = useCallback((pageOffset: number = 0) => {
     const params = new URLSearchParams()
     if (search) params.set("search", search)
     if (category && category !== "all") params.set("category", category)
@@ -51,29 +66,196 @@ function ShopContent() {
     if (sortOrder) params.set("order", sortOrder)
     if (featuredOnly) params.set("featured", "true")
     if (newOnly) params.set("new", "true")
+    params.set("limit", "12")
+    params.set("offset", pageOffset.toString())
     return params.toString()
   }, [search, category, brandFilter, priceRange, sortBy, sortOrder, featuredOnly, newOnly])
 
   // Fetch different data based on type
   const getApiEndpoint = () => {
-    if (type === "brands") return `/api/brands?${buildQuery()}`
-    if (type === "bundles") return `/api/bundles?${buildQuery()}`
-    return `/api/products?${buildQuery()}`
+    if (type === "brands") return `/api/brands?${buildQuery(offset)}`
+    if (type === "bundles") return `/api/bundles?${buildQuery(offset)}`
+    return `/api/products?${buildQuery(offset)}`
   }
 
-  const { data: itemsData, isLoading: itemsLoading } = useSWR(getApiEndpoint(), fetcher)
+  // For brands and bundles, use original endpoint; for products, use optimized flow
+  const isProductType = type === "products"
+  
+  const { data: itemsData, isLoading: itemsLoading } = useSWR(
+    isProductType ? `/api/products-lite?${buildQuery(offset)}` : getApiEndpoint(),
+    fetcher
+  )
+  
+  // Batch images into groups of 10 to avoid request size limits
+  const batchSize = 10
+  const productBatches = allItems.length > 0 
+    ? Array.from({ length: Math.ceil(allItems.length / batchSize) }).map((_, i) =>
+        allItems.slice(i * batchSize, (i + 1) * batchSize).map((p) => p.id).join(",")
+      )
+    : []
+  
+  // Fetch images in batches
+  const { data: imagesData } = useSWR(
+    isProductType && productBatches.length > 0
+      ? `/api/products-lite/images?ids=${productBatches[0]}`
+      : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  )
+  
+  // Prefetch next batch of images
+  const { data: nextBatchImagesData } = useSWR(
+    isProductType && productBatches.length > 1
+      ? `/api/products-lite/images?ids=${productBatches[1]}`
+      : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  )
+  
+  // Prefetch next page data
+  const { data: nextPageData } = useSWR(
+    isProductType && hasMore
+      ? `/api/products-lite?${buildQuery(offset + 12)}`
+      : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  )
+  
   const { data: categoriesData } = useSWR("/api/categories", fetcher)
   const { data: brandsData } = useSWR("/api/brands", fetcher)
 
-  // Extract items based on type
-  const items = type === "brands" 
-    ? (itemsData?.brands || [])
-    : type === "bundles"
-    ? (itemsData?.bundles || [])
-    : (itemsData?.products || [])
+  // State to track loaded images
+  const [productImages, setProductImages] = useState<Record<number, any[]>>({})
+
+  // Handle image data when it arrives (batch 1)
+  useEffect(() => {
+    if (imagesData?.images) {
+      setProductImages((prev) => ({ ...prev, ...imagesData.images }))
+    }
+  }, [imagesData])
+  
+  // Handle next batch images when they arrive
+  useEffect(() => {
+    if (nextBatchImagesData?.images) {
+      setProductImages((prev) => ({ ...prev, ...nextBatchImagesData.images }))
+    }
+  }, [nextBatchImagesData])
+
+  // Handle pagination - append new items to existing ones
+  useEffect(() => {
+    if (itemsData) {
+      if (offset === 0) {
+        // First page, replace all items
+        const newItems = type === "brands" 
+          ? (itemsData?.brands || [])
+          : type === "bundles"
+          ? (itemsData?.bundles || [])
+          : (itemsData?.products || [])
+        setAllItems(newItems)
+      } else {
+        // Append new items
+        const newItems = type === "brands" 
+          ? (itemsData?.brands || [])
+          : type === "bundles"
+          ? (itemsData?.bundles || [])
+          : (itemsData?.products || [])
+        setAllItems(prev => [...prev, ...newItems])
+      }
+      // Check if there are more items
+      setHasMore(itemsData?.pagination?.hasMore || false)
+    }
+  }, [itemsData, offset, type])
+  
+  // Load remaining image batches lazily with improved error handling
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+    let errorShown = false
+    let retryCount = 0
+    const MAX_RETRIES = 2
+    
+    if (productBatches.length > 2) {
+      // Load remaining batches after a delay
+      timeoutId = setTimeout(() => {
+        const remainingBatches = productBatches.slice(2)
+        
+        const loadBatchesWithRetry = async (batchIndex: number) => {
+          if (batchIndex >= remainingBatches.length) return
+          
+          const batch = remainingBatches[batchIndex]
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
+          
+          try {
+            const res = await fetch(`/api/products-lite/images?ids=${batch}`, {
+              signal: controller.signal,
+              headers: {
+                'Accept': 'image/webp,image/*,*/*;q=0.8',
+              }
+            })
+            
+            clearTimeout(timeoutId)
+            
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}`)
+            }
+            
+            const data = await res.json()
+            if (data?.images) {
+              setProductImages((prev) => ({ ...prev, ...data.images }))
+            }
+            
+            // Load next batch
+            loadBatchesWithRetry(batchIndex + 1)
+          } catch (err) {
+            clearTimeout(timeoutId)
+            console.error(`Error loading image batch ${batchIndex}:`, err)
+            
+            // Retry failed batch if not maxed out
+            if (retryCount < MAX_RETRIES) {
+              retryCount++
+              setTimeout(() => {
+                loadBatchesWithRetry(batchIndex)
+              }, 2000 * retryCount) // Exponential backoff
+            } else if (!errorShown) {
+              // Only show error once after retries exhausted
+              notify.warning(
+                "Loading images",
+                "Some images may take longer to appear. Check your connection."
+              )
+              errorShown = true
+              // Continue loading remaining batches
+              loadBatchesWithRetry(batchIndex + 1)
+            }
+          }
+        }
+        
+        loadBatchesWithRetry(0)
+      }, 500) // Delay remaining batch loads
+    }
+    
+    return () => clearTimeout(timeoutId)
+  }, [productBatches])
+  
+  // Prefetch next page on demand
+  const prefetchNextPage = useCallback(() => {
+    if (hasMore && !itemsLoading && nextPageData) {
+      const newItems = nextPageData?.products || []
+      setPrefetchedData(newItems)
+    }
+  }, [hasMore, itemsLoading, nextPageData])
+  
+  useEffect(() => {
+    prefetchNextPage()
+  }, [prefetchNextPage])
   
   const categories = categoriesData?.categories || []
   const brands = brandsData?.brands || []
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setOffset(0)
+    setAllItems([])
+  }, [search, category, brandFilter, priceRange, sortBy, sortOrder, featuredOnly, newOnly])
 
   // Page title based on type
   const pageTitle = type === "brands" 
@@ -127,6 +309,7 @@ function ShopContent() {
     setSortOrder("desc")
     setFeaturedOnly(false)
     setNewOnly(false)
+    setOffset(0) // Reset pagination
   }
 
   const FilterPanel = () => (
@@ -279,15 +462,17 @@ function ShopContent() {
 
               {/* Results Count */}
               <p className="text-sm text-muted-foreground mb-4">
-                {itemsData?.pagination?.total || items.length || 0} {type === "brands" ? "brands" : type === "bundles" ? "bundles" : "products"} found
+                {allItems.length > 0 
+                  ? `Showing ${allItems.length} of ${itemsData?.pagination?.total || allItems.length}`
+                  : `${itemsData?.pagination?.total || 0}`} {type === "brands" ? "brands" : type === "bundles" ? "bundles" : "products"} found
               </p>
 
               {/* Items Grid */}
-              {itemsLoading ? (
+              {itemsLoading && offset === 0 ? (
                 <div className="flex items-center justify-center py-20">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
-              ) : items.length === 0 ? (
+              ) : allItems.length === 0 ? (
                 <div className="text-center py-20">
                   <p className="text-muted-foreground">No {type} found</p>
                   {type === "products" && (
@@ -297,141 +482,208 @@ function ShopContent() {
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {type === "brands" ? (
-                    // Render Brands
-                    items.map((brand: any) => (
-                      <a key={brand.id} href={brand.website_url} target="_blank" rel="noopener noreferrer">
-                        <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
-                          <div className="relative aspect-square overflow-hidden bg-muted flex items-center justify-center p-8">
-                            <Image
-                              src={brand.logo_url || "/placeholder.svg?height=200&width=200"}
-                              alt={brand.name}
-                              width={200}
-                              height={200}
-                              className="object-contain group-hover:scale-105 transition-transform"
-                            />
-                            {brand.is_featured && (
-                              <Badge className="absolute top-2 right-2 bg-secondary text-secondary-foreground">Featured</Badge>
-                            )}
-                          </div>
-                          <CardContent className="p-4">
-                            <h3 className="font-semibold text-lg mb-2">{brand.name}</h3>
-                            <p className="text-sm text-muted-foreground line-clamp-2">{brand.description}</p>
-                          </CardContent>
-                        </Card>
-                      </a>
-                    ))
-                  ) : type === "bundles" ? (
-                    // Render Bundles
-                    items.map((bundle: any) => (
-                      <Link key={bundle.id} href={`/product/bundle-${bundle.id}`}>
-                        <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
-                          <div className="relative aspect-square overflow-hidden bg-muted">
-                            <Image
-                              src={bundle.image_url || "/placeholder.svg?height=300&width=300"}
-                              alt={bundle.name}
-                              fill
-                              className="object-cover group-hover:scale-105 transition-transform"
-                            />
-                            <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">Bundle</Badge>
-                            {bundle.original_price && bundle.original_price > bundle.bundle_price && (
-                              <Badge variant="destructive" className="absolute top-2 right-2">
-                                Save Rs. {(bundle.original_price - bundle.bundle_price).toLocaleString()}
-                              </Badge>
-                            )}
-                          </div>
-                          <CardContent className="p-3">
-                            <h3 className="font-medium text-sm line-clamp-2 mb-2">{bundle.name}</h3>
-                            <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{bundle.description}</p>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-primary">
-                                Rs. {Number(bundle.bundle_price).toLocaleString()}
-                              </span>
-                              {bundle.original_price && bundle.original_price > bundle.bundle_price && (
-                                <span className="text-xs text-muted-foreground line-through">
-                                  Rs. {Number(bundle.original_price).toLocaleString()}
-                                </span>
+                <>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {type === "brands" ? (
+                      // Render Brands
+                      allItems.map((brand: any) => (
+                        <a key={brand.id} href={brand.website_url} target="_blank" rel="noopener noreferrer">
+                          <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
+                            <div className="relative aspect-square overflow-hidden bg-muted flex items-center justify-center p-8">
+                              <Image
+                                src={brand.logo_url || "/placeholder.svg?height=200&width=200"}
+                                alt={brand.name}
+                                width={200}
+                                height={200}
+                                className="object-contain group-hover:scale-105 transition-transform"
+                                loading="lazy"
+                              />
+                              {brand.is_featured && (
+                                <Badge className="absolute top-2 right-2 bg-secondary text-secondary-foreground">Featured</Badge>
                               )}
                             </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    ))
-                  ) : (
-                    // Render Products
-                    items.map((product: any) => (
-                    <Link key={product.id} href={`/product/${product.slug}`}>
-                      <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
-                        <div className="relative aspect-square overflow-hidden bg-muted">
-                          <Image
-                            src={product.image_url || "/placeholder.svg?height=300&width=300"}
-                            alt={product.name}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform"
-                          />
-                          {product.is_new_arrival && (
-                            <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground">New</Badge>
-                          )}
-                          {product.original_price > product.current_price && (
-                            <Badge variant="destructive" className="absolute top-2 right-2">
-                              {Math.round(
-                                ((product.original_price - product.current_price) / product.original_price) * 100,
+                            <CardContent className="p-4">
+                              <h3 className="font-semibold text-lg mb-2">{brand.name}</h3>
+                              <p className="text-sm text-muted-foreground line-clamp-2">{brand.description}</p>
+                            </CardContent>
+                          </Card>
+                        </a>
+                      ))
+                    ) : type === "bundles" ? (
+                      // Render Bundles
+                      allItems.map((bundle: any) => (
+                        <Link key={bundle.id} href={`/product/bundle-${bundle.id}`}>
+                          <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
+                            <div className="relative aspect-square overflow-hidden bg-muted">
+                              <Image
+                                src={bundle.image_url || "/placeholder.svg?height=300&width=300"}
+                                alt={bundle.name}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform"
+                                loading="lazy"
+                              />
+                              <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">Bundle</Badge>
+                              {bundle.original_price && bundle.original_price > bundle.bundle_price && (
+                                <Badge variant="destructive" className="absolute top-2 right-2">
+                                  Save Rs. {(bundle.original_price - bundle.bundle_price).toLocaleString()}
+                                </Badge>
                               )}
-                              % OFF
-                            </Badge>
-                          )}
-                          <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              size="icon"
-                              variant="secondary"
-                              className="h-8 w-8"
-                              onClick={(e) => handleAddToWishlist(product.id, e)}
-                            >
-                              <Heart className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="secondary"
-                              className="h-8 w-8"
-                              onClick={(e) => handleAddToCart(product.id, e)}
-                            >
-                              <ShoppingCart className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <CardContent className="p-3">
-                          <p className="text-xs text-muted-foreground mb-1">{product.category_name}</p>
-                          <h3 className="font-medium text-sm line-clamp-2 mb-2">{product.name}</h3>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-primary">
-                              Rs. {Number(product.current_price).toLocaleString()}
-                            </span>
-                            <span className="text-xs text-muted-foreground line-through">
-                              Rs. {Number(product.original_price).toLocaleString()}
-                            </span>
-                            <Badge variant="secondary" className="text-[11px] px-2 py-0">
-                              {Math.max(
-                                0,
-                                Math.round(
-                                  ((Number(product.original_price) - Number(product.current_price)) / Number(product.original_price || 1)) *
-                                    100,
-                                ),
-                              )}%
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))
+                            </div>
+                            <CardContent className="p-3">
+                              <h3 className="font-medium text-sm line-clamp-2 mb-2">{bundle.name}</h3>
+                              <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{bundle.description}</p>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-primary">
+                                  Rs. {Number(bundle.bundle_price).toLocaleString()}
+                                </span>
+                                {bundle.original_price && bundle.original_price > bundle.bundle_price && (
+                                  <span className="text-xs text-muted-foreground line-through">
+                                    Rs. {Number(bundle.original_price).toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      ))
+                    ) : (
+                      // Render Products - with images loaded from separate endpoint
+                      <>
+                        {allItems.map((product: any) => {
+                          const productImageList = productImages[product.id] || []
+                          const primaryImage = productImageList.find((img: any) => img.is_primary) || productImageList[0]
+                          
+                          // Get image URL with fallback chain
+                          const imageUrl = primaryImage?.image_url || "/placeholder.svg?height=300&width=300"
+                          const fallbackUrls = primaryImage?.format_options || ["/placeholder.svg?height=300&width=300"]
+                          
+                          return (
+                            <Link key={product.id} href={`/product/${product.slug}`}>
+                              <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
+                                <div className="relative aspect-square overflow-hidden bg-muted">
+                                  {!productImages[product.id] ? (
+                                    <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50" />
+                                  ) : (
+                                    <OptimizedImage
+                                      src={imageUrl}
+                                      alt={product.name}
+                                      fill
+                                      className="group-hover:scale-105 transition-transform"
+                                      loading="lazy"
+                                      onLoad={() => performanceMonitor.recordImageLoad(Date.now())}
+                                      onError={() => {
+                                        console.warn(`Image load error for product: ${product.name}`)
+                                      }}
+                                    />
+                                  )}
+                                  {product.is_new_arrival && (
+                                    <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground">New</Badge>
+                                  )}
+                                  {product.original_price > product.current_price && (
+                                    <Badge variant="destructive" className="absolute top-2 right-2">
+                                      {Math.round(
+                                        ((product.original_price - product.current_price) / product.original_price) * 100,
+                                      )}
+                                      % OFF
+                                    </Badge>
+                                  )}
+                                  <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                      size="icon"
+                                      variant="secondary"
+                                      className="h-8 w-8"
+                                      onClick={(e) => handleAddToWishlist(product.id, e)}
+                                    >
+                                      <Heart className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      size="icon"
+                                      variant="secondary"
+                                      className="h-8 w-8"
+                                      onClick={(e) => handleAddToCart(product.id, e)}
+                                    >
+                                      <ShoppingCart className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                                <CardContent className="p-3">
+                                  <p className="text-xs text-muted-foreground mb-1">{product.category_name}</p>
+                                  <h3 className="font-medium text-sm line-clamp-2 mb-2">{product.name}</h3>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-primary">
+                                      Rs. {Number(product.current_price).toLocaleString()}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground line-through">
+                                      Rs. {Number(product.original_price).toLocaleString()}
+                                    </span>
+                                    <Badge variant="secondary" className="text-[11px] px-2 py-0">
+                                      {Math.max(
+                                        0,
+                                        Math.round(
+                                          ((Number(product.original_price) - Number(product.current_price)) / Number(product.original_price || 1)) *
+                                            100,
+                                        ),
+                                      )}%
+                                    </Badge>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </Link>
+                          )
+                        })}
+                        {/* Show skeleton loaders while loading more products */}
+                        {itemsLoading && (
+                          <>
+                            {Array.from({ length: 4 }).map((_, i) => (
+                              <ProductCardSkeleton key={`skeleton-${i}`} />
+                            ))}
+                          </>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  {hasMore && (
+                    <div className="flex justify-center mt-8">
+                      <Button
+                        onClick={() => {
+                          setOffset(offset + 12)
+                          // Use prefetched data if available
+                          if (prefetchedData) {
+                            setAllItems(prev => [...prev, ...prefetchedData])
+                            setPrefetchedData(null)
+                          }
+                        }}
+                        disabled={itemsLoading}
+                        size="lg"
+                      >
+                        {itemsLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Loading...
+                          </>
+                        ) : (
+                          "Load More"
+                        )}
+                      </Button>
+                    </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           </div>
         </div>
       </main>
       <Footer />
+      
+      {/* Performance Metrics Display - Only in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <PerformanceMetricsDisplay
+          metrics={performanceMonitor.getMetrics()}
+          logMetrics={performanceMonitor.logMetrics}
+          clearCache={swStatus.clearCache}
+          swIsRegistered={swStatus.isRegistered}
+        />
+      )}
     </>
   )
 }
