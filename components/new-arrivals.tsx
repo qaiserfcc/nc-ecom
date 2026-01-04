@@ -41,16 +41,13 @@ export default function NewArrivals() {
   const [loadingMore, setLoadingMore] = useState(false)
 
   // Carousel setup with autoplay
-  const autoplayRef = useRef(
-    Autoplay({ delay: 3000, stopOnInteraction: false })
-  )
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { 
       loop: true,
       align: 'start',
       slidesToScroll: 1,
     },
-    [autoplayRef.current]
+    [Autoplay({ delay: 3000, stopOnInteraction: false })]
   )
 
   const scrollPrev = useCallback(() => {

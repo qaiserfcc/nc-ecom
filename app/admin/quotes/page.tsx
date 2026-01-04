@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import * as React from "react"
 import useSWR from "swr"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -277,19 +278,18 @@ export default function AdminQuotesPage() {
                     (page >= currentPage - 1 && page <= currentPage + 1)
                 )
                 .map((page, index, array) => (
-                  <>
+                  <React.Fragment key={page}>
                     {index > 0 && array[index - 1] !== page - 1 && (
                       <span key={`ellipsis-${page}`}>...</span>
                     )}
                     <Button
-                      key={page}
                       variant={currentPage === page ? "default" : "outline"}
                       size="sm"
                       onClick={() => setCurrentPage(page)}
                     >
                       {page}
                     </Button>
-                  </>
+                  </React.Fragment>
                 ))}
             </div>
             <Button
