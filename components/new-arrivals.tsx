@@ -1,8 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import useEmblaCarousel from "embla-carousel-react"
+import Autoplay from "embla-carousel-autoplay"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Heart, ShoppingCart, Loader2, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
@@ -37,6 +39,27 @@ export default function NewArrivals() {
   const [offset, setOffset] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
+
+  // Carousel setup with autoplay
+  const autoplayRef = useRef(
+    Autoplay({ delay: 3000, stopOnInteraction: false })
+  )
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { 
+      loop: true,
+      align: 'start',
+      slidesToScroll: 1,
+    },
+    [autoplayRef.current]
+  )
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev()
+  }, [emblaApi])
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext()
+  }, [emblaApi])
 
   const ITEMS_PER_PAGE = 12
 
@@ -196,7 +219,115 @@ export default function NewArrivals() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/* Carousel for larger screens */}
+        <div className="hidden lg:block relative">
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex gap-4">
+              {products.slice(0, ITEMS_PER_PAGE).map((product) => {
+                const discountedPrice = calculateDiscountedPrice(product.current_price)
+                return (
+                  <div key={product.id} className="flex-[0_0_25%] min-w-0">
+                    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-border/70 group h-full">
+                      <CardContent className="p-0">
+                        <Link href={`/product/${product.slug}`}>
+                          <div className="relative overflow-hidden bg-gradient-to-br from-secondary/25 via-white to-primary/15 h-48">
+                            <img
+                              src={product.thumbnail_url || product.image_url || "/placeholder.svg"}
+                              alt={product.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
+                            {discount && (
+                              <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
+                                {discount.discount_type === "percentage"
+                                  ? `${discount.discount_value}% OFF`
+                                  : `Rs. ${discount.discount_value} OFF`}
+                              </Badge>
+                            )}
+                          </div>
+                        </Link>
+                        <div className="p-4 space-y-2">
+                          <Link href={`/product/${product.slug}`}>
+                            <h3 className="font-semibold text-base line-clamp-2 text-foreground hover:text-primary transition-colors">
+                              {product.name}
+                            </h3>
+                          </Link>
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-muted-foreground line-through text-xs">
+                                Rs. {product.original_price.toLocaleString()}
+                              </span>
+                              <span className="text-muted-foreground line-through text-sm">
+                                Rs. {product.current_price.toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-primary font-bold text-base">
+                                Rs. {Math.round(discountedPrice).toLocaleString()}
+                              </span>
+                              {discount && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {discount.discount_type === "percentage"
+                                    ? `${discount.discount_value}% OFF`
+                                    : `Rs. ${discount.discount_value} OFF`}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              className="flex-1 h-9 text-sm transition-transform hover:scale-105"
+                              disabled={pendingId === product.id}
+                              onClick={() => handleAdd(product.id)}
+                            >
+                              {pendingId === product.id ? (
+                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                              ) : (
+                                <ShoppingCart className="w-4 h-4 mr-1" />
+                              )}
+                              Add
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 h-9 bg-transparent transition-transform hover:scale-105"
+                              disabled={pendingId === product.id}
+                              onClick={() => handleWishlist(product.id)}
+                            >
+                              <Heart className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+          
+          {/* Carousel Navigation */}
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white/90 hover:bg-white shadow-lg z-10"
+            onClick={scrollPrev}
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white/90 hover:bg-white shadow-lg z-10"
+            onClick={scrollNext}
+          >
+            <ChevronRight className="w-6 h-6" />
+          </Button>
+        </div>
+
+        {/* Grid for smaller screens */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:hidden gap-3 sm:gap-4">
           {displayedProducts.map((product, index) => {
             const delayClass = index < 8 ? `animation-delay-${(index + 1) * 100}` : '';
             const discountedPrice = calculateDiscountedPrice(product.current_price)
@@ -229,21 +360,30 @@ export default function NewArrivals() {
                         {product.name}
                       </h3>
                     </Link>
-                    <div className="flex items-center gap-2">
-                      {discount ? (
-                        <>
-                          <span className="text-muted-foreground line-through text-xs sm:text-sm">
-                            Rs. {product.current_price.toLocaleString()}
-                          </span>
-                          <span className="text-primary font-bold text-sm sm:text-base">
-                            Rs. {Math.round(discountedPrice).toLocaleString()}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-primary font-bold text-sm sm:text-base">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Original Price - Strike out */}
+                        <span className="text-muted-foreground line-through text-xs">
+                          Rs. {product.original_price.toLocaleString()}
+                        </span>
+                        {/* Current/Selling Price - Strike out */}
+                        <span className="text-muted-foreground line-through text-xs sm:text-sm">
                           Rs. {product.current_price.toLocaleString()}
                         </span>
-                      )}
+                      </div>
+                      {/* Namecheap Discounted Price - Not striked */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-primary font-bold text-sm sm:text-base">
+                          Rs. {Math.round(discountedPrice).toLocaleString()}
+                        </span>
+                        {discount && (
+                          <Badge variant="secondary" className="text-xs">
+                            {discount.discount_type === "percentage"
+                              ? `${discount.discount_value}% OFF`
+                              : `Rs. ${discount.discount_value} OFF`}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <Button
