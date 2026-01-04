@@ -50,12 +50,14 @@ class StorageProvider {
       }
     }
 
-    if (process.env.VERCEL_BLOB_TOKEN) {
+    // Check for Vercel Blob token (supports both VERCEL_BLOB_TOKEN and BLOB_READ_WRITE_TOKEN)
+    const blobToken = process.env.VERCEL_BLOB_TOKEN || process.env.BLOB_READ_WRITE_TOKEN
+    if (blobToken) {
       console.log('[Storage] Detected Vercel Blob configuration')
       return {
         type: 'vercel-blob',
         vercelBlob: {
-          token: process.env.VERCEL_BLOB_TOKEN,
+          token: blobToken,
         },
       }
     }
