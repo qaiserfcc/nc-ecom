@@ -24,7 +24,7 @@ export default function NewUserPage() {
   const [city, setCity] = useState("")
   const [postalCode, setPostalCode] = useState("")
   const [country, setCountry] = useState("")
-  const [role, setRole] = useState("user")
+  const [role, setRole] = useState("customer")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -166,7 +166,7 @@ export default function NewUserPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="customer">Customer</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>

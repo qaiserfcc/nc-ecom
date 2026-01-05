@@ -6,6 +6,7 @@ import Image from "next/image"
 import useSWR from "swr"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -462,92 +463,98 @@ export default function AdminProductsPage() {
           }
         }}
       >
-        <DialogContent>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Bulk Edit Products</DialogTitle>
-            <DialogDescription>
-              Apply changes to the selected products. Leave a field as "No change" to keep existing values.
+            <DialogTitle className="text-xl">Bulk Edit Products</DialogTitle>
+            <DialogDescription className="text-base">
+              Apply changes to {selectedIds.length} selected product{selectedIds.length !== 1 ? 's' : ''}. 
+              Leave a field as "No change" to keep existing values.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
+          <div className="space-y-6 py-4">
             <div className="space-y-2">
-              <p className="text-sm font-medium">Featured</p>
+              <Label htmlFor="featured-select" className="text-sm font-semibold">Featured Status</Label>
               <Select value={featureStatus} onValueChange={(value) => setFeatureStatus(value as any)}>
-                <SelectTrigger>
+                <SelectTrigger id="featured-select" className="h-11">
                   <SelectValue placeholder="Choose featured status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="no-change">No change</SelectItem>
-                  <SelectItem value="true">Set as featured</SelectItem>
-                  <SelectItem value="false">Remove featured</SelectItem>
+                  <SelectItem value="true">✓ Set as featured</SelectItem>
+                  <SelectItem value="false">✗ Remove featured</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium">New Arrival</p>
+              <Label htmlFor="arrival-select" className="text-sm font-semibold">New Arrival Status</Label>
               <Select value={newArrivalStatus} onValueChange={(value) => setNewArrivalStatus(value as any)}>
-                <SelectTrigger>
+                <SelectTrigger id="arrival-select" className="h-11">
                   <SelectValue placeholder="Choose new arrival status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="no-change">No change</SelectItem>
-                  <SelectItem value="true">Set as new arrival</SelectItem>
-                  <SelectItem value="false">Remove new arrival</SelectItem>
+                  <SelectItem value="true">✓ Set as new arrival</SelectItem>
+                  <SelectItem value="false">✗ Remove new arrival</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Main Category</p>
-              <Select 
-                value={bulkCategoryId} 
-                onValueChange={(value) => {
-                  setBulkCategoryId(value)
-                  // Reset subcategory when main category changes
-                  if (value === "no-change") {
-                    setBulkSubcategoryId("no-change")
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="No change" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="no-change">No change</SelectItem>
-                  {mainCategories.map((category: any) => (
-                    <SelectItem key={category.id} value={String(category.id)}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-semibold mb-3">Category Assignment</h4>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="main-category-select" className="text-sm">Main Category</Label>
+                  <Select 
+                    value={bulkCategoryId} 
+                    onValueChange={(value) => {
+                      setBulkCategoryId(value)
+                      // Reset subcategory when main category changes
+                      if (value === "no-change") {
+                        setBulkSubcategoryId("no-change")
+                      }
+                    }}
+                  >
+                    <SelectTrigger id="main-category-select" className="h-11">
+                      <SelectValue placeholder="No change" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="no-change">No change</SelectItem>
+                      {mainCategories.map((category: any) => (
+                        <SelectItem key={category.id} value={String(category.id)}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {selectedCategorySubcategories.length > 0 && bulkCategoryId !== "no-change" && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Subcategory (Optional)</p>
-                <Select value={bulkSubcategoryId} onValueChange={setBulkSubcategoryId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="No change" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no-change">No change</SelectItem>
-                    {selectedCategorySubcategories.map((category: any) => (
-                      <SelectItem key={category.id} value={String(category.id)}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {selectedCategorySubcategories.length > 0 && bulkCategoryId !== "no-change" && (
+                  <div className="space-y-2 pl-4 border-l-2">
+                    <Label htmlFor="subcategory-select" className="text-sm">Subcategory (Optional)</Label>
+                    <Select value={bulkSubcategoryId} onValueChange={setBulkSubcategoryId}>
+                      <SelectTrigger id="subcategory-select" className="h-11">
+                        <SelectValue placeholder="No change" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="no-change">No change</SelectItem>
+                        {selectedCategorySubcategories.map((category: any) => (
+                          <SelectItem key={category.id} value={String(category.id)}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium">Brand</p>
+              <Label htmlFor="brand-select" className="text-sm font-semibold">Brand</Label>
               <Select value={bulkBrandId} onValueChange={setBulkBrandId}>
-                <SelectTrigger>
+                <SelectTrigger id="brand-select" className="h-11">
                   <SelectValue placeholder="No change" />
                 </SelectTrigger>
                 <SelectContent>
@@ -562,19 +569,20 @@ export default function AdminProductsPage() {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
               onClick={() => {
                 resetBulkForm()
                 setBulkOpen(false)
               }}
+              disabled={bulkSaving}
             >
               Cancel
             </Button>
-            <Button onClick={handleBulkSave} disabled={bulkSaving}>
+            <Button onClick={handleBulkSave} disabled={bulkSaving} className="min-w-[120px]">
               {bulkSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Apply Changes
+              {bulkSaving ? "Saving..." : "Apply Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>

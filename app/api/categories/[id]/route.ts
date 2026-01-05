@@ -3,9 +3,10 @@ import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
 
 // GET single category
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const categoryId = Number.parseInt(params.id)
+    const { id } = await params
+    const categoryId = Number.parseInt(id)
 
     const result = await sql`
       SELECT c.*, 
@@ -29,14 +30,15 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT - Update category (admin only)
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
     if (!session || session.user.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const categoryId = Number.parseInt(params.id)
+    const { id } = await params
+    const categoryId = Number.parseInt(id)
     const { name, slug, description, image_url, parent_category_id } = await request.json()
 
     // Prevent circular references
@@ -67,14 +69,15 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE - Delete category (admin only)
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
     if (!session || session.user.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const categoryId = Number.parseInt(params.id)
+    const { id } = await params
+    const categoryId = Number.parseInt(id)
 
     // Check if category has products
     const productCheck = await sql`

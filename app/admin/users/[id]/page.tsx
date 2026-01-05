@@ -32,7 +32,7 @@ export default function EditUserPage() {
   const [city, setCity] = useState("")
   const [postalCode, setPostalCode] = useState("")
   const [country, setCountry] = useState("")
-  const [role, setRole] = useState("user")
+  const [role, setRole] = useState("customer")
 
   // Load user data
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function EditUserPage() {
       setCity(user.city || "")
       setPostalCode(user.postal_code || "")
       setCountry(user.country || "")
-      setRole(user.role || "user")
+      setRole(user.role || "customer")
     }
   }, [userData])
 
@@ -169,7 +169,7 @@ export default function EditUserPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="customer">Customer</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>

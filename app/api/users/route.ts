@@ -3,6 +3,13 @@ import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
 import bcrypt from "bcryptjs"
 
+const normalizeRole = (value?: string | null) => {
+  if (!value) return null
+  if (value === "user") return "customer"
+  if (value === "customer" || value === "admin") return value
+  return null
+}
+
 // GET users (admin only)
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const search = searchParams.get("search")
-    const role = searchParams.get("role")
+    const role = normalizeRole(searchParams.get("role"))
     const limit = Number.parseInt(searchParams.get("limit") || "50")
     const offset = Number.parseInt(searchParams.get("offset") || "0")
 
@@ -87,8 +94,10 @@ export async function POST(request: NextRequest) {
       city,
       postal_code,
       country,
-      role = "user",
+      role,
     } = body
+
+    const normalizedRole = normalizeRole(role) || "customer"
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -107,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     const result = await sql`
       INSERT INTO users (name, email, password_hash, phone, address, city, postal_code, country, role, created_at)
-      VALUES (${name}, ${email}, ${hashedPassword}, ${phone || null}, ${address || null}, ${city || null}, ${postal_code || null}, ${country || null}, ${role}, NOW())
+      VALUES (${name}, ${email}, ${hashedPassword}, ${phone || null}, ${address || null}, ${city || null}, ${postal_code || null}, ${country || null}, ${normalizedRole}, NOW())
       RETURNING id, email, name, role, created_at
     `
 
