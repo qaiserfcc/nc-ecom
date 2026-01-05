@@ -106,6 +106,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/quote" className="hover:text-secondary transition">
+                  Request Quote
+                </Link>
+              </li>
+              <li>
                 <Link href="/faq" className="hover:text-secondary transition">
                   FAQ
                 </Link>

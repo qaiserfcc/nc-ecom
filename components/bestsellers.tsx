@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import useEmblaCarousel from "embla-carousel-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -10,6 +11,14 @@ import { Heart, ShoppingCart, Loader2, ChevronLeft, ChevronRight, ArrowRight } f
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
 import { cacheService } from "@/lib/cache-service"
+
+// Dynamically import Autoplay to avoid build errors if package is missing
+let Autoplay: any = null
+try {
+  Autoplay = require("embla-carousel-autoplay").default
+} catch (e) {
+  console.warn("embla-carousel-autoplay not available, carousel will not auto-play")
+}
 
 interface Product {
   id: number
@@ -37,17 +46,31 @@ export default function Bestsellers() {
   const [pendingId, setPendingId] = useState<number | null>(null)
   const [discount, setDiscount] = useState<Discount | null>(null)
 
-  const ITEMS_PER_PAGE = 12
+  // Carousel setup with autoplay (if available)
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { 
+      loop: true,
+      align: 'start',
+      slidesToScroll: 1,
+    },
+    Autoplay ? [Autoplay({ delay: 3500, stopOnInteraction: false })] : []
+  )
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev()
+  }, [emblaApi])
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext()
+  }, [emblaApi])
 
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true)
         
-        const offset = 0
-        
         // Check cache first
-        const cacheKey = `/api/products?featured=true&limit=${ITEMS_PER_PAGE}&offset=${offset}`
+        const cacheKey = `/api/products?featured=true&limit=20`
         let productsData = cacheService.get(cacheKey)
         
         if (!productsData) {
@@ -192,8 +215,6 @@ export default function Bestsellers() {
     )
   }
 
-  const displayedProducts = products.slice(0, ITEMS_PER_PAGE)
-
   return (
     <section className="py-8 sm:py-12 md:py-16">
       <div className="container mx-auto px-4">
@@ -211,84 +232,128 @@ export default function Bestsellers() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {displayedProducts.map((product) => {
-            const discountedPrice = calculateDiscountedPrice(product.current_price)
-            return (
-              <Card
-                key={product.id}
-                className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-border/70 group"
-              >
-                <CardContent className="p-0">
-                  <Link href={`/product/${product.slug}`}>
-                    <div className="relative overflow-hidden bg-gradient-to-br from-secondary/20 via-white to-primary/10 h-40 sm:h-48">
-                      <img
-                        src={product.thumbnail_url || product.image_url || "/placeholder.svg"}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
-                      {discount && (
-                        <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
-                          {discount.discount_type === "percentage"
-                            ? `${discount.discount_value}% OFF`
-                            : `Rs. ${discount.discount_value} OFF`}
-                        </Badge>
-                      )}
-                    </div>
-                  </Link>
-                  <div className="p-3 sm:p-4 space-y-2">
-                    <Link href={`/product/${product.slug}`}>
-                      <h3 className="font-semibold text-sm sm:text-base line-clamp-2 text-foreground hover:text-primary">
-                        {product.name}
-                      </h3>
-                    </Link>
-                    <div className="flex items-center gap-2">
-                      {discount ? (
-                        <>
-                          <span className="text-muted-foreground line-through text-xs sm:text-sm">
-                            Rs. {product.current_price.toLocaleString()}
-                          </span>
-                          <span className="text-primary font-bold text-sm sm:text-base">
-                            Rs. {Math.round(discountedPrice).toLocaleString()}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-primary font-bold text-sm sm:text-base">
-                          Rs. {product.current_price.toLocaleString()}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        className="flex-1 h-9 text-xs sm:text-sm"
-                        disabled={pendingId === product.id || product.stock_quantity === 0}
-                        onClick={() => handleAdd(product.id)}
-                      >
-                        {pendingId === product.id ? (
-                          <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 animate-spin" />
-                        ) : (
-                          <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                        )}
-                        {product.stock_quantity === 0 ? "Out" : "Add"}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 h-9 bg-transparent"
-                        disabled={pendingId === product.id}
-                        onClick={() => handleWishlist(product.id)}
-                      >
-                        <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </Button>
-                    </div>
+        {/* Single horizontal carousel */}
+        <div className="relative">
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex gap-4">
+              {products.map((product) => {
+                const discountedPrice = calculateDiscountedPrice(product.current_price)
+                return (
+                  <div key={product.id} className="flex-[0_0_280px] min-w-0">
+                    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-border/70 group h-full">
+                      <CardContent className="p-0">
+                        <Link href={`/product/${product.slug}`}>
+                          <div className="relative overflow-hidden bg-gradient-to-br from-secondary/20 via-white to-primary/10 h-48">
+                            <img
+                              src={product.thumbnail_url || product.image_url || "/placeholder.svg"}
+                              alt={product.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                              loading="lazy"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
+                            {discount && (
+                              <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
+                                {discount.discount_type === "percentage"
+                                  ? `${discount.discount_value}% OFF`
+                                  : `Rs. ${discount.discount_value} OFF`}
+                              </Badge>
+                            )}
+                          </div>
+                        </Link>
+                        <div className="p-4 space-y-2">
+                          <Link href={`/product/${product.slug}`}>
+                            <h3 className="font-semibold text-base line-clamp-2 text-foreground hover:text-primary">
+                              {product.name}
+                            </h3>
+                          </Link>
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {/* Official Price */}
+                              <div className="flex flex-col">
+                                <span className="text-[10px] text-muted-foreground/70">Official Price</span>
+                                <span className="text-muted-foreground line-through text-xs">
+                                  Rs. {product.original_price.toLocaleString()}
+                                </span>
+                              </div>
+                              {/* Selling Price */}
+                              <div className="flex flex-col">
+                                <span className="text-[10px] text-muted-foreground/70">Selling Price</span>
+                                <span className="text-muted-foreground line-through text-sm">
+                                  Rs. {product.current_price.toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                            {/* Our Discounted Price */}
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] font-semibold text-primary/80">Our Discounted Price</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-primary font-bold text-base">
+                                  Rs. {Math.round(discountedPrice).toLocaleString()}
+                                </span>
+                                {discount && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {discount.discount_type === "percentage"
+                                      ? `${discount.discount_value}% OFF`
+                                      : `Rs. ${discount.discount_value} OFF`}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              className="flex-1 h-9 text-sm transition-transform hover:scale-105"
+                              disabled={pendingId === product.id}
+                              onClick={() => handleAdd(product.id)}
+                            >
+                              {pendingId === product.id ? (
+                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                              ) : (
+                                <ShoppingCart className="w-4 h-4 mr-1" />
+                              )}
+                              Add
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 h-9 bg-transparent transition-transform hover:scale-105"
+                              disabled={pendingId === product.id}
+                              onClick={() => handleWishlist(product.id)}
+                            >
+                              <Heart className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
-            )
-          })}
+                )
+              })}
+            </div>
+          </div>
+          
+          {/* Carousel Navigation */}
+          {products.length > 0 && (
+            <>
+              <Button
+                variant="outline"
+                size="icon"
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white/90 hover:bg-white shadow-lg z-10"
+                onClick={scrollPrev}
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white/90 hover:bg-white shadow-lg z-10"
+                onClick={scrollNext}
+              >
+                <ChevronRight className="w-6 h-6" />
+              </Button>
+            </>
+          )}
         </div>
 
         <div className="flex justify-center mt-8 sm:hidden">

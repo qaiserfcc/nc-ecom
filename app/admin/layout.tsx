@@ -20,6 +20,7 @@ import {
   Loader2,
   Image,
   FolderTree,
+  MessageSquare,
 } from "lucide-react"
 
 const sidebarItems = [
@@ -29,6 +30,7 @@ const sidebarItems = [
   { href: "/admin/bundles", icon: Package, label: "Bundles" },
   { href: "/admin/brands", icon: Package, label: "Brands" },
   { href: "/admin/orders", icon: ShoppingCart, label: "Orders" },
+  { href: "/admin/quotes", icon: MessageSquare, label: "Quotes" },
   { href: "/admin/users", icon: Users, label: "Users" },
   { href: "/admin/banners", icon: Image, label: "Banners" },
   { href: "/admin/discounts", icon: Tag, label: "Discounts" },
