@@ -208,8 +208,9 @@ function ProductCard({
             <OptimizedImage
               src={imageUrl}
               alt={product.name}
-              fill
-              className="group-hover:scale-105 transition-transform"
+              width={300}
+              height={300}
+              className="group-hover:scale-105 transition-transform w-full h-full"
               loading="lazy"
             />
           )}

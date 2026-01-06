@@ -574,7 +574,7 @@ function ShopContent() {
                             primaryImage?.image_url ||
                             product.thumbnail_url ||
                             product.image_url ||
-                            "/placeholder.svg?height=300&width=300"
+                            "/placeholder.svg"
                           
                           // Calculate pricing tiers
                           const officialPrice = product.original_price || product.current_price
@@ -588,8 +588,9 @@ function ShopContent() {
                                   <OptimizedImage
                                     src={imageUrl}
                                     alt={product.name}
-                                    fill
-                                    className="group-hover:scale-105 transition-transform"
+                                    width={300}
+                                    height={300}
+                                    className="group-hover:scale-105 transition-transform w-full h-full"
                                     loading="lazy"
                                     onLoad={() => performanceMonitor.recordImageLoad(Date.now())}
                                     onError={() => {

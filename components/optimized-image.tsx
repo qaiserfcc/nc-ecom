@@ -25,8 +25,8 @@ export function OptimizedImage({
   fill,
   priority,
   loading = 'lazy',
-  width,
-  height,
+  width = 300,
+  height = 300,
   quality = 75,
   onLoad,
   onError: onErrorProp,
@@ -39,6 +39,9 @@ export function OptimizedImage({
 
   const MAX_RETRIES = 3
   const RETRY_DELAY = 1000 // 1 second
+  
+  // Don't use fill, always use explicit dimensions
+  const useFill = false
 
   // Validate image URL and return fallback sources
   const getFallbackSources = (imageUrl: string) => {
@@ -127,14 +130,13 @@ export function OptimizedImage({
   }
 
   return (
-    <div className={cn('relative overflow-hidden', className)}>
+    <div className={cn('relative w-full overflow-hidden', className)} style={{ width, height }}>
       {/* Blur placeholder while loading */}
       {isLoading && !hasError && (
         <div
           className={cn(
             'absolute inset-0 bg-gradient-to-br from-muted via-muted/70 to-muted/50',
-            'animate-pulse z-0',
-            fill && 'w-full h-full'
+            'animate-pulse z-0 w-full h-full'
           )}
           style={{
             backdropFilter: 'blur(10px)',
@@ -147,24 +149,18 @@ export function OptimizedImage({
         key={`${currentImageUrl}-${retryCount}`}
         src={currentImageUrl}
         alt={alt}
-        fill={fill}
         width={width}
         height={height}
         quality={quality}
         priority={priority}
         loading={loading}
-        onLoadingComplete={handleLoadingComplete}
+        onLoad={handleLoadingComplete}
         onError={handleError}
         className={cn(
-          'object-cover transition-opacity duration-300',
+          'object-cover transition-opacity duration-300 w-full h-full',
           isLoading && !hasError ? 'opacity-0' : 'opacity-100',
           imageSource === 'placeholder' && 'object-contain p-4'
         )}
-        sizes={
-          fill
-            ? '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'
-            : undefined
-        }
         unoptimized={imageSource === 'placeholder'}
       />
 

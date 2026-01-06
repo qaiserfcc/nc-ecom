@@ -222,7 +222,7 @@ export default function Bestsellers() {
                   <Link href={`/product/${product.slug}`}>
                     <div className="relative overflow-hidden bg-gradient-to-br from-secondary/20 via-white to-primary/10 h-40 sm:h-48">
                       <img
-                        src={product.thumbnail_url || product.image_url || "/placeholder.svg"}
+                        src={product.image_url || "/placeholder.svg"}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
                         loading="lazy"
