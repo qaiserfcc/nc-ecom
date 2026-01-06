@@ -175,7 +175,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
               {product.category_name}
             </Link>
             <span>/</span>
-            <span className="text-foreground">{product.name}</span>
+            <span className="text-foreground break-words max-w-xs truncate">{product.name}</span>
           </nav>
 
           <Button variant="ghost" size="sm" className="mb-4" onClick={() => router.back()}>
@@ -237,7 +237,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
             <div className="space-y-6">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">{product.category_name}</p>
-                <h1 className="text-2xl md:text-3xl font-bold text-balance">{product.name}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold break-words">{product.name}</h1>
               </div>
 
               <div className="rounded-lg border border-border/60 bg-muted/30 p-4 space-y-2">

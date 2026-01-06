@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Heart, ShoppingCart, Loader2, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
+import { Heart, ShoppingCart, Loader2, ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
@@ -34,39 +34,25 @@ export default function NewArrivals() {
   const [error, setError] = useState<string | null>(null)
   const [pendingId, setPendingId] = useState<number | null>(null)
   const [discount, setDiscount] = useState<Discount | null>(null)
-  const [offset, setOffset] = useState(0)
-  const [hasMore, setHasMore] = useState(false)
-  const [loadingMore, setLoadingMore] = useState(false)
 
   const ITEMS_PER_PAGE = 12
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (offset === 0) {
-          setLoading(true)
-        }
+        setLoading(true)
         
         const [productsRes, discountRes] = await Promise.all([
-          fetch(`/api/products?new=true&limit=${ITEMS_PER_PAGE}&offset=${offset}`),
-          offset === 0 ? fetch("/api/discounts/active") : Promise.resolve(null),
+          fetch(`/api/products?new=true&limit=${ITEMS_PER_PAGE}&offset=0`),
+          fetch("/api/discounts/active"),
         ])
         
         if (!productsRes.ok) throw new Error("Failed to fetch new arrivals")
         
         const productsData = await productsRes.json()
+        setProducts(productsData.products || [])
         
-        if (offset === 0) {
-          setProducts(productsData.products || [])
-        } else {
-          setProducts(prev => [...prev, ...(productsData.products || [])])
-          setLoadingMore(false)
-        }
-        
-        setHasMore(productsData.pagination?.hasMore || false)
-        
-        // Handle discount fetch separately to avoid breaking if it fails
-        if (offset === 0 && discountRes && discountRes.ok) {
+        if (discountRes.ok) {
           const discountData = await discountRes.json()
           setDiscount(discountData.discount || null)
         }
@@ -78,7 +64,7 @@ export default function NewArrivals() {
     }
 
     fetchData()
-  }, [offset])
+  }, [])
 
   const formatPrice = (value: number) => `Rs. ${Math.round(value).toLocaleString()}`
 
@@ -171,12 +157,7 @@ export default function NewArrivals() {
     )
   }
 
-  const displayedProducts = products.slice(offset, offset + ITEMS_PER_PAGE)
-
-  const handleLoadMore = () => {
-    setLoadingMore(true)
-    setOffset(offset + ITEMS_PER_PAGE)
-  }
+  const displayedProducts = products.slice(0, ITEMS_PER_PAGE)
 
   return (
     <section className="py-8 sm:py-12 md:py-16">
@@ -273,28 +254,13 @@ export default function NewArrivals() {
           })}
         </div>
 
-        {hasMore && (
-          <div className="flex justify-center mt-8">
-            <Button
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-              size="lg"
-            >
-              {loadingMore ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                "Load More"
-              )}
+        <div className="flex justify-center mt-8 sm:hidden">
+          <Link href="/shop?new=true" className="w-full">
+            <Button variant="outline" className="w-full items-center gap-2 bg-transparent">
+              View All <ArrowRight className="w-4 h-4" />
             </Button>
-          </div>
-        )}
-
-        <Link href="/shop?new=true">
-          <Button className="w-full sm:hidden mt-6">View All New Arrivals</Button>
-        </Link>
+          </Link>
+        </div>
       </div>
     </section>
   )

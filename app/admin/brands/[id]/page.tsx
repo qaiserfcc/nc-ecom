@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
+import { notify } from "@/lib/utils/notifications"
 
 interface Brand {
   id: number
@@ -109,9 +110,11 @@ export default function EditBrandPage({ params }: { params: Promise<{ id: string
         throw new Error(data.error || "Failed to update brand")
       }
 
+      notify.success("Brand updated!", "Brand has been updated successfully")
       router.push("/admin/brands")
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
+      notify.error("Failed to update brand", err instanceof Error ? err.message : "Please try again")
     } finally {
       setSaving(false)
     }

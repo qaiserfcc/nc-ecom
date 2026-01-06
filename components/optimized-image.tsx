@@ -43,7 +43,7 @@ export function OptimizedImage({
   // Validate image URL and return fallback sources
   const getFallbackSources = (imageUrl: string) => {
     if (!imageUrl || imageUrl.includes('placeholder')) {
-      return ['/placeholder.svg?height=300&width=300']
+      return ['/placeholder.svg']
     }
 
     const sources: string[] = []
@@ -70,7 +70,7 @@ export function OptimizedImage({
     }
     
     // Always add placeholder as last resort
-    sources.push('/placeholder.svg?height=300&width=300')
+    sources.push('/placeholder.svg')
     
     return sources
   }
@@ -82,64 +82,14 @@ export function OptimizedImage({
     if (!src || src.includes('placeholder')) {
       setCurrentImageUrl(fallbackSources[fallbackSources.length - 1])
       setImageSource('placeholder')
+      setIsLoading(false)
       return
     }
 
-    let isMounted = true
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-
-    const preloadImage = async () => {
-      try {
-        // Check if image exists by fetching headers
-        const response = await fetch(src, {
-          method: 'HEAD',
-          signal: controller.signal,
-        })
-        
-        if (isMounted) {
-          if (response.ok) {
-            setCurrentImageUrl(src)
-            setImageSource('original')
-          } else {
-            // Image not found, try fallbacks
-            tryNextFallback(0)
-          }
-        }
-      } catch (error) {
-        if (isMounted) {
-          console.warn(`Image preload failed for ${src}:`, error)
-          tryNextFallback(0)
-        }
-      } finally {
-        clearTimeout(timeoutId)
-      }
-    }
-
-    preloadImage()
-
-    return () => {
-      isMounted = false
-      controller.abort()
-      clearTimeout(timeoutId)
-    }
+    // Directly use the src without preload checks - let Next.js Image handle it
+    setCurrentImageUrl(src)
+    setImageSource('original')
   }, [src, fallbackSources])
-
-  // Try next fallback source
-  const tryNextFallback = (index: number) => {
-    if (index < fallbackSources.length) {
-      const nextUrl = fallbackSources[index]
-      setCurrentImageUrl(nextUrl)
-      
-      if (nextUrl.includes('placeholder')) {
-        setImageSource('placeholder')
-      } else if (nextUrl.endsWith('.webp')) {
-        setImageSource('webp')
-      } else if (nextUrl.endsWith('.jpg') || nextUrl.endsWith('.jpeg')) {
-        setImageSource('jpeg')
-      }
-    }
-  }
 
   const handleLoadingComplete = () => {
     setIsLoading(false)
@@ -155,18 +105,23 @@ export function OptimizedImage({
     const sourceIndex = fallbackSources.indexOf(currentImageUrl)
     if (sourceIndex < fallbackSources.length - 1) {
       // Try next fallback without incrementing retry counter
-      tryNextFallback(sourceIndex + 1)
+      const nextIndex = sourceIndex + 1
+      const nextUrl = fallbackSources[nextIndex]
+      setCurrentImageUrl(nextUrl)
+      
+      if (nextUrl.includes('placeholder')) {
+        setImageSource('placeholder')
+        setHasError(false)
+      } else if (nextUrl.endsWith('.webp')) {
+        setImageSource('webp')
+      } else if (nextUrl.endsWith('.jpg') || nextUrl.endsWith('.jpeg')) {
+        setImageSource('jpeg')
+      }
       setIsLoading(true) // Re-attempt load
-    } else if (retryCount < MAX_RETRIES) {
-      // Retry current image after delay
-      setTimeout(() => {
-        setRetryCount(prev => prev + 1)
-        setIsLoading(true)
-      }, RETRY_DELAY * (retryCount + 1))
     } else {
-      // All retries exhausted
-      setHasError(true)
-      console.error(`Image failed to load after ${MAX_RETRIES} retries: ${src}`)
+      // Already at placeholder, stop trying
+      setHasError(false)
+      setImageSource('placeholder')
       onErrorProp?.()
     }
   }

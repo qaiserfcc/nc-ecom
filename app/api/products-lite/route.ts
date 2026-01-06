@@ -57,10 +57,11 @@ export async function GET(request: NextRequest) {
     const sortField = validSortFields.includes(sort) ? sort : "created_at"
     const sortOrder = order === "asc" ? "ASC" : "DESC"
 
-    // Lightweight query - NO images, NO variants
+    // Lightweight query - include image_url but NO variants
     const products = await sql`
       SELECT p.id, p.slug, p.name, p.description, p.current_price, 
              p.original_price, p.is_new_arrival, p.is_featured, p.stock_quantity,
+             p.image_url, p.thumbnail_url,
              c.name as category_name, c.slug as category_slug,
              b.id as brand_id, b.name as brand_name, b.slug as brand_slug
       FROM products p

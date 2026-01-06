@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ImageUpload } from "@/components/ui/image-upload"
 import { Switch } from "@/components/ui/switch"
 import { ChevronLeft, Loader2 } from "lucide-react"
+import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -73,10 +74,12 @@ export default function EditBannerPage() {
       if (!response.ok) {
         const errorData = await response.json()
         setError(errorData.error || "Failed to update banner")
+        notify.error("Failed to update banner", errorData.error || "Please try again")
         setLoading(false)
         return
       }
 
+      notify.success("Banner updated!", "Banner has been updated successfully")
       router.push("/admin/banners")
     } catch (err: any) {
       setError(err.message || "Error updating banner")

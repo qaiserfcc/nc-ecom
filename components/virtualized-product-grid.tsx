@@ -195,7 +195,7 @@ function ProductCard({
 }) {
   const productImageList = productImages[product.id] || []
   const primaryImage = productImageList.find((img: any) => img.is_primary) || productImageList[0]
-  const imageUrl = primaryImage?.image_url || "/placeholder.svg?height=300&width=300"
+  const imageUrl = primaryImage?.image_url || "/placeholder.svg"
   const originalUrl = primaryImage?.original_url || imageUrl
 
   return (

@@ -309,10 +309,21 @@ export default function CheckoutPage() {
                               />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold line-clamp-1">{item.name}</p>
+                              <p className="text-sm font-semibold line-clamp-1 break-words">{item.name}</p>
                               <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                              <div className="flex items-center gap-2 text-sm font-medium mt-1">
-                                <span className="text-primary">Rs. {lineFinal.toLocaleString()}</span>
+                              <div className="space-y-1 mt-1 text-xs">
+                                <div className="flex items-center justify-between text-muted-foreground">
+                                  <span>Official</span>
+                                  <span className="line-through">Rs. {baseOriginal.toLocaleString()}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-muted-foreground">
+                                  <span>Selling</span>
+                                  <span className="line-through">Rs. {baseFinal.toLocaleString()}</span>
+                                </div>
+                                <div className="flex items-center justify-between font-semibold text-primary">
+                                  <span>Discounted</span>
+                                  <span>Rs. {lineFinal.toLocaleString()}</span>
+                                </div>
                               </div>
                             </div>
                           </div>

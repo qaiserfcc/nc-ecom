@@ -18,7 +18,7 @@ function isValidImageUrl(url: string): boolean {
 // Helper to get multiple image format options
 function getImageFormatOptions(imageUrl: string, acceptWebP: boolean): string[] {
   if (!imageUrl || !isValidImageUrl(imageUrl)) {
-    return ['/placeholder.svg?height=300&width=300']
+    return ['/placeholder.svg']
   }
 
   const formats: string[] = [imageUrl] // Original first
@@ -36,7 +36,7 @@ function getImageFormatOptions(imageUrl: string, acceptWebP: boolean): string[] 
   }
   
   // Always add placeholder as fallback
-  formats.push('/placeholder.svg?height=300&width=300')
+  formats.push('/placeholder.svg')
   
   return formats
 }
@@ -66,13 +66,12 @@ export async function GET(request: NextRequest) {
     let images: any[] = []
     
     try {
-      // Fetch images for the given product IDs with explicit timeout
+      // Fetch image_url from products table (products don't use product_images table)
       images = await Promise.race([
         sql`
-          SELECT product_id, id, image_url, is_primary
-          FROM product_images
-          WHERE product_id = ANY(${ids})
-          ORDER BY product_id, is_primary DESC, created_at ASC
+          SELECT id as product_id, image_url, thumbnail_url
+          FROM products
+          WHERE id = ANY(${ids})
           LIMIT 1000
         `,
         new Promise((_, reject) =>
@@ -96,8 +95,10 @@ export async function GET(request: NextRequest) {
 
     images.forEach((img: any) => {
       if (imagesByProduct[img.product_id]) {
-        const validUrl = isValidImageUrl(img.image_url)
-        const formats = getImageFormatOptions(img.image_url, acceptWebP)
+        // Use image_url, fallback to thumbnail_url
+        const imageUrl = img.image_url || img.thumbnail_url
+        const validUrl = isValidImageUrl(imageUrl)
+        const formats = getImageFormatOptions(imageUrl, acceptWebP)
         
         imagesByProduct[img.product_id].push({
           id: img.id,

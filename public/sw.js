@@ -1,5 +1,5 @@
 // Service Worker for image caching and offline support
-const CACHE_VERSION = 'v2'
+const CACHE_VERSION = 'v3'
 const CACHE_NAMES = {
   IMAGES: `images-${CACHE_VERSION}`,
   API: `api-${CACHE_VERSION}`,
@@ -43,8 +43,10 @@ const CACHE_STRATEGIES = {
     const fetchPromise = fetch(request)
       .then((response) => {
         if (response && response.ok) {
+          // Clone the response before using it
+          const responseToCache = response.clone()
           const cache = caches.open(CACHE_NAMES.IMAGES)
-          cache.then((c) => c.put(request, response.clone()))
+          cache.then((c) => c.put(request, responseToCache))
         }
         return response
       })
@@ -90,15 +92,22 @@ const CACHE_STRATEGIES = {
   staleWhileRevalidate: async (request) => {
     const cached = await caches.match(request)
     
-    const fetchPromise = fetch(request).then((response) => {
-      if (response && response.ok) {
-        const cache = caches.open(
-          request.url.includes('/api/') ? CACHE_NAMES.API : CACHE_NAMES.PAGES
-        )
-        cache.then((c) => c.put(request, response.clone()))
-      }
-      return response
-    })
+    const fetchPromise = fetch(request)
+      .then((response) => {
+        if (response && response.ok) {
+          // Clone the response before using it
+          const responseToCache = response.clone()
+          const cache = caches.open(
+            request.url.includes('/api/') ? CACHE_NAMES.API : CACHE_NAMES.PAGES
+          )
+          cache.then((c) => c.put(request, responseToCache))
+        }
+        return response
+      })
+      .catch((error) => {
+        console.log('[SW] SWR fetch failed for:', request.url, error)
+        return cached || new Response('Resource not available', { status: 503 })
+      })
 
     return cached || fetchPromise
   },
@@ -156,10 +165,10 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Images: Stale while revalidate (serve cached quickly, update in background)
+  // Images: only intercept product and upload images; let other static images go default
   if (
-    url.pathname.match(/\.(png|jpg|jpeg|webp|gif|svg|ico)$/i) ||
-    url.pathname.includes('/api/products-lite/images')
+    url.pathname.includes('/api/products-lite/images') ||
+    url.pathname.startsWith('/uploads/')
   ) {
     event.respondWith(CACHE_STRATEGIES.imageStaleWhileRevalidate(request))
     return

@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ChevronLeft, Loader2, Plus, X } from "lucide-react"
 import { ImageUpload } from "@/components/ui/image-upload"
+import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -122,9 +123,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         throw new Error(data.error || "Failed to update product")
       }
 
+      notify.success("Product updated!", "Product has been updated successfully")
       router.push("/admin/products")
     } catch (err: any) {
       setError(err.message)
+      notify.error("Failed to update product", err.message || "Please try again")
     } finally {
       setLoading(false)
     }

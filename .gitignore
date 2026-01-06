@@ -53,3 +53,5 @@ Thumbs.db
 .turbo
 .env*.local
 *.tsbuildinfo
+public/upload/
+public/uploads/

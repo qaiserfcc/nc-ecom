@@ -308,7 +308,7 @@
 - Responsive scaling with text navigation
 
 **Footer:**
-- Display shield logo (logo-shield-2x.png) centered above copyright
+- Display shield logo (Namecheap-500x500.png) centered above copyright
 - 120-140px height
 - 30-40px top/bottom padding
 - Transparent background
@@ -376,7 +376,7 @@
 - `favicon-64x64.png` - 64x64px
 - `apple-touch-icon.png` - 180x180px (iOS)
 - `logo-shield.png` - 128x128px (Standard)
-- `logo-shield-2x.png` - 512x512px (Large)
+- `Namecheap-500x500.png` - 512x512px (Large)
 - `logo-banner-hd.png` - 600px width (HD banner)
 - `logo-banner-xl.png` - 2800px width (Extra Large banner)
 

@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   title: "Namecheap - Organic Beauty & Health Products",
   description: "Premium organic skincare, haircare, and health products with profit-sharing community benefits",
   generator: "v0.app",
+  manifest: "/manifest.json",
   icons: {
     icon: [
       {

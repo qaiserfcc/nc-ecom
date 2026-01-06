@@ -12,9 +12,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, User, Package, Heart, Settings, LogOut, CheckCircle } from "lucide-react"
+import { Loader2, User, Package, Heart, Settings, LogOut } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
+import { notify } from "@/lib/utils/notifications"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -32,8 +32,6 @@ export default function ProfilePage() {
   const [postalCode, setPostalCode] = useState("")
   const [country, setCountry] = useState("")
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [error, setError] = useState("")
 
   useEffect(() => {
     if (profileData?.user) {
@@ -49,8 +47,6 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     setSaving(true)
-    setError("")
-    setSaved(false)
 
     try {
       const res = await fetch("/api/users/profile", {
@@ -64,10 +60,9 @@ export default function ProfilePage() {
       }
 
       await mutate()
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
+      notify.success("Profile updated!", "Your changes have been saved successfully")
     } catch (err: any) {
-      setError(err.message)
+      notify.error("Failed to update profile", err.message || "Please try again")
     } finally {
       setSaving(false)
     }
@@ -156,17 +151,6 @@ export default function ProfilePage() {
                       <CardDescription>Update your personal details and shipping address</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {error && (
-                        <Alert variant="destructive">
-                          <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                      )}
-                      {saved && (
-                        <Alert className="bg-green-50 border-green-200">
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                          <AlertDescription className="text-green-600">Profile updated successfully!</AlertDescription>
-                        </Alert>
-                      )}
                       <div className="grid sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="name">Full Name</Label>

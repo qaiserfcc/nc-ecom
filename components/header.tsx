@@ -56,9 +56,9 @@ export default function Header() {
             <Image 
               src="/logo-banner-xl.png" 
               alt="Namecheap Extra Discount" 
-              width={2800} 
-              height={700} 
-              className="h-24 sm:h-32 md:h-40 w-auto"
+              width={800} 
+              height={200} 
+              className="h-[55px] w-auto"
               priority
             />
           </Link>

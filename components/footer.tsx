@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { useAuth } from "@/lib/hooks/use-auth"
 
@@ -126,10 +127,12 @@ export default function Footer() {
 
         <div className="border-t border-accent-foreground/20 pt-6 sm:pt-8">
           <div className="flex flex-col items-center gap-4">
-            <img 
-              src="/logo-shield-2x.png" 
-              alt="Namecheap Logo" 
-              className="h-32 sm:h-40 w-auto"
+            <Image
+              src="/Namecheap-500x500.png"
+              alt="Namecheap Logo"
+              width={500}
+              height={500}
+              className="h-[72px] sm:h-[96px] w-auto"
             />
             <p className="text-xs sm:text-sm text-center">© 2025 Namecheap. All rights reserved. Bringing organic products and community benefits together.</p>
           </div>

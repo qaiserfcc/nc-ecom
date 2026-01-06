@@ -175,15 +175,26 @@ export default function CartPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <Link href={`/product/${item.slug}`} className="hover:text-primary transition">
-                                <h3 className="font-medium line-clamp-2 text-base">{item.name}</h3>
+                                <h3 className="font-medium line-clamp-2 text-base break-words">{item.name}</h3>
                               </Link>
                               {item.variant_name && (
                                 <p className="text-sm text-muted-foreground mt-1">
                                   {item.variant_name}: {item.variant_value}
                                 </p>
                               )}
-                              <div className="flex items-center gap-2 mt-2">
-                                <span className="font-bold text-primary text-lg">Rs. {lineFinal.toLocaleString()}</span>
+                              <div className="space-y-1 mt-2 text-xs sm:text-sm">
+                                <div className="flex items-center justify-between text-muted-foreground">
+                                  <span>Official Price</span>
+                                  <span className="line-through">Rs. {baseOriginal.toLocaleString()}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-muted-foreground">
+                                  <span>Selling Price</span>
+                                  <span className="line-through">Rs. {baseFinal.toLocaleString()}</span>
+                                </div>
+                                <div className="flex items-center justify-between font-semibold text-primary">
+                                  <span>Our Discounted Price</span>
+                                  <span>Rs. {lineFinal.toLocaleString()}</span>
+                                </div>
                               </div>
                             </div>
                             <div className="flex flex-col items-end justify-between">

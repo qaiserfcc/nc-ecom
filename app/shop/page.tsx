@@ -123,6 +123,22 @@ function ShopContent() {
   
   const { data: categoriesData } = useSWR("/api/categories", fetcher)
   const { data: brandsData } = useSWR("/api/brands", fetcher)
+  const { data: discountData } = useSWR("/api/discounts/active", fetcher)
+
+  const activeDiscount = discountData?.discount
+
+  // Helper to calculate discounted price
+  const calculateDiscountedPrice = (price: number) => {
+    if (!activeDiscount) return price
+    
+    if (activeDiscount.discount_type === "percentage") {
+      return price - (price * activeDiscount.discount_value) / 100
+    } else {
+      return Math.max(0, price - activeDiscount.discount_value)
+    }
+  }
+
+  const formatPrice = (value: number) => `Rs. ${Math.round(value).toLocaleString()}`
 
   // State to track loaded images
   const [productImages, setProductImages] = useState<Record<number, any[]>>({})
@@ -553,42 +569,41 @@ function ShopContent() {
                           const productImageList = productImages[product.id] || []
                           const primaryImage = productImageList.find((img: any) => img.is_primary) || productImageList[0]
 
-                          // Get image URL with fallback chain, prefer optimized thumbnail
+                          // Prefer API image, but always fall back to product fields so we never render blank
                           const imageUrl =
                             primaryImage?.image_url ||
                             product.thumbnail_url ||
                             product.image_url ||
                             "/placeholder.svg?height=300&width=300"
-                          const fallbackUrls = primaryImage?.format_options || ["/placeholder.svg?height=300&width=300"]
+                          
+                          // Calculate pricing tiers
+                          const officialPrice = product.original_price || product.current_price
+                          const sellingPrice = product.current_price
+                          const discountedPrice = calculateDiscountedPrice(sellingPrice)
                           
                           return (
                             <Link key={product.id} href={`/product/${product.slug}`}>
                               <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
                                 <div className="relative aspect-square overflow-hidden bg-muted">
-                                  {!productImages[product.id] ? (
-                                    <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50" />
-                                  ) : (
-                                    <OptimizedImage
-                                      src={imageUrl}
-                                      alt={product.name}
-                                      fill
-                                      className="group-hover:scale-105 transition-transform"
-                                      loading="lazy"
-                                      onLoad={() => performanceMonitor.recordImageLoad(Date.now())}
-                                      onError={() => {
-                                        console.warn(`Image load error for product: ${product.name}`)
-                                      }}
-                                    />
-                                  )}
+                                  <OptimizedImage
+                                    src={imageUrl}
+                                    alt={product.name}
+                                    fill
+                                    className="group-hover:scale-105 transition-transform"
+                                    loading="lazy"
+                                    onLoad={() => performanceMonitor.recordImageLoad(Date.now())}
+                                    onError={() => {
+                                      console.warn(`Image load error for product: ${product.name}`)
+                                    }}
+                                  />
                                   {product.is_new_arrival && (
                                     <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground">New</Badge>
                                   )}
-                                  {product.original_price > product.current_price && (
+                                  {activeDiscount && (
                                     <Badge variant="destructive" className="absolute top-2 right-2">
-                                      {Math.round(
-                                        ((product.original_price - product.current_price) / product.original_price) * 100,
-                                      )}
-                                      % OFF
+                                      {activeDiscount.discount_type === "percentage"
+                                        ? `${activeDiscount.discount_value}% OFF`
+                                        : `Rs. ${activeDiscount.discount_value} OFF`}
                                     </Badge>
                                   )}
                                   <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -613,22 +628,19 @@ function ShopContent() {
                                 <CardContent className="p-3">
                                   <p className="text-xs text-muted-foreground mb-1">{product.category_name}</p>
                                   <h3 className="font-medium text-sm line-clamp-2 mb-2">{product.name}</h3>
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-bold text-primary">
-                                      Rs. {Number(product.current_price).toLocaleString()}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground line-through">
-                                      Rs. {Number(product.original_price).toLocaleString()}
-                                    </span>
-                                    <Badge variant="secondary" className="text-[11px] px-2 py-0">
-                                      {Math.max(
-                                        0,
-                                        Math.round(
-                                          ((Number(product.original_price) - Number(product.current_price)) / Number(product.original_price || 1)) *
-                                            100,
-                                        ),
-                                      )}%
-                                    </Badge>
+                                  <div className="space-y-1 text-xs">
+                                    <div className="flex items-center justify-between text-muted-foreground">
+                                      <span>Official Price</span>
+                                      <span className="line-through">{formatPrice(officialPrice)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-muted-foreground">
+                                      <span>Selling Price</span>
+                                      <span className="line-through">{formatPrice(sellingPrice)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between font-semibold text-primary">
+                                      <span>Our Discounted Price</span>
+                                      <span>{formatPrice(discountedPrice)}</span>
+                                    </div>
                                   </div>
                                 </CardContent>
                               </Card>
