@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -34,6 +35,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { user, isLoading, isAuthenticated, isAdmin, signOut } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
 
   // Fetch cart and wishlist counts
   const { data: cartData } = useSWR(isAuthenticated ? "/api/cart" : null, fetcher)
@@ -65,27 +67,49 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/" className="text-foreground hover:text-primary font-medium transition">
+            <Link
+              href="/"
+              className={`text-foreground hover:text-primary font-medium transition-colors duration-200 relative group ${
+                pathname === "/" ? "text-primary" : ""
+              }`}
+            >
               Home
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
             </Link>
-            <Link href="/shop" className="text-foreground hover:text-primary font-medium transition">
+            <Link
+              href="/shop"
+              className={`text-foreground hover:text-primary font-medium transition-colors duration-200 relative group ${
+                pathname.startsWith("/shop") ? "text-primary" : ""
+              }`}
+            >
               Shop
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
             </Link>
-            <Link href="/shop?type=bundles" className="text-foreground hover:text-primary font-medium transition">
-              Bundles
-            </Link>
-            <Link href="/shop?type=brands" className="text-foreground hover:text-primary font-medium transition">
-              Brands
+            <Link
+              href="/contact"
+              className={`text-foreground hover:text-primary font-medium transition-colors duration-200 relative group ${
+                pathname.startsWith("/contact") ? "text-primary" : ""
+              }`}
+            >
+              Quote
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
             </Link>
             {isAuthenticated && (
-              <Link href="/orders" className="text-foreground hover:text-primary font-medium transition">
+              <Link
+                href="/orders"
+                className={`text-foreground hover:text-primary font-medium transition-colors duration-200 relative group ${
+                  pathname.startsWith("/orders") ? "text-primary" : ""
+                }`}
+              >
                 Orders
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
               </Link>
             )}
             {isAdmin && (
-              <Link href="/admin" className="text-primary font-medium transition flex items-center gap-1">
+              <Link href="/admin" className="text-primary font-medium transition flex items-center gap-1 relative group">
                 <LayoutDashboard className="w-4 h-4" />
                 Admin
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary group-hover:opacity-100 opacity-100 transition-opacity duration-300"></span>
               </Link>
             )}
           </nav>
@@ -215,31 +239,24 @@ export default function Header() {
           <nav className="md:hidden pb-4 flex flex-col gap-1 border-t border-border pt-3">
             <Link
               href="/"
-              className="px-4 py-3 text-foreground hover:bg-muted rounded-md"
+              className={`px-4 py-3 rounded-md ${pathname === "/" ? "text-primary bg-muted" : "text-foreground hover:bg-muted"}`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Home
             </Link>
             <Link
               href="/shop"
-              className="px-4 py-3 text-foreground hover:bg-muted rounded-md"
+              className={`px-4 py-3 rounded-md ${pathname.startsWith("/shop") ? "text-primary bg-muted" : "text-foreground hover:bg-muted"}`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Shop
             </Link>
             <Link
-              href="/shop?type=bundles"
-              className="px-4 py-3 text-foreground hover:bg-muted rounded-md"
+              href="/contact"
+              className={`px-4 py-3 rounded-md ${pathname.startsWith("/contact") ? "text-primary bg-muted" : "text-foreground hover:bg-muted"}`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              Bundles
-            </Link>
-            <Link
-              href="/shop?type=brands"
-              className="px-4 py-3 text-foreground hover:bg-muted rounded-md"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Brands
+              Quote
             </Link>
             {isAuthenticated ? (
               <>

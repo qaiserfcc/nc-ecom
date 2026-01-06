@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useRouter, usePathname } from "next/navigation"
+import NextImage from "next/image"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -18,7 +19,7 @@ import {
   LogOut,
   ChevronLeft,
   Loader2,
-  Image,
+  Image as ImageIcon,
   FolderTree,
 } from "lucide-react"
 
@@ -30,7 +31,7 @@ const sidebarItems = [
   { href: "/admin/brands", icon: Package, label: "Brands" },
   { href: "/admin/orders", icon: ShoppingCart, label: "Orders" },
   { href: "/admin/users", icon: Users, label: "Users" },
-  { href: "/admin/banners", icon: Image, label: "Banners" },
+  { href: "/admin/banners", icon: ImageIcon, label: "Banners" },
   { href: "/admin/discounts", icon: Tag, label: "Discounts" },
   { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
 ]
@@ -61,10 +62,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const Sidebar = () => (
     <div className="flex flex-col h-full">
       <div className="p-4 border-b">
-        <button onClick={() => router.push("/")} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-            NC
-          </div>
+        <button
+          onClick={() => router.push("/")}
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+        >
+          <NextImage
+            src="/logo-banner-xl.png"
+            alt="Namecheap Extra Discount"
+            width={160}
+            height={40}
+            className="h-8 w-auto"
+            priority
+          />
           <span className="font-bold text-primary">Admin</span>
         </button>
       </div>
@@ -76,10 +85,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <button
                 key={item.href}
                 onClick={() => router.push(item.href)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer relative z-10 ${
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 cursor-pointer relative z-10 ${
                   isActive 
-                    ? "bg-primary text-primary-foreground shadow-md" 
-                    : "text-foreground hover:bg-muted hover:shadow-sm"
+                    ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg scale-[1.02]" 
+                    : "text-foreground hover:bg-muted/80 hover:shadow-sm hover:translate-x-1"
                 }`}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />

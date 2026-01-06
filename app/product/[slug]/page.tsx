@@ -123,7 +123,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
     )
   }
 
-  const placeholderImage = "/placeholder.svg?height=600&width=600"
+  const placeholderImage = "/placeholder.svg"
 
   const images =
     product.images?.length > 0
@@ -131,7 +131,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
       : [
           {
             id: 0,
-            image_url: product.thumbnail_url || product.image_url || placeholderImage,
+            image_url: product.image_url || placeholderImage,
             is_primary: true,
           },
         ]
@@ -189,10 +189,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
               <div className="relative aspect-square rounded-lg overflow-hidden bg-muted">
                 <Image
                   src={
-                    images[selectedImage]?.image_url ||
-                    product.thumbnail_url ||
-                    product.image_url ||
-                    placeholderImage
+                    images[selectedImage]?.image_url || placeholderImage
                   }
                   alt={product.name}
                   fill
@@ -216,12 +213,12 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                     <button
                       key={img.id}
                       onClick={() => setSelectedImage(index)}
-                      className={`relative w-20 h-20 rounded-md overflow-hidden shrink-0 border-2 ${
+                      className={`relative w-20 h-20 rounded-md overflow-hidden shrink-0 border-2 cursor-pointer hover:opacity-75 transition-opacity ${
                         selectedImage === index ? "border-primary" : "border-transparent"
                       }`}
                     >
                       <Image
-                        src={img.image_url || product.thumbnail_url || placeholderImage}
+                        src={img.image_url || placeholderImage}
                         alt={`${product.name} ${index + 1}`}
                         fill
                         className="object-cover"
