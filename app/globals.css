@@ -229,3 +229,31 @@
 .animation-delay-800 {
   animation-delay: 0.8s;
 }
+
+/* Toast gradients */
+.toaster .sonner-toast {
+  border: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
+  background-image: linear-gradient(135deg, color-mix(in oklch, var(--background) 85%, transparent), color-mix(in oklch, var(--accent) 75%, transparent));
+  color: var(--foreground);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.toaster .sonner-toast[data-type="success"] {
+  background-image: linear-gradient(135deg, color-mix(in oklch, var(--secondary) 80%, transparent), color-mix(in oklch, var(--primary) 65%, transparent));
+  color: var(--secondary-foreground);
+}
+
+.toaster .sonner-toast[data-type="error"] {
+  background-image: linear-gradient(135deg, color-mix(in oklch, var(--destructive) 85%, transparent), color-mix(in oklch, var(--destructive) 70%, var(--primary) 15%));
+  color: var(--destructive-foreground);
+}
+
+.toaster .sonner-toast[data-type="warning"] {
+  background-image: linear-gradient(135deg, color-mix(in oklch, var(--primary) 80%, transparent), color-mix(in oklch, var(--secondary) 45%, transparent));
+  color: var(--foreground);
+}
+
+.toaster .sonner-toast[data-type="info"] {
+  background-image: linear-gradient(135deg, color-mix(in oklch, var(--secondary) 85%, transparent), color-mix(in oklch, var(--accent) 70%, transparent));
+  color: var(--secondary-foreground);
+}

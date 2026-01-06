@@ -80,10 +80,7 @@ export default function NewArrivals() {
     fetchData()
   }, [offset])
 
-  const calculateDiscount = (original: number, current: number): number => {
-    if (original <= 0) return 0
-    return Math.max(0, Math.round(((original - current) / original) * 100))
-  }
+  const formatPrice = (value: number) => `Rs. ${Math.round(value).toLocaleString()}`
 
   const calculateDiscountedPrice = (price: number) => {
     if (!discount) return price
@@ -199,7 +196,9 @@ export default function NewArrivals() {
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {displayedProducts.map((product, index) => {
             const delayClass = index < 8 ? `animation-delay-${(index + 1) * 100}` : '';
-            const discountedPrice = calculateDiscountedPrice(product.current_price)
+            const officialPrice = product.original_price || product.current_price
+            const sellingPrice = product.current_price
+            const discountedPrice = calculateDiscountedPrice(sellingPrice)
             return (
               <Card
                 key={product.id}
@@ -229,21 +228,19 @@ export default function NewArrivals() {
                         {product.name}
                       </h3>
                     </Link>
-                    <div className="flex items-center gap-2">
-                      {discount ? (
-                        <>
-                          <span className="text-muted-foreground line-through text-xs sm:text-sm">
-                            Rs. {product.current_price.toLocaleString()}
-                          </span>
-                          <span className="text-primary font-bold text-sm sm:text-base">
-                            Rs. {Math.round(discountedPrice).toLocaleString()}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-primary font-bold text-sm sm:text-base">
-                          Rs. {product.current_price.toLocaleString()}
-                        </span>
-                      )}
+                    <div className="space-y-1 text-xs sm:text-sm">
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span>Official Price</span>
+                        <span className="line-through">{formatPrice(officialPrice)}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span>Selling Price</span>
+                        <span className="line-through">{formatPrice(sellingPrice)}</span>
+                      </div>
+                      <div className="flex items-center justify-between font-semibold text-primary">
+                        <span>Our Discounted Price</span>
+                        <span>{formatPrice(discountedPrice)}</span>
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <Button

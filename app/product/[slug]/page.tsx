@@ -139,6 +139,8 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   const variants = product.variants || []
   const selectedVariantData = variants.find((v: any) => v.id === selectedVariant)
   
+  const formatPrice = (value: number) => `Rs. ${Math.round(value).toLocaleString()}`
+
   const calculateDiscountedPrice = (price: number) => {
     if (!activeDiscount) return price
     
@@ -148,10 +150,11 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
       return Math.max(0, price - activeDiscount.discount_value)
     }
   }
-  
-  const basePrice = Number(product.current_price) + (selectedVariantData ? Number(selectedVariantData.price_modifier) : 0)
-  const finalPrice = calculateDiscountedPrice(basePrice)
-  const discount = Math.round(((product.original_price - product.current_price) / product.original_price) * 100)
+
+  const variantModifier = selectedVariantData ? Number(selectedVariantData.price_modifier) : 0
+  const sellingPrice = Number(product.current_price) + variantModifier
+  const officialPrice = (Number(product.original_price) || Number(product.current_price)) + variantModifier
+  const finalPrice = calculateDiscountedPrice(sellingPrice)
 
   return (
     <>
@@ -237,34 +240,28 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 <h1 className="text-2xl md:text-3xl font-bold text-balance">{product.name}</h1>
               </div>
 
-              <div className="flex items-center gap-3 flex-wrap">
-                {activeDiscount ? (
-                  <>
-                    <span className="text-lg text-muted-foreground line-through">
-                      Rs. {basePrice.toLocaleString()}
-                    </span>
-                    <span className="text-3xl font-bold text-primary">Rs. {Math.round(finalPrice).toLocaleString()}</span>
-                    <Badge className="text-sm bg-primary text-primary-foreground">
-                      {activeDiscount.discount_type === "percentage"
-                        ? `${activeDiscount.discount_value}% OFF`
-                        : `Rs. ${activeDiscount.discount_value} OFF`}
-                    </Badge>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-3xl font-bold text-primary">Rs. {basePrice.toLocaleString()}</span>
-                    {discount > 0 && (
-                      <>
-                        <span className="text-lg text-muted-foreground line-through">
-                          Rs. {Number(product.original_price).toLocaleString()}
-                        </span>
-                        <Badge variant="secondary" className="text-sm">
-                          {Math.max(0, discount)}% OFF
-                        </Badge>
-                      </>
+              <div className="rounded-lg border border-border/60 bg-muted/30 p-4 space-y-2">
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>Official Price</span>
+                  <span className="line-through">{formatPrice(officialPrice)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>Selling Price</span>
+                  <span className="line-through">{formatPrice(sellingPrice)}</span>
+                </div>
+                <div className="flex items-center justify-between text-lg font-semibold text-primary">
+                  <span>Our Discounted Price</span>
+                  <div className="flex items-center gap-2">
+                    <span>{formatPrice(finalPrice)}</span>
+                    {activeDiscount && (
+                      <Badge className="text-xs bg-primary text-primary-foreground">
+                        {activeDiscount.discount_type === "percentage"
+                          ? `${activeDiscount.discount_value}% OFF`
+                          : `Rs. ${activeDiscount.discount_value} OFF`}
+                      </Badge>
                     )}
-                  </>
-                )}
+                  </div>
+                </div>
               </div>
 
               <p className="text-muted-foreground">{product.short_description || product.description}</p>

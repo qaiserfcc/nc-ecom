@@ -54,13 +54,13 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <Image 
-              src="/logo-small.png" 
-              alt="Namecheap Logo" 
-              width={40} 
-              height={40} 
-              className="rounded-lg"
+              src="/logo-banner-xl.png" 
+              alt="Namecheap Extra Discount" 
+              width={2800} 
+              height={700} 
+              className="h-24 sm:h-32 md:h-40 w-auto"
+              priority
             />
-            <span className="text-xl font-bold text-primary hidden sm:inline">Namecheap</span>
           </Link>
 
           {/* Desktop Navigation */}

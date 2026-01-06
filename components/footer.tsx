@@ -7,7 +7,7 @@ export default function Footer() {
   const { isAuthenticated, isAdmin } = useAuth()
 
   return (
-    <footer className="bg-accent text-accent-foreground py-8 sm:py-12 md:py-16">
+    <footer className="bg-transparent py-8 sm:py-12 md:py-16">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-8">
           <div>
@@ -124,8 +124,15 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-accent-foreground/20 pt-6 sm:pt-8 text-center text-xs sm:text-sm">
-          <p>© 2025 Namecheap. All rights reserved. Bringing organic products and community benefits together.</p>
+        <div className="border-t border-accent-foreground/20 pt-6 sm:pt-8">
+          <div className="flex flex-col items-center gap-4">
+            <img 
+              src="/logo-shield-2x.png" 
+              alt="Namecheap Logo" 
+              className="h-32 sm:h-40 w-auto"
+            />
+            <p className="text-xs sm:text-sm text-center">© 2025 Namecheap. All rights reserved. Bringing organic products and community benefits together.</p>
+          </div>
         </div>
       </div>
     </footer>
