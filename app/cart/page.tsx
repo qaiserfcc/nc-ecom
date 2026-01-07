@@ -211,12 +211,12 @@ export default function CartPage() {
                                   <span className="line-through">Rs. {baseOriginal.toLocaleString()}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-muted-foreground">
-                                  <span>Official Discount</span>
-                                  <span className="text-green-400 font-semibold">-{lineDiscountPercent}%</span>
+                                  <span>Selling Price</span>
+                                  <span className="line-through">Rs. {baseFinal.toLocaleString()}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-primary font-semibold">
-                                  <span>Our Offer Price</span>
-                                  <span>Rs. {lineFinal.toLocaleString()}</span>
+                                  <span>Our Discounted Price</span>
+                                  <span>Rs. {(baseFinal * item.quantity).toLocaleString()}</span>
                                 </div>
                               </div>
                             </div>
@@ -279,33 +279,40 @@ export default function CartPage() {
                     <CardContent className="space-y-4">
                       <div className="space-y-3 bg-gray-50 rounded-2xl p-4 border border-gray-100">
                         <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground text-sm">Original ({data?.itemCount || 0} items)</span>
+                          <span className="text-muted-foreground text-sm">Official Price ({data?.itemCount || 0} items)</span>
                           <span className="font-semibold">Rs. {originalTotal.toLocaleString()}</span>
                         </div>
+                        <div className="flex justify-between items-center text-sm border-t pt-2">
+                          <span className="text-muted-foreground">Official Discount</span>
+                          <span className="text-green-500 font-semibold">-{officialDiscountPercent}% (Rs. {officialDiscount.toLocaleString()})</span>
+                        </div>
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-muted-foreground">Selling (official)</span>
+                          <span className="text-muted-foreground">After Official Discount</span>
                           <span className="font-semibold">Rs. {sellingTotal.toLocaleString()}</span>
                         </div>
-                        {officialDiscount > 0 && (
-                          <div className="flex justify-between items-center text-green-400 text-sm">
-                            <span className="font-medium">Official Discount</span>
-                            <span className="font-bold">-Rs. {officialDiscount.toLocaleString()} ({officialDiscountPercent}%)</span>
-                          </div>
+                        {promoAmount > 0 && (
+                          <>
+                            <div className="flex justify-between items-center text-sm border-t pt-2">
+                              <span className="text-muted-foreground">Our Active Discount</span>
+                              <span className="text-green-500 font-semibold">-{promoPercent}% (Rs. {promoAmount.toLocaleString()})</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm text-primary font-semibold border-t pt-2">
+                              <span>Cumulative Discount</span>
+                              <span>{Math.min(100, cumulativeDiscountPercent)}% (Rs. {cumulativeDiscount.toLocaleString()})</span>
+                            </div>
+                          </>
                         )}
-                        <div className="flex justify-between items-center text-primary text-sm">
-                          <span className="font-semibold">Applied Promotion</span>
-                          <span className="font-bold">{promoAmount > 0 ? `-Rs. ${promoAmount.toLocaleString()}` : promotionLabel}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-green-300 text-sm">
-                          <span>Total Savings</span>
-                          <span className="font-bold">{cumulativeDiscountPercent}%</span>
-                        </div>
                       </div>
 
                       <div className="space-y-2 rounded-2xl p-4 bg-gray-50 border border-gray-100 text-sm text-gray-600">
-                        <p className="text-sm font-semibold text-foreground">Savings breakdown</p>
-                        <p>Official discount: {officialDiscountPercent}%</p>
-                        <p>Official + promotion: {Math.min(100, cumulativeDiscountPercent)}%</p>
+                        <p className="text-sm font-semibold text-foreground">Savings Breakdown</p>
+                        <p>Official Discount: <span className="font-bold text-green-600">{officialDiscountPercent}%</span></p>
+                        {promoAmount > 0 && (
+                          <>
+                            <p>Our Active Discount: <span className="font-bold text-green-600">{promoPercent}%</span></p>
+                            <p>Cumulative Discount: <span className="font-bold text-green-600">{Math.min(100, cumulativeDiscountPercent)}%</span></p>
+                          </>
+                        )}
                       </div>
 
                       <div className="border-t border-border/50 pt-3">

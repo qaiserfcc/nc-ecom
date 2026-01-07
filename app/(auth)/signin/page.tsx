@@ -5,6 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -44,11 +45,15 @@ export default function SignInPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#fcfdfd] px-4 py-12">
       <Card className="w-full max-w-md bg-white border-gray-100 rounded-3xl shadow-sm">
         <CardHeader className="text-center">
-          <Link href="/" className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
-              NC
-            </div>
-            <span className="text-xl font-bold text-primary">Namecheap</span>
+          <Link href="/" className="flex items-center justify-center mb-4">
+            <Image 
+              src="/Namecheap-lanscape.png" 
+              alt="Namecheap" 
+              width={280} 
+              height={70} 
+              className="h-12 w-auto"
+              priority
+            />
           </Link>
           <CardTitle className="text-2xl text-gray-900">Welcome back</CardTitle>
           <CardDescription className="text-gray-600">Sign in to your account to continue</CardDescription>

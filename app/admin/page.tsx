@@ -4,7 +4,7 @@ import Link from "next/link"
 import useSWR from "swr"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Users, Package, ShoppingCart, DollarSign, Eye, TrendingUp } from "lucide-react"
+import { Loader2, Users, Package, ShoppingCart, DollarSign, Eye, TrendingUp, ArrowUp, ArrowDown } from "lucide-react"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -42,67 +42,67 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-[#e0e5ce]">
-                <DollarSign className="w-5 h-5 text-primary" />
+              <div className="p-2 rounded-xl bg-blue-200">
+                <DollarSign className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-600">Revenue</p>
-                <p className="text-lg font-bold text-gray-900">Rs. {overview.totalRevenue?.toLocaleString() || 0}</p>
+                <p className="text-xs text-blue-600 font-medium">Revenue</p>
+                <p className="text-lg font-bold text-blue-900">Rs. {overview.totalRevenue?.toLocaleString() || 0}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-[#e0e5ce]">
-                <ShoppingCart className="w-5 h-5 text-primary" />
+              <div className="p-2 rounded-xl bg-purple-200">
+                <ShoppingCart className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-600">Orders</p>
-                <p className="text-lg font-bold text-gray-900">{overview.totalOrders || 0}</p>
+                <p className="text-xs text-purple-600 font-medium">Orders</p>
+                <p className="text-lg font-bold text-purple-900">{overview.totalOrders || 0}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
+        <Card className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-200 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-[#e0e5ce]">
+              <div className="p-2 rounded-xl bg-green-200">
                 <Users className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-600">Customers</p>
-                <p className="text-lg font-bold text-gray-900">{overview.totalUsers || 0}</p>
+                <p className="text-xs text-green-600 font-medium">Customers</p>
+                <p className="text-lg font-bold text-green-900">{overview.totalUsers || 0}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 border-orange-200 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-[#e0e5ce]">
-                <Package className="w-5 h-5 text-purple-600" />
+              <div className="p-2 rounded-xl bg-orange-200">
+                <Package className="w-5 h-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-600">Products</p>
-                <p className="text-lg font-bold text-gray-900">{overview.totalProducts || 0}</p>
+                <p className="text-xs text-orange-600 font-medium">Products</p>
+                <p className="text-lg font-bold text-orange-900">{overview.totalProducts || 0}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
+        <Card className="bg-gradient-to-br from-pink-50 to-pink-100/50 border-pink-200 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-[#e0e5ce]">
-                <Eye className="w-5 h-5 text-orange-600" />
+              <div className="p-2 rounded-xl bg-pink-200">
+                <Eye className="w-5 h-5 text-pink-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-600">Views Today</p>
-                <p className="text-lg font-bold text-gray-900">{overview.viewsToday || 0}</p>
+                <p className="text-xs text-pink-600 font-medium">Views Today</p>
+                <p className="text-lg font-bold text-pink-900">{overview.viewsToday || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -182,32 +182,48 @@ export default function AdminDashboard() {
         <Card className="lg:col-span-2 bg-white border-gray-100 rounded-3xl shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2 text-gray-900">
-              <TrendingUp className="w-5 h-5" />
-              Revenue (Last 7 Days)
+              <TrendingUp className="w-5 h-5 text-blue-600" />
+              Revenue Trend (Last 7 Days)
             </CardTitle>
           </CardHeader>
           <CardContent>
             {dailyRevenue.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">No revenue data yet</p>
             ) : (
-              <div className="flex items-end gap-2 h-40">
-                {dailyRevenue.map((day: any) => {
-                  const maxRevenue = Math.max(...dailyRevenue.map((d: any) => Number(d.revenue)))
-                  const height = maxRevenue > 0 ? (Number(day.revenue) / maxRevenue) * 100 : 0
-                  return (
-                    <div key={day.date} className="flex-1 flex flex-col items-center gap-2">
-                      <div className="w-full bg-muted rounded-t relative" style={{ height: `${Math.max(height, 5)}%` }}>
-                        <div className="absolute inset-0 bg-primary rounded-t" />
+              <div className="space-y-6">
+                <div className="flex items-end gap-1 h-56 pb-2">
+                  {dailyRevenue.map((day: any) => {
+                    const maxRevenue = Math.max(...dailyRevenue.map((d: any) => Number(d.revenue)))
+                    const height = maxRevenue > 0 ? (Number(day.revenue) / maxRevenue) * 100 : 0
+                    return (
+                      <div key={day.date} className="flex-1 flex flex-col items-center gap-2">
+                        <div className="w-full bg-gradient-to-t from-blue-400 to-blue-500 rounded-t-lg hover:from-blue-500 hover:to-blue-600 transition-all group relative shadow-sm" 
+                             style={{ height: `${Math.max(height, 5)}%` }}>
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Rs. {Number(day.revenue).toLocaleString()}
+                          </div>
+                        </div>
+                        <div className="text-center mt-2">
+                          <p className="text-xs font-medium text-gray-900">{new Date(day.date).toLocaleDateString("en-US", { weekday: "short" })}</p>
+                        </div>
                       </div>
-                      <div className="text-center">
-                        <p className="text-xs font-medium">{Number(day.revenue).toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(day.date).toLocaleDateString("en-US", { weekday: "short" })}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
+                <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+                  <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                    <p className="text-xs text-blue-600 font-medium">Today</p>
+                    <p className="text-sm font-bold text-blue-900">Rs. {Number(dailyRevenue[dailyRevenue.length - 1]?.revenue || 0).toLocaleString()}</p>
+                  </div>
+                  <div className="p-3 bg-green-50 rounded-xl border border-green-100">
+                    <p className="text-xs text-green-600 font-medium">Daily Avg</p>
+                    <p className="text-sm font-bold text-green-900">Rs. {(dailyRevenue.reduce((a: number, b: any) => a + Number(b.revenue), 0) / dailyRevenue.length).toLocaleString()}</p>
+                  </div>
+                  <div className="p-3 bg-purple-50 rounded-xl border border-purple-100">
+                    <p className="text-xs text-purple-600 font-medium">Week Total</p>
+                    <p className="text-sm font-bold text-purple-900">Rs. {dailyRevenue.reduce((a: number, b: any) => a + Number(b.revenue), 0).toLocaleString()}</p>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>
