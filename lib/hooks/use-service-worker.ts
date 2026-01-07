@@ -38,9 +38,15 @@ export function useServiceWorker() {
             })
           })
 
-          // Check for updates periodically
+          // Check for updates periodically (with error suppression)
           setInterval(() => {
-            registration.update()
+            registration.update().catch((err) => {
+              // Suppress "Failed to update a ServiceWorker" errors
+              // These can occur on domain changes or network issues
+              if (!err.message?.includes('Failed to update')) {
+                console.warn('[App] Service Worker update check failed:', err)
+              }
+            })
           }, 60000) // Check every minute
         } catch (error) {
           console.error('[App] Service Worker registration failed:', error)

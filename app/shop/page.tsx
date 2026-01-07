@@ -6,7 +6,7 @@ import { useState, useCallback, Suspense, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import useSWR from "swr"
+import useSWR, { useSWRConfig } from "swr"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -33,6 +33,7 @@ function ShopContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { isAuthenticated } = useAuth()
+  const { cache } = useSWRConfig()
 
   // Initialize performance monitoring and service worker
   const performanceMonitor = usePerformanceMonitoring()
@@ -42,7 +43,7 @@ function ShopContent() {
   const [search, setSearch] = useState(searchParams.get("search") || "")
   const [category, setCategory] = useState(searchParams.get("category") || "all")
   const [brandFilter, setBrandFilter] = useState(searchParams.get("brand") || "all")
-  const [priceRange, setPriceRange] = useState([0, 10000])
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000])
   const [sortBy, setSortBy] = useState("created_at")
   const [sortOrder, setSortOrder] = useState("desc")
   const [featuredOnly, setFeaturedOnly] = useState(false)
@@ -71,6 +72,9 @@ function ShopContent() {
     return params.toString()
   }, [search, category, brandFilter, priceRange, sortBy, sortOrder, featuredOnly, newOnly])
 
+  // Memoize the current query string to detect changes
+  const currentQueryKey = buildQuery(offset)
+
   // Fetch different data based on type
   const getApiEndpoint = () => {
     if (type === "brands") return `/api/brands?${buildQuery(offset)}`
@@ -80,11 +84,22 @@ function ShopContent() {
 
   // For brands and bundles, use original endpoint; for products, use optimized flow
   const isProductType = type === "products"
+  const swrUrl = isProductType ? `/api/products-lite?${currentQueryKey}` : getApiEndpoint()
   
   const { data: itemsData, isLoading: itemsLoading } = useSWR(
-    isProductType ? `/api/products-lite?${buildQuery(offset)}` : getApiEndpoint(),
+    swrUrl,
     fetcher
   )
+  
+  // Clear SWR cache for this query when filters change (but preserve offset for pagination)
+  useEffect(() => {
+    if (isProductType && offset === 0) {
+      // Clear the cache for the base query to force refetch
+      if (cache.has(swrUrl)) {
+        cache.delete(swrUrl)
+      }
+    }
+  }, [search, category, brandFilter, sortBy, sortOrder, featuredOnly, newOnly, isProductType, swrUrl, cache])
   
   // Batch images into groups of 10 to avoid request size limits
   const batchSize = 10
@@ -271,7 +286,7 @@ function ShopContent() {
   useEffect(() => {
     setOffset(0)
     setAllItems([])
-  }, [search, category, brandFilter, priceRange, sortBy, sortOrder, featuredOnly, newOnly])
+  }, [search, category, brandFilter, priceRange[0], priceRange[1], sortBy, sortOrder, featuredOnly, newOnly])
 
   // Page title based on type
   const pageTitle = type === "brands" 
