@@ -152,10 +152,10 @@ export default function CartPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gradient-to-b from-background via-background to-[#0f172a]">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8 animate-fade-in">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Shopping Cart</h1>
+      <main className="min-h-screen bg-[#fcfdfd]">
+        <div className="container mx-auto px-4 py-8 sm:py-12">
+          <div className="mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gray-900">Shopping Cart</h1>
             <p className="text-muted-foreground text-sm md:text-base">You have {data?.itemCount || 0} item{(data?.itemCount || 0) !== 1 ? 's' : ''} in your cart</p>
           </div>
 
@@ -183,11 +183,11 @@ export default function CartPage() {
                   const lineFinal = baseFinal * item.quantity
                   const lineDiscountPercent = baseOriginal > 0 ? Math.round(((baseOriginal - baseFinal) / baseOriginal) * 100) : 0
                   return (
-                    <div key={item.id} className="animate-fade-in">
-                      <Card className="bg-gradient-to-br from-slate-900/70 via-slate-900/60 to-slate-800/50 text-foreground backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-border/40">
+                    <div key={item.id}>
+                      <Card className="bg-white hover:shadow-xl transition-all duration-300 border-gray-100 rounded-3xl">
                         <CardContent className="p-4">
                           <div className="flex gap-4">
-                            <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-muted to-muted/50 shrink-0 group">
+                            <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-[#e0e5ce] shrink-0 group">
                               <Image
                                 src={item.image_url || "/placeholder.svg?height=100&width=100"}
                                 alt={item.name}
@@ -271,13 +271,13 @@ export default function CartPage() {
 
               {/* Order Summary */}
               <div>
-                <div className="sticky top-24 animate-fade-in">
-                  <Card className="bg-gradient-to-br from-slate-900/70 via-slate-900/60 to-slate-800/50 border-primary/20 shadow-xl text-foreground">
+                <div className="sticky top-24">
+                  <Card className="bg-white border-gray-100 shadow-sm rounded-3xl">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-xl">Order Summary</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="space-y-3 bg-slate-800/60 rounded-lg p-3 border border-border/40">
+                      <div className="space-y-3 bg-gray-50 rounded-2xl p-4 border border-gray-100">
                         <div className="flex justify-between items-center">
                           <span className="text-muted-foreground text-sm">Original ({data?.itemCount || 0} items)</span>
                           <span className="font-semibold">Rs. {originalTotal.toLocaleString()}</span>
@@ -302,7 +302,7 @@ export default function CartPage() {
                         </div>
                       </div>
 
-                      <div className="space-y-2 rounded-lg p-3 bg-slate-800/40 border border-border/40 text-sm text-muted-foreground">
+                      <div className="space-y-2 rounded-2xl p-4 bg-gray-50 border border-gray-100 text-sm text-gray-600">
                         <p className="text-sm font-semibold text-foreground">Savings breakdown</p>
                         <p>Official discount: {officialDiscountPercent}%</p>
                         <p>Official + promotion: {Math.min(100, cumulativeDiscountPercent)}%</p>
@@ -314,7 +314,7 @@ export default function CartPage() {
                           <span className="text-green-400 font-medium">Free</span>
                         </div>
                       </div>
-                      <div className="bg-gradient-to-r from-primary/15 to-primary/5 rounded-lg p-3 border border-primary/20">
+                      <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl p-4 border border-primary/20">
                         <div className="flex justify-between items-center">
                           <span className="text-lg font-bold">Final Payable</span>
                           <span className="text-2xl font-bold text-primary">Rs. {finalAmount.toLocaleString()}</span>
@@ -324,7 +324,7 @@ export default function CartPage() {
                       <p className="text-xs text-muted-foreground text-center">Promotions calculated server-side to match checkout</p>
                     </CardContent>
                     <CardFooter>
-                      <Button className="w-full bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg transition-all duration-300 py-6 text-base font-semibold" asChild>
+                      <Button className="w-full bg-gradient-to-r from-primary to-primary/80 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 py-6 text-base font-semibold rounded-2xl" asChild>
                         <Link href="/checkout">Proceed to Checkout →</Link>
                       </Button>
                     </CardFooter>

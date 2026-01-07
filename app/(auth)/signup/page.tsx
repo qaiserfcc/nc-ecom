@@ -50,17 +50,17 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4 py-12">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-[#fcfdfd] px-4 py-12">
+      <Card className="w-full max-w-md bg-white border-gray-100 rounded-3xl shadow-sm">
         <CardHeader className="text-center">
           <Link href="/" className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
               NC
             </div>
             <span className="text-xl font-bold text-primary">Namecheap</span>
           </Link>
-          <CardTitle className="text-2xl">Create an account</CardTitle>
-          <CardDescription>Join our community of profit-sharing shoppers</CardDescription>
+          <CardTitle className="text-2xl text-gray-900">Create an account</CardTitle>
+          <CardDescription className="text-gray-600">Join our community of profit-sharing shoppers</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -117,7 +117,7 @@ export default function SignUpPage() {
 
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Account
             </Button>

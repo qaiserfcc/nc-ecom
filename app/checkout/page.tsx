@@ -168,11 +168,11 @@ export default function CheckoutPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gradient-to-br from-accent via-background to-secondary/10">
-        <div className="container mx-auto px-4 py-8">
+      <main className="min-h-screen bg-[#fcfdfd] py-8 sm:py-12">
+        <div className="container mx-auto px-4">
           <div className="mb-8 animate-fade-in">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-primary/80 to-secondary bg-clip-text text-transparent">Secure Checkout</h1>
-            <p className="text-muted-foreground">Complete your purchase securely</p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gray-900">Secure Checkout</h1>
+            <p className="text-gray-600">Complete your purchase securely</p>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
@@ -184,9 +184,9 @@ export default function CheckoutPage() {
                 </Alert>
               )}
 
-              <Card className="border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/90 backdrop-blur-sm">
-                <CardHeader className="bg-gradient-to-r from-primary/10 via-accent/50 to-secondary/10 border-b border-primary/20">
-                  <CardTitle className="text-foreground">Shipping Information</CardTitle>
+              <Card className="bg-white border-gray-100 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300">
+                <CardHeader className="border-b border-gray-100">
+                  <CardTitle className="text-gray-900">Shipping Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 pt-6">
                   <div className="grid sm:grid-cols-2 gap-4">
@@ -246,16 +246,16 @@ export default function CheckoutPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/90 backdrop-blur-sm">
-                <CardHeader className="bg-gradient-to-r from-primary/10 via-accent/50 to-secondary/10 border-b border-primary/20">
-                  <CardTitle className="text-foreground">Payment Method</CardTitle>
+              <Card className="bg-white border-gray-100 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300">
+                <CardHeader className="border-b border-gray-100">
+                  <CardTitle className="text-gray-900">Payment Method</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <div className="flex items-center space-x-3 p-4 border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-accent/50 rounded-lg cursor-pointer hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/70 hover:border-primary/50 transition-all duration-200 group shadow-sm">
+                    <div className="flex items-center space-x-3 p-4 border-2 border-primary bg-white rounded-2xl cursor-pointer hover:shadow-md hover:border-primary/80 transition-all duration-200 group">
                       <RadioGroupItem value="cash_on_delivery" id="cod" />
                       <Label htmlFor="cod" className="flex items-center gap-4 cursor-pointer flex-1">
-                        <div className="p-2 bg-primary/15 rounded-lg group-hover:bg-primary/25 transition-colors">
+                        <div className="p-2 bg-[#e0e5ce] rounded-xl group-hover:shadow-sm transition-all">
                           <Banknote className="w-5 h-5 text-primary" />
                         </div>
                         <div className="flex-1">
@@ -284,9 +284,9 @@ export default function CheckoutPage() {
             {/* Order Summary */}
             <div>
               <div className="sticky top-24 animate-fade-in" style={{ animationDelay: '200ms' }}>
-                <Card className="bg-gradient-to-br from-primary/10 via-accent/60 to-secondary/15 border-primary/30 shadow-xl">
-                  <CardHeader className="pb-3 border-b border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/10">
-                    <CardTitle className="text-xl text-foreground">Order Summary</CardTitle>
+                <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
+                  <CardHeader className="pb-3 border-b border-gray-100">
+                    <CardTitle className="text-xl text-gray-900">Order Summary</CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">{items.length} item{items.length !== 1 ? 's' : ''} in your order</p>
                   </CardHeader>
                   <CardContent className="pt-4">
@@ -298,8 +298,8 @@ export default function CheckoutPage() {
                         const lineFinal = baseFinal * item.quantity
                         const lineDiscount = baseOriginal > 0 ? Math.round(((baseOriginal - baseFinal) / baseOriginal) * 100) : 0
                         return (
-                          <div key={item.id} className="flex gap-3 pb-3 border-b border-border/20 last:border-0 hover:bg-white/30 p-2 rounded transition-colors">
-                            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-muted to-muted/50 shrink-0">
+                          <div key={item.id} className="flex gap-3 pb-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 p-2 rounded-2xl transition-colors">
+                            <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-[#e0e5ce] shrink-0">
                               <Image
                                 src={item.image_url || "/placeholder.svg?height=64&width=64"}
                                 alt={item.name}
@@ -347,17 +347,17 @@ export default function CheckoutPage() {
                         <span className="text-green-600 font-medium">Free</span>
                       </div>
                       <Separator />
-                      <div className="bg-gradient-to-r from-white/80 to-accent/80 rounded-lg p-3 border-2 border-primary/30 shadow-sm">
+                      <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-foreground">Total Amount</span>
-                          <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Rs. {totals.final.toLocaleString()}</span>
+                          <span className="font-bold text-gray-900">Total Amount</span>
+                          <span className="text-2xl font-bold text-primary">Rs. {totals.final.toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="border-t border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/10">
+                  <CardFooter className="border-t border-gray-100">
                     <Button 
-                      className="w-full bg-gradient-to-r from-primary via-primary/90 to-secondary hover:shadow-xl hover:scale-[1.02] transition-all duration-300 py-6 text-base font-semibold border-2 border-primary/30" 
+                      className="w-full rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 py-6 text-base font-semibold" 
                       onClick={handlePlaceOrder} 
                       disabled={loading}
                     >

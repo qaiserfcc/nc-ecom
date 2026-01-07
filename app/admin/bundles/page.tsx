@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -95,48 +95,48 @@ export default function BundlesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Bundles</h1>
-          <p className="text-muted-foreground mt-1">Manage product bundles</p>
+          <h1 className="text-2xl md:text-3xl font-bold">Bundles</h1>
+          <p className="text-muted-foreground">Manage product bundles</p>
         </div>
         <Link href="/admin/bundles/new">
           <Button>
             <Plus className="w-4 h-4 mr-2" />
-            New Bundle
+            Add Bundle
           </Button>
         </Link>
       </div>
 
+      <div className="relative max-w-md">
+        <Eye className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          placeholder="Search bundles..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
+      {error && (
+        <div className="p-4 bg-destructive/10 text-destructive rounded-lg">
+          {error}
+        </div>
+      )}
+
       <Card>
-        <CardHeader>
-          <CardTitle>Bundle List</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <Input
-            placeholder="Search bundles by name or ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
-          />
-
-          {error && (
-            <div className="p-4 bg-destructive/10 text-destructive rounded-lg">
-              {error}
-            </div>
-          )}
-
+        <CardContent className="p-0">
           {filteredBundles.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="py-20 text-center">
               <p className="text-muted-foreground mb-4">No bundles found</p>
               {bundles.length === 0 && (
                 <Link href="/admin/bundles/new">
-                  <Button variant="outline">Create First Bundle</Button>
+                  <Button>Add Your First Bundle</Button>
                 </Link>
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="w-full overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -148,7 +148,7 @@ export default function BundlesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {currentBundles.map((bundle) => (
+                  {paginatedBundles.map((bundle) => (
                     <TableRow key={bundle.id}>
                       <TableCell className="font-medium">{bundle.name}</TableCell>
                       <TableCell>Rs. {bundle.bundle_price.toLocaleString()}</TableCell>
@@ -191,40 +191,40 @@ export default function BundlesPage() {
               </Table>
             </div>
           )}
-
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              Showing {startIndex + 1}-{Math.min(endIndex, filteredBundles.length)} of {filteredBundles.length} bundle{filteredBundles.length !== 1 ? "s" : ""}
-            </div>
-            
-            {totalPages > 1 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Previous
-                </Button>
-                <div className="text-sm text-muted-foreground">
-                  Page {currentPage} of {totalPages}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-              </div>
-            )}
-          </div>
         </CardContent>
       </Card>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {startIndex + 1}-{Math.min(endIndex, filteredBundles.length)} of {filteredBundles.length} bundle{filteredBundles.length !== 1 ? "s" : ""}
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Previous
+            </Button>
+            <div className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

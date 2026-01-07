@@ -43,11 +43,11 @@ export default function OrdersPage() {
     return (
       <>
         <Header />
-        <div className="min-h-screen flex flex-col items-center justify-center px-4">
-          <Package className="w-16 h-16 text-muted-foreground mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Sign in to view your orders</h1>
-          <p className="text-muted-foreground mb-6">Please sign in to access your order history</p>
-          <Button asChild>
+        <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-[#fcfdfd]">
+          <Package className="w-16 h-16 text-gray-400 mb-4" />
+          <h1 className="text-2xl font-bold mb-2 text-gray-900">Sign in to view your orders</h1>
+          <p className="text-gray-600 mb-6">Please sign in to access your order history</p>
+          <Button asChild className="rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all">
             <Link href="/signin">Sign In</Link>
           </Button>
         </div>
@@ -59,9 +59,9 @@ export default function OrdersPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-2xl md:text-3xl font-bold mb-6">My Orders</h1>
+      <main className="min-h-screen bg-[#fcfdfd] py-8 sm:py-12">
+        <div className="container mx-auto px-4">
+          <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-900">My Orders</h1>
 
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
@@ -69,10 +69,10 @@ export default function OrdersPage() {
             </div>
           ) : orders.length === 0 ? (
             <div className="text-center py-20">
-              <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">No orders yet</h2>
-              <p className="text-muted-foreground mb-6">Start shopping to see your orders here</p>
-              <Button asChild>
+              <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2 text-gray-900">No orders yet</h2>
+              <p className="text-gray-600 mb-6">Start shopping to see your orders here</p>
+              <Button asChild className="rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all">
                 <Link href="/shop">Start Shopping</Link>
               </Button>
             </div>
@@ -80,12 +80,12 @@ export default function OrdersPage() {
             <div className="space-y-4">
               {orders.map((order: any) => (
                 <Link key={order.id} href={`/orders/${order.order_number}`}>
-                  <Card className="hover:shadow-md transition-shadow">
+                  <Card className="bg-white border-gray-100 rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="space-y-1">
                           <div className="flex items-center gap-3">
-                            <h3 className="font-medium">{order.order_number}</h3>
+                            <h3 className="font-medium text-gray-900">{order.order_number}</h3>
                             <Badge className={statusColors[order.status]}>{order.status}</Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">

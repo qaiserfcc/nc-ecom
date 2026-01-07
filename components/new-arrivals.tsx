@@ -121,12 +121,12 @@ export default function NewArrivals() {
   
   if (loading) {
     return (
-      <section className="py-8 sm:py-12 md:py-16">
+      <section className="py-8 sm:py-12 md:py-16 bg-[#fcfdfd]">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground">New Arrivals</h2>
-              <p className="text-muted-foreground text-sm mt-2">Fresh products just added to our collection</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">New Arrivals</h2>
+              <p className="text-gray-600 text-sm mt-2">Fresh products just added to our collection</p>
             </div>
           </div>
           <div className="flex items-center justify-center py-20">
@@ -139,17 +139,17 @@ export default function NewArrivals() {
 
   if (error || products.length === 0) {
     return (
-      <section className="py-8 sm:py-12 md:py-16">
+      <section className="py-8 sm:py-12 md:py-16 bg-[#fcfdfd]">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground">New Arrivals</h2>
-              <p className="text-muted-foreground text-sm mt-2">Fresh products just added to our collection</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">New Arrivals</h2>
+              <p className="text-gray-600 text-sm mt-2">Fresh products just added to our collection</p>
             </div>
           </div>
           <Card>
             <CardContent className="py-20 text-center">
-              <p className="text-muted-foreground">{error || "No new products available"}</p>
+              <p className="text-gray-600">{error || "No new products available"}</p>
             </CardContent>
           </Card>
         </div>
@@ -160,12 +160,12 @@ export default function NewArrivals() {
   const displayedProducts = products.slice(0, ITEMS_PER_PAGE)
 
   return (
-    <section className="py-8 sm:py-12 md:py-16">
+    <section className="py-8 sm:py-12 md:py-16 bg-[#fcfdfd]">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">New Arrivals</h2>
-            <p className="text-muted-foreground text-sm mt-2">Fresh products just added to our collection</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">New Arrivals</h2>
+            <p className="text-gray-600 text-sm mt-2">Fresh products just added to our collection</p>
           </div>
           <Link href="/shop?new=true">
             <Button variant="outline" className="hidden sm:flex items-center gap-2 bg-transparent">

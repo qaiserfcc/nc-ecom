@@ -115,21 +115,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   )
 
   return (
-    <div className="min-h-screen bg-muted/30 flex">
+    <div className="min-h-screen bg-[#fcfdfd] flex">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 md:left-0 md:z-40 border-r bg-background">
+      <aside className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 md:left-0 md:z-40 border-r bg-white border-gray-100">
         <Sidebar />
       </aside>
 
       {/* Mobile Header */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between h-14 px-4 border-b bg-background">
+      <header className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between h-14 px-4 border-b bg-white border-gray-100">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="z-50">
               <Menu className="w-5 h-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64 z-50">
+          <SheetContent side="left" className="p-0 w-64 z-50 bg-white">
             <Sidebar />
           </SheetContent>
         </Sheet>

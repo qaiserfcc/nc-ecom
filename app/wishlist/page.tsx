@@ -79,13 +79,13 @@ export default function WishlistPage() {
     return (
       <>
         <Header />
-        <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gradient-to-br from-accent via-background to-secondary/10">
-          <div className="w-20 h-20 mb-6 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+        <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-[#fcfdfd]">
+          <div className="w-20 h-20 mb-6 rounded-full bg-[#e0e5ce] flex items-center justify-center">
             <Heart className="w-10 h-10 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold mb-2 text-foreground">Sign in to view your wishlist</h1>
-          <p className="text-muted-foreground mb-6">Please sign in to access your saved items</p>
-          <Button asChild className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg transition-all">
+          <h1 className="text-2xl font-bold mb-2 text-gray-900">Sign in to view your wishlist</h1>
+          <p className="text-gray-600 mb-6">Please sign in to access your saved items</p>
+          <Button asChild className="rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all">
             <Link href="/signin">Sign In</Link>
           </Button>
         </div>
@@ -97,11 +97,11 @@ export default function WishlistPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gradient-to-br from-accent via-background to-secondary/10">
-        <div className="container mx-auto px-4 py-8">
+      <main className="min-h-screen bg-[#fcfdfd] py-8 sm:py-12">
+        <div className="container mx-auto px-4">
           <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary via-primary/80 to-secondary bg-clip-text text-transparent">My Wishlist</h1>
-            <p className="text-muted-foreground mt-2">Your saved items and favorites</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Wishlist</h1>
+            <p className="text-gray-600 mt-2">Your saved items and favorites</p>
           </div>
 
           {isLoading ? (
@@ -109,14 +109,14 @@ export default function WishlistPage() {
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : items.length === 0 ? (
-            <Card className="bg-white/90 backdrop-blur-sm border-primary/20 shadow-lg">
+            <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
               <div className="text-center py-20">
-                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-[#e0e5ce] flex items-center justify-center">
                   <Heart className="w-10 h-10 text-primary" />
                 </div>
-                <h2 className="text-xl font-semibold mb-2 text-foreground">Your wishlist is empty</h2>
-                <p className="text-muted-foreground mb-6">Save items you love for later</p>
-                <Button asChild className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg transition-all">
+                <h2 className="text-xl font-semibold mb-2 text-gray-900">Your wishlist is empty</h2>
+                <p className="text-gray-600 mb-6">Save items you love for later</p>
+                <Button asChild className="rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all">
                   <Link href="/shop">Start Shopping</Link>
                 </Button>
               </div>
@@ -124,9 +124,9 @@ export default function WishlistPage() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {items.map((item: any) => (
-                <Card key={item.id} className="group overflow-hidden bg-white/90 backdrop-blur-sm border-primary/20 hover:border-primary/40 hover:shadow-xl transition-all duration-300">
+                <Card key={item.id} className="group overflow-hidden bg-white border-gray-100 rounded-3xl hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
                   <Link href={`/product/${item.slug}`}>
-                    <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-accent to-secondary/10">
+                    <div className="relative aspect-square overflow-hidden bg-[#e0e5ce]">
                       <Image
                         src={item.image_url || "/placeholder.svg?height=300&width=300"}
                         alt={item.name}
@@ -141,9 +141,9 @@ export default function WishlistPage() {
                       )}
                     </div>
                   </Link>
-                  <CardContent className="p-3 bg-gradient-to-b from-accent/30 to-white">
-                    <p className="text-xs text-muted-foreground mb-1">{item.category_name}</p>
-                    <h3 className="font-medium text-sm line-clamp-2 mb-2 text-foreground">{item.name}</h3>
+                  <CardContent className="p-3 bg-white">
+                    <p className="text-xs text-gray-600 mb-1">{item.category_name}</p>
+                    <h3 className="font-medium text-sm line-clamp-2 mb-2 text-gray-900">{item.name}</h3>
                     <div className="flex items-center gap-2 mb-3">
                       <span className="font-bold text-primary">Rs. {Number(item.current_price).toLocaleString()}</span>
                       <span className="text-xs text-muted-foreground line-through">
@@ -156,7 +156,7 @@ export default function WishlistPage() {
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:shadow-md transition-all"
+                        className="flex-1 rounded-xl hover:shadow-md transition-all"
                         onClick={() => addToCart(item.product_id)}
                         disabled={item.stock_quantity === 0}
                       >
@@ -166,7 +166,7 @@ export default function WishlistPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10 bg-white border-destructive/30"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10 bg-white border-gray-200 rounded-xl"
                         onClick={() => removeFromWishlist(item.product_id)}
                       >
                         <Trash2 className="w-4 h-4" />

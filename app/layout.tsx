@@ -11,6 +11,7 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://nc-ecom.vercel.app"),
   title: "Namecheap Story | Premium Savings, Local Support",
   description:
     "Discover how Namecheap partners with local organic brands to bring exclusive discounts directly to you through strategic financial support.",

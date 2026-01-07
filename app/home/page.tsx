@@ -11,7 +11,7 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen">
+      <main className="min-h-screen bg-[#fcfdfd]">
         <div className="container mx-auto px-4 mt-8 sm:mt-12">
           <HeroBanner />
         </div>

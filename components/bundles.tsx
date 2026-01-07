@@ -39,10 +39,10 @@ export default function Bundles() {
 
   if (loading) {
     return (
-      <section className="py-8 sm:py-12 md:py-16 bg-muted/50">
+      <section className="py-8 sm:py-12 md:py-16 bg-[#fcfdfd]">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-foreground">Product Bundles</h2>
-          <p className="text-center text-muted-foreground mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-900">Product Bundles</h2>
+          <p className="text-center text-gray-600 mb-8 sm:mb-12">
             Get more with our curated product combinations at special prices
           </p>
           <div className="flex items-center justify-center py-20">
@@ -55,15 +55,15 @@ export default function Bundles() {
 
   if (error || bundles.length === 0) {
     return (
-      <section className="py-8 sm:py-12 md:py-16 bg-muted/50">
+      <section className="py-8 sm:py-12 md:py-16 bg-[#fcfdfd]">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-foreground">Product Bundles</h2>
-          <p className="text-center text-muted-foreground mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-900">Product Bundles</h2>
+          <p className="text-center text-gray-600 mb-8 sm:mb-12">
             Get more with our curated product combinations at special prices
           </p>
           <Card>
             <CardContent className="py-20 text-center">
-              <p className="text-muted-foreground">{error || "No bundles available"}</p>
+              <p className="text-gray-600">{error || "No bundles available"}</p>
             </CardContent>
           </Card>
         </div>
@@ -76,10 +76,10 @@ export default function Bundles() {
   }
 
   return (
-    <section className="py-8 sm:py-12 md:py-16 bg-muted/50">
+    <section className="py-8 sm:py-12 md:py-16 bg-[#fcfdfd]">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-foreground">Product Bundles</h2>
-        <p className="text-center text-muted-foreground mb-8 sm:mb-12">
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-900">Product Bundles</h2>
+        <p className="text-center text-gray-600 mb-8 sm:mb-12">
           Get more with our curated product combinations at special prices
         </p>
 

@@ -35,10 +35,10 @@ export default function Brands() {
 
   if (loading) {
     return (
-      <section className="py-8 sm:py-12 md:py-16 bg-muted/50">
+      <section className="py-8 sm:py-12 md:py-16 bg-[#fcfdfd]">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-foreground">Brands We Partner With</h2>
-          <p className="text-center text-muted-foreground mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-900">Brands We Partner With</h2>
+          <p className="text-center text-gray-600 mb-8 sm:mb-12">
             Featuring premium organic brands from around the world
           </p>
           <div className="flex items-center justify-center py-20">
@@ -51,14 +51,14 @@ export default function Brands() {
 
   if (error) {
     return (
-      <section className="py-8 sm:py-12 md:py-16 bg-muted/50">
+      <section className="py-8 sm:py-12 md:py-16 bg-[#fcfdfd]">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-foreground">Brands We Partner With</h2>
-          <p className="text-center text-muted-foreground mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-900">Brands We Partner With</h2>
+          <p className="text-center text-gray-600 mb-8 sm:mb-12">
             Featuring premium organic brands from around the world
           </p>
           <div className="text-center py-20">
-            <p className="text-muted-foreground">{error}</p>
+            <p className="text-gray-600">{error}</p>
           </div>
         </div>
       </section>
@@ -67,14 +67,14 @@ export default function Brands() {
 
   if (brands.length === 0) {
     return (
-      <section className="py-8 sm:py-12 md:py-16 bg-muted/50">
+      <section className="py-8 sm:py-12 md:py-16 bg-[#fcfdfd]">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-foreground">Brands We Partner With</h2>
-          <p className="text-center text-muted-foreground mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-900">Brands We Partner With</h2>
+          <p className="text-center text-gray-600 mb-8 sm:mb-12">
             Featuring premium organic brands from around the world
           </p>
           <div className="text-center py-20">
-            <p className="text-muted-foreground">No brands available</p>
+            <p className="text-gray-600">No brands available</p>
           </div>
         </div>
       </section>
@@ -82,10 +82,10 @@ export default function Brands() {
   }
 
   return (
-    <section className="py-8 sm:py-12 md:py-16 bg-muted/50">
+    <section className="py-8 sm:py-12 md:py-16 bg-[#fcfdfd]">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-foreground">Brands We Partner With</h2>
-        <p className="text-center text-muted-foreground mb-8 sm:mb-12">
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-900">Brands We Partner With</h2>
+        <p className="text-center text-gray-600 mb-8 sm:mb-12">
           Featuring premium organic brands from around the world
         </p>
 

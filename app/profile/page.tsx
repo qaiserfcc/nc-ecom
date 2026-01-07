@@ -96,9 +96,9 @@ export default function ProfilePage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-2xl md:text-3xl font-bold mb-6">My Account</h1>
+      <main className="min-h-screen bg-[#fcfdfd] py-8 sm:py-12">
+        <div className="container mx-auto px-4">
+          <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-900">My Account</h1>
 
           <Tabs defaultValue="profile" className="space-y-6">
             <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-flex">
@@ -116,28 +116,28 @@ export default function ProfilePage() {
               <div className="grid lg:grid-cols-3 gap-6">
                 {/* Quick Stats */}
                 <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Card>
+                  <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
                     <CardContent className="p-4 text-center">
                       <Package className="w-8 h-8 mx-auto mb-2 text-primary" />
-                      <p className="text-2xl font-bold">{orders.length}</p>
-                      <p className="text-sm text-muted-foreground">Orders</p>
+                      <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
+                      <p className="text-sm text-gray-600">Orders</p>
                     </CardContent>
                   </Card>
-                  <Card>
+                  <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
                     <CardContent className="p-4 text-center">
                       <Heart className="w-8 h-8 mx-auto mb-2 text-primary" />
-                      <p className="text-2xl font-bold">{wishlistCount}</p>
-                      <p className="text-sm text-muted-foreground">Wishlist</p>
+                      <p className="text-2xl font-bold text-gray-900">{wishlistCount}</p>
+                      <p className="text-sm text-gray-600">Wishlist</p>
                     </CardContent>
                   </Card>
                   <Link href="/orders" className="col-span-2">
-                    <Card className="h-full hover:shadow-md transition-shadow">
+                    <Card className="h-full bg-white border-gray-100 rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all">
                       <CardContent className="p-4 flex items-center justify-between">
                         <div>
-                          <p className="font-medium">View All Orders</p>
-                          <p className="text-sm text-muted-foreground">Track and manage your orders</p>
+                          <p className="font-medium text-gray-900">View All Orders</p>
+                          <p className="text-sm text-gray-600">Track and manage your orders</p>
                         </div>
-                        <Package className="w-8 h-8 text-muted-foreground" />
+                        <Package className="w-8 h-8 text-gray-400" />
                       </CardContent>
                     </Card>
                   </Link>
@@ -145,10 +145,10 @@ export default function ProfilePage() {
 
                 {/* Profile Form */}
                 <div className="lg:col-span-2">
-                  <Card>
+                  <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
                     <CardHeader>
-                      <CardTitle>Personal Information</CardTitle>
-                      <CardDescription>Update your personal details and shipping address</CardDescription>
+                      <CardTitle className="text-gray-900">Personal Information</CardTitle>
+                      <CardDescription className="text-gray-600">Update your personal details and shipping address</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid sm:grid-cols-2 gap-4">
@@ -205,7 +205,7 @@ export default function ProfilePage() {
                           />
                         </div>
                       </div>
-                      <Button onClick={handleSave} disabled={saving}>
+                      <Button onClick={handleSave} disabled={saving} className="rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all">
                         {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                         Save Changes
                       </Button>
@@ -215,20 +215,20 @@ export default function ProfilePage() {
 
                 {/* Recent Orders */}
                 <div>
-                  <Card>
+                  <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
                     <CardHeader>
-                      <CardTitle className="text-lg">Recent Orders</CardTitle>
+                      <CardTitle className="text-lg text-gray-900">Recent Orders</CardTitle>
                     </CardHeader>
                     <CardContent>
                       {orders.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-4">No orders yet</p>
+                        <p className="text-sm text-gray-600 text-center py-4">No orders yet</p>
                       ) : (
                         <div className="space-y-3">
                           {orders.slice(0, 3).map((order: any) => (
                             <Link
                               key={order.id}
                               href={`/orders/${order.order_number}`}
-                              className="block p-3 rounded-lg bg-muted/50 hover:bg-muted transition"
+                              className="block p-3 rounded-2xl bg-gray-50 hover:bg-gray-100 transition border border-gray-100"
                             >
                               <p className="font-medium text-sm">{order.order_number}</p>
                               <p className="text-xs text-muted-foreground">
@@ -248,13 +248,13 @@ export default function ProfilePage() {
             </TabsContent>
 
             <TabsContent value="settings">
-              <Card>
+              <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
                 <CardHeader>
-                  <CardTitle>Account Settings</CardTitle>
-                  <CardDescription>Manage your account preferences</CardDescription>
+                  <CardTitle className="text-gray-900">Account Settings</CardTitle>
+                  <CardDescription className="text-gray-600">Manage your account preferences</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl bg-gray-50">
                     <div>
                       <p className="font-medium">Sign Out</p>
                       <p className="text-sm text-muted-foreground">Sign out from your account</p>

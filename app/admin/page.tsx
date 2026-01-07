@@ -36,73 +36,73 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome to your admin dashboard</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600">Welcome to your admin dashboard</p>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card>
+        <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
+              <div className="p-2 rounded-xl bg-[#e0e5ce]">
                 <DollarSign className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Revenue</p>
-                <p className="text-lg font-bold">Rs. {overview.totalRevenue?.toLocaleString() || 0}</p>
+                <p className="text-xs text-gray-600">Revenue</p>
+                <p className="text-lg font-bold text-gray-900">Rs. {overview.totalRevenue?.toLocaleString() || 0}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-secondary/10">
-                <ShoppingCart className="w-5 h-5 text-secondary" />
+              <div className="p-2 rounded-xl bg-[#e0e5ce]">
+                <ShoppingCart className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Orders</p>
-                <p className="text-lg font-bold">{overview.totalOrders || 0}</p>
+                <p className="text-xs text-gray-600">Orders</p>
+                <p className="text-lg font-bold text-gray-900">{overview.totalOrders || 0}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-100">
+              <div className="p-2 rounded-xl bg-[#e0e5ce]">
                 <Users className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Customers</p>
-                <p className="text-lg font-bold">{overview.totalUsers || 0}</p>
+                <p className="text-xs text-gray-600">Customers</p>
+                <p className="text-lg font-bold text-gray-900">{overview.totalUsers || 0}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-purple-100">
+              <div className="p-2 rounded-xl bg-[#e0e5ce]">
                 <Package className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Products</p>
-                <p className="text-lg font-bold">{overview.totalProducts || 0}</p>
+                <p className="text-xs text-gray-600">Products</p>
+                <p className="text-lg font-bold text-gray-900">{overview.totalProducts || 0}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-orange-100">
+              <div className="p-2 rounded-xl bg-[#e0e5ce]">
                 <Eye className="w-5 h-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Views Today</p>
-                <p className="text-lg font-bold">{overview.viewsToday || 0}</p>
+                <p className="text-xs text-gray-600">Views Today</p>
+                <p className="text-lg font-bold text-gray-900">{overview.viewsToday || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -111,23 +111,23 @@ export default function AdminDashboard() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Recent Orders */}
-        <Card>
+        <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Recent Orders</CardTitle>
+            <CardTitle className="text-lg text-gray-900">Recent Orders</CardTitle>
             <Link href="/admin/orders" className="text-sm text-primary hover:underline">
               View all
             </Link>
           </CardHeader>
           <CardContent>
             {recentOrders.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No orders yet</p>
+              <p className="text-sm text-gray-600 text-center py-8">No orders yet</p>
             ) : (
               <div className="space-y-3">
                 {recentOrders.map((order: any) => (
                   <Link
                     key={order.id}
                     href={`/admin/orders/${order.id}`}
-                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition"
+                    className="flex items-center justify-between p-3 rounded-2xl bg-gray-50 hover:bg-gray-100 transition border border-gray-100"
                   >
                     <div>
                       <p className="font-medium text-sm">{order.order_number}</p>
@@ -147,22 +147,22 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Most Viewed Products */}
-        <Card>
+        <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Most Viewed Products</CardTitle>
+            <CardTitle className="text-lg text-gray-900">Most Viewed Products</CardTitle>
             <Link href="/admin/analytics" className="text-sm text-primary hover:underline">
               View analytics
             </Link>
           </CardHeader>
           <CardContent>
             {mostViewedProducts.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No data yet</p>
+              <p className="text-sm text-gray-600 text-center py-8">No data yet</p>
             ) : (
               <div className="space-y-3">
                 {mostViewedProducts.slice(0, 5).map((product: any, index: number) => (
-                  <div key={product.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <div key={product.id} className="flex items-center justify-between p-3 rounded-2xl bg-gray-50 border border-gray-100">
                     <div className="flex items-center gap-3">
-                      <span className="text-lg font-bold text-muted-foreground w-6">#{index + 1}</span>
+                      <span className="text-lg font-bold text-gray-400 w-6">#{index + 1}</span>
                       <div>
                         <p className="font-medium text-sm line-clamp-1">{product.name}</p>
                       </div>
@@ -179,9 +179,9 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Daily Revenue Chart (Simple) */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 bg-white border-gray-100 rounded-3xl shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-lg flex items-center gap-2 text-gray-900">
               <TrendingUp className="w-5 h-5" />
               Revenue (Last 7 Days)
             </CardTitle>

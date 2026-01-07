@@ -48,14 +48,14 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Users</h1>
           <p className="text-muted-foreground">Manage registered users</p>
         </div>
         <Link href="/admin/users/new">
-          <Button className="gap-2">
-            <Plus className="w-4 h-4" />
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
             Add User
           </Button>
         </Link>
@@ -81,13 +81,16 @@ export default function AdminUsersPage() {
       ) : users.length === 0 ? (
         <Card>
           <CardContent className="py-20 text-center">
-            <p className="text-muted-foreground">No users found</p>
+            <p className="text-muted-foreground mb-4">No users found</p>
+            <Link href="/admin/users/new">
+              <Button>Add Your First User</Button>
+            </Link>
           </CardContent>
         </Card>
       ) : (
         <Card>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
+            <div className="w-full overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -147,28 +150,33 @@ export default function AdminUsersPage() {
       )}
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-          >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            Previous
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            Page {currentPage} of {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-          >
-            Next
-            <ChevronRight className="w-4 h-4 ml-1" />
-          </Button>
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, total)} of {total}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Previous
+            </Button>
+            <div className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
         </div>
       )}
     </div>
