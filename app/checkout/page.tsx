@@ -39,19 +39,19 @@ export default function CheckoutPage() {
 
   const items = cartData?.items || []
   const subtotal = cartData?.subtotal || 0
-  const totals = items.reduce(
-    (acc: { original: number; final: number }, item: any) => {
-      const baseOriginal = Number(item.original_price) + (Number(item.price_modifier) || 0)
-      const baseFinal = Number(item.current_price) + (Number(item.price_modifier) || 0)
-      return {
-        original: acc.original + baseOriginal * item.quantity,
-        final: acc.final + baseFinal * item.quantity,
-      }
-    },
-    { original: 0, final: 0 },
-  )
-  const totalDiscount = Math.max(0, totals.original - totals.final)
-  const totalDiscountPercent = totals.original > 0 ? Math.round((totalDiscount / totals.original) * 100) : 0
+  
+  // Use server-calculated totals for consistency
+  const totalsData = cartData?.totals
+  const originalTotal = totalsData?.original ?? 0
+  const sellingTotal = totalsData?.selling ?? 0
+  const officialDiscount = totalsData?.officialDiscount ?? 0
+  const officialDiscountPercent = totalsData?.officialDiscountPercent ?? 0
+  const promoAmount = totalsData?.promoAmount ?? 0
+  const promoPercent = totalsData?.promoPercent ?? 0
+  const cumulativeDiscount = totalsData?.cumulativeDiscount ?? 0
+  const cumulativeDiscountPercent = totalsData?.cumulativeDiscountPercent ?? 0
+  const finalAmount = totalsData?.final ?? 0
+  const promotionLabel = totalsData?.promotion?.name || (promoAmount > 0 ? `Promotion ${promoPercent}%` : "No promotion active")
 
   // Pre-fill address from profile
   useState(() => {
@@ -293,10 +293,14 @@ export default function CheckoutPage() {
                     <div className="space-y-3 max-h-64 overflow-y-auto pr-2 mb-4">
                       {items.map((item: any, index: number) => {
                         const baseOriginal = Number(item.original_price) + (Number(item.price_modifier) || 0)
-                        const baseFinal = Number(item.current_price) + (Number(item.price_modifier) || 0)
+                        const baseSelling = Number(item.current_price) + (Number(item.price_modifier) || 0)
+                        // Calculate per-item promotion discount proportionally
+                        const itemSellingTotal = baseSelling * item.quantity
+                        const itemPromoDiscount = sellingTotal > 0 ? (itemSellingTotal / sellingTotal) * promoAmount : 0
+                        const baseDiscounted = baseSelling - (itemPromoDiscount / item.quantity)
                         const lineOriginal = baseOriginal * item.quantity
-                        const lineFinal = baseFinal * item.quantity
-                        const lineDiscount = baseOriginal > 0 ? Math.round(((baseOriginal - baseFinal) / baseOriginal) * 100) : 0
+                        const lineSelling = baseSelling * item.quantity
+                        const lineDiscounted = lineSelling - itemPromoDiscount
                         return (
                           <div key={item.id} className="flex gap-3 pb-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 p-2 rounded-2xl transition-colors">
                             <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-[#e0e5ce] shrink-0">
@@ -318,12 +322,14 @@ export default function CheckoutPage() {
                                 </div>
                                 <div className="flex items-center justify-between text-muted-foreground">
                                   <span>Selling</span>
-                                  <span className="line-through">Rs. {baseFinal.toLocaleString()}</span>
+                                  <span className={promoAmount > 0 ? "line-through" : "font-semibold"}>Rs. {baseSelling.toLocaleString()}</span>
                                 </div>
-                                <div className="flex items-center justify-between font-semibold text-primary">
-                                  <span>Discounted</span>
-                                  <span>Rs. {lineFinal.toLocaleString()}</span>
-                                </div>
+                                {promoAmount > 0 && (
+                                  <div className="flex items-center justify-between font-semibold text-primary">
+                                    <span>Discounted</span>
+                                    <span>Rs. {baseDiscounted.toLocaleString()}</span>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -332,26 +338,47 @@ export default function CheckoutPage() {
                     </div>
                     <Separator className="my-4" />
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span className="font-semibold">Rs. {totals.original.toLocaleString()}</span>
-                      </div>
-                      {totalDiscount > 0 && (
-                        <div className="flex justify-between items-center text-sm text-green-600">
-                          <span className="font-medium">Discount</span>
-                          <span className="font-bold">-Rs. {totalDiscount.toLocaleString()}</span>
+                      <div className="space-y-2 bg-gray-50 rounded-2xl p-3 border border-gray-100">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Official Price ({items.length} items)</span>
+                          <span className="font-semibold">Rs. {originalTotal.toLocaleString()}</span>
                         </div>
-                      )}
+                        {officialDiscount > 0 && (
+                          <>
+                            <div className="flex justify-between items-center text-xs border-t pt-2">
+                              <span className="text-muted-foreground">Official Discount</span>
+                              <span className="text-green-500 font-semibold">-{officialDiscountPercent}% (Rs. {officialDiscount.toLocaleString()})</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-muted-foreground">After Official Discount</span>
+                              <span className="font-semibold">Rs. {sellingTotal.toLocaleString()}</span>
+                            </div>
+                          </>
+                        )}
+                        {promoAmount > 0 && (
+                          <>
+                            <div className="flex justify-between items-center text-xs border-t pt-2">
+                              <span className="text-muted-foreground">Our Active Discount</span>
+                              <span className="text-green-500 font-semibold">-{promoPercent}% (Rs. {promoAmount.toLocaleString()})</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs text-primary font-semibold border-t pt-2">
+                              <span>Cumulative Discount</span>
+                              <span>{Math.min(100, cumulativeDiscountPercent)}% (Rs. {cumulativeDiscount.toLocaleString()})</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground">Shipping</span>
                         <span className="text-green-600 font-medium">Free</span>
                       </div>
                       <Separator />
-                      <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                      <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl p-4 border border-primary/20">
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-900">Total Amount</span>
-                          <span className="text-2xl font-bold text-primary">Rs. {totals.final.toLocaleString()}</span>
+                          <span className="text-lg font-bold">Final Payable</span>
+                          <span className="text-2xl font-bold text-primary">Rs. {finalAmount.toLocaleString()}</span>
                         </div>
+                        {promoAmount > 0 && <p className="text-xs text-muted-foreground mt-1">{promotionLabel}</p>}
                       </div>
                     </div>
                   </CardContent>

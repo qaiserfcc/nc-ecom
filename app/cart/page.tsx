@@ -178,10 +178,14 @@ export default function CartPage() {
               <div className="lg:col-span-2 space-y-4">
                 {items.map((item: any) => {
                   const baseOriginal = Number(item.original_price) + (Number(item.price_modifier) || 0)
-                  const baseFinal = Number(item.current_price) + (Number(item.price_modifier) || 0)
+                  const baseSelling = Number(item.current_price) + (Number(item.price_modifier) || 0)
+                  // Calculate per-item promotion discount proportionally
+                  const itemSellingTotal = baseSelling * item.quantity
+                  const itemPromoDiscount = sellingTotal > 0 ? (itemSellingTotal / sellingTotal) * promoAmount : 0
+                  const baseDiscounted = baseSelling - (itemPromoDiscount / item.quantity)
                   const lineOriginal = baseOriginal * item.quantity
-                  const lineFinal = baseFinal * item.quantity
-                  const lineDiscountPercent = baseOriginal > 0 ? Math.round(((baseOriginal - baseFinal) / baseOriginal) * 100) : 0
+                  const lineSelling = baseSelling * item.quantity
+                  const lineDiscounted = baseSelling * item.quantity - itemPromoDiscount
                   return (
                     <div key={item.id}>
                       <Card className="bg-white hover:shadow-xl transition-all duration-300 border-gray-100 rounded-3xl">
@@ -212,12 +216,14 @@ export default function CartPage() {
                                 </div>
                                 <div className="flex items-center justify-between text-muted-foreground">
                                   <span>Selling Price</span>
-                                  <span className="line-through">Rs. {baseFinal.toLocaleString()}</span>
+                                  <span className={promoAmount > 0 ? "line-through" : "font-semibold"}>Rs. {baseSelling.toLocaleString()}</span>
                                 </div>
-                                <div className="flex items-center justify-between text-primary font-semibold">
-                                  <span>Our Discounted Price</span>
-                                  <span>Rs. {(baseFinal * item.quantity).toLocaleString()}</span>
-                                </div>
+                                {promoAmount > 0 && (
+                                  <div className="flex items-center justify-between text-primary font-semibold">
+                                    <span>Our Discounted Price</span>
+                                    <span>Rs. {baseDiscounted.toLocaleString()}</span>
+                                  </div>
+                                )}
                               </div>
                             </div>
                             <div className="flex flex-col items-end justify-between">
