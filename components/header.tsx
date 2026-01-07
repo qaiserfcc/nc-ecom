@@ -13,6 +13,7 @@ import {
   Settings,
   LayoutDashboard,
   ChevronDown,
+  MessageCircle,
 } from "lucide-react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -124,6 +125,17 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
+            {/* WhatsApp */}
+            <a 
+              href="https://wa.me/923110484849?text=Hi%20Namecheap%2C%20I%20would%20like%20to%20place%20an%20order."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full hover:bg-gray-100 p-2 transition-colors"
+              title="Order on WhatsApp"
+            >
+              <MessageCircle className="w-5 h-5 text-[#25D366]" />
+            </a>
+
             {/* Wishlist */}
             <Link href={isAuthenticated ? "/wishlist" : "/signin"}>
               <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-gray-100">

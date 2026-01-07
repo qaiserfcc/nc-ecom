@@ -9,7 +9,9 @@ if (typeof WebSocket === 'undefined') {
 // Create a singleton database connection
 const sql = neon(process.env.DATABASE_URL!)
 
+// Export both the sql function and a db object for convenience
 export { sql }
+export const db = sql
 
 export async function query(text: string, params: any[] = []) {
   // Convert $1, $2, etc. to the actual values for the neon client

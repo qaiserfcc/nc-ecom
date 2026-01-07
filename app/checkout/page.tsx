@@ -16,7 +16,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, CreditCard, Banknote, ShoppingBag, CheckCircle } from "lucide-react"
+import { Loader2, CreditCard, Banknote, ShoppingBag, CheckCircle, MessageCircle } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
 
@@ -66,6 +66,51 @@ export default function CheckoutPage() {
     }
   })
 
+  const generateWhatsAppMessage = () => {
+    let message = "🛒 *Order Summary*\n\n"
+    
+    // Add items
+    message += "*Items:*\n"
+    items.forEach((item: any) => {
+      const baseOriginal = Number(item.original_price) + (Number(item.price_modifier) || 0)
+      const baseSelling = Number(item.current_price) + (Number(item.price_modifier) || 0)
+      const itemSellingTotal = baseSelling * item.quantity
+      const itemPromoDiscount = sellingTotal > 0 ? (itemSellingTotal / sellingTotal) * promoAmount : 0
+      const baseDiscounted = baseSelling - (itemPromoDiscount / item.quantity)
+      
+      message += `• ${item.name}\n`
+      message += `  Qty: ${item.quantity} × Rs. ${baseDiscounted.toLocaleString()}\n`
+      if (promoAmount > 0) {
+        message += `  (Official: Rs. ${baseOriginal.toLocaleString()} → Selling: Rs. ${baseSelling.toLocaleString()})\n`
+      }
+    })
+    
+    message += "\n*Pricing Breakdown:*\n"
+    message += `Official Total: Rs. ${originalTotal.toLocaleString()}\n`
+    if (officialDiscount > 0) {
+      message += `Official Discount: -${officialDiscountPercent}% (Rs. ${officialDiscount.toLocaleString()})\n`
+      message += `After Official Discount: Rs. ${sellingTotal.toLocaleString()}\n`
+    }
+    if (promoAmount > 0) {
+      message += `Our Active Discount: -${promoPercent}% (Rs. ${promoAmount.toLocaleString()})\n`
+      message += `Cumulative Discount: -${Math.min(100, cumulativeDiscountPercent)}% (Rs. ${cumulativeDiscount.toLocaleString()})\n`
+    }
+    message += `\n*Final Amount: Rs. ${finalAmount.toLocaleString()}*\n\n`
+    
+    message += "*Shipping Details:*\n"
+    message += `Address: ${address}\n`
+    if (phone) {
+      message += `Phone: ${phone}\n`
+    }
+    if (notes) {
+      message += `Notes: ${notes}\n`
+    }
+    
+    message += "\nPlease confirm this order. We'll get back to you soon!"
+    
+    return message
+  }
+
   const handlePlaceOrder = async () => {
     if (!address.trim()) {
       notify.error("Missing information", "Please enter your shipping address")
@@ -74,6 +119,21 @@ export default function CheckoutPage() {
 
     setLoading(true)
     setError("")
+    
+    // Handle WhatsApp payment method
+    if (paymentMethod === "whatsapp") {
+      const message = generateWhatsAppMessage()
+      const whatsappNumber = "923110484849" // Actual business WhatsApp number
+      const encodedMessage = encodeURIComponent(message)
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`
+      
+      notify.success("Preparing WhatsApp message", "Opening WhatsApp...")
+      window.open(whatsappUrl, "_blank")
+      setLoading(false)
+      return
+    }
+
+    // Handle Cash on Delivery
     const toastId = notify.loading("Processing your order...")
 
     try {
@@ -264,7 +324,7 @@ export default function CheckoutPage() {
                         </div>
                       </Label>
                     </div>
-                    <div className="flex items-center space-x-3 p-4 border border-border/50 bg-muted/30 rounded-lg cursor-not-allowed opacity-50">
+                    <div className="flex items-center space-x-3 p-4 border border-border/50 bg-muted/30 rounded-2xl cursor-not-allowed opacity-50">
                       <RadioGroupItem value="card" id="card" disabled />
                       <Label htmlFor="card" className="flex items-center gap-4 cursor-not-allowed flex-1">
                         <div className="p-2 bg-muted rounded-lg">
@@ -273,6 +333,18 @@ export default function CheckoutPage() {
                         <div className="flex-1">
                           <p className="font-semibold text-muted-foreground">Credit/Debit Card</p>
                           <p className="text-sm text-muted-foreground">Coming soon</p>
+                        </div>
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-3 p-4 border-2 border-[#25D366] bg-[#25D366]/5 rounded-2xl cursor-pointer hover:shadow-md hover:border-[#25D366]/80 transition-all duration-200 group">
+                      <RadioGroupItem value="whatsapp" id="whatsapp" />
+                      <Label htmlFor="whatsapp" className="flex items-center gap-4 cursor-pointer flex-1">
+                        <div className="p-2 bg-[#25D366]/20 rounded-xl group-hover:shadow-sm transition-all">
+                          <MessageCircle className="w-5 h-5 text-[#25D366]" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-foreground">Order via WhatsApp</p>
+                          <p className="text-sm text-muted-foreground">Chat with us to confirm your order</p>
                         </div>
                       </Label>
                     </div>

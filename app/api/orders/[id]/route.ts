@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
+import { sendOrderStatusNotification } from "../../whatsapp/notifications/route"
 
 // GET single order
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -63,9 +64,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const { id } = await params
-    const { status } = await request.json()
+    const { status, trackingNumber, reason, refundAmount } = await request.json()
 
-    const validStatuses = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"]
+    const validStatuses = [
+      "pending",
+      "confirmed",
+      "processing",
+      "shipped",
+      "out_for_delivery",
+      "delivered",
+      "cancelled",
+      "refunded",
+    ]
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 })
     }
@@ -78,6 +88,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     if (result.length === 0) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
+    }
+
+    // Send WhatsApp notification for status change
+    try {
+      await sendOrderStatusNotification(Number.parseInt(id), status, {
+        trackingNumber,
+        reason,
+        amount: refundAmount,
+      })
+    } catch (notificationError) {
+      console.error("WhatsApp notification failed:", notificationError)
+      // Don't fail the request if notification fails
     }
 
     return NextResponse.json({ order: result[0] })
