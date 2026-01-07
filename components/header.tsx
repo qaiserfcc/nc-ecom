@@ -50,9 +50,9 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
+      <div className="container mx-auto px-6">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <Image 
@@ -66,71 +66,70 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-6">
             <Link
               href="/"
-              className={`text-foreground hover:text-primary font-medium transition-colors duration-200 relative group ${
-                pathname === "/" ? "text-primary" : ""
+              className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+                pathname === "/" ? "bg-secondary text-primary" : "text-gray-600 hover:text-primary hover:bg-gray-50"
               }`}
             >
               Story
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
             </Link>
             <Link
               href="/home"
-              className={`text-foreground hover:text-primary font-medium transition-colors duration-200 relative group ${
-                pathname.startsWith("/home") ? "text-primary" : ""
+              className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+                pathname.startsWith("/home") ? "bg-secondary text-primary" : "text-gray-600 hover:text-primary hover:bg-gray-50"
               }`}
             >
               Home
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
             </Link>
             <Link
               href="/shop"
-              className={`text-foreground hover:text-primary font-medium transition-colors duration-200 relative group ${
-                pathname.startsWith("/shop") ? "text-primary" : ""
+              className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+                pathname.startsWith("/shop") ? "bg-secondary text-primary" : "text-gray-600 hover:text-primary hover:bg-gray-50"
               }`}
             >
               Shop
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
             </Link>
             <Link
               href="/contact"
-              className={`text-foreground hover:text-primary font-medium transition-colors duration-200 relative group ${
-                pathname.startsWith("/contact") ? "text-primary" : ""
+              className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+                pathname.startsWith("/contact") ? "bg-secondary text-primary" : "text-gray-600 hover:text-primary hover:bg-gray-50"
               }`}
             >
               Quote
-              <span className="absolute bottom-0 left-0 w-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
             </Link>
             {isAuthenticated && (
               <Link
                 href="/orders"
-                className={`text-foreground hover:text-primary font-medium transition-colors duration-200 relative group ${
-                  pathname.startsWith("/orders") ? "text-primary" : ""
+                className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+                  pathname.startsWith("/orders") ? "bg-secondary text-primary" : "text-gray-600 hover:text-primary hover:bg-gray-50"
                 }`}
               >
                 Orders
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
               </Link>
             )}
             {isAdmin && (
-              <Link href="/admin" className="text-primary font-medium transition flex items-center gap-1 relative group">
+              <Link 
+                href="/admin" 
+                className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 ${
+                  pathname.startsWith("/admin") ? "bg-secondary text-primary" : "text-gray-600 hover:text-primary hover:bg-gray-50"
+                }`}
+              >
                 <LayoutDashboard className="w-4 h-4" />
                 Admin
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary group-hover:opacity-100 opacity-100 transition-opacity duration-300"></span>
               </Link>
             )}
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-3">
             {/* Wishlist */}
             <Link href={isAuthenticated ? "/wishlist" : "/signin"}>
-              <Button variant="ghost" size="icon" className="relative">
-                <Heart className="w-5 h-5" />
+              <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-gray-100">
+                <Heart className="w-5 h-5 text-gray-600" />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-destructive text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-[#338838] text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
                     {wishlistCount > 99 ? "99+" : wishlistCount}
                   </span>
                 )}
@@ -139,10 +138,10 @@ export default function Header() {
 
             {/* Cart */}
             <Link href={isAuthenticated ? "/cart" : "/signin"}>
-              <Button variant="ghost" size="icon" className="relative">
-                <ShoppingCart className="w-5 h-5" />
+              <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-gray-100">
+                <ShoppingCart className="w-5 h-5 text-gray-600" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-destructive text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-[#338838] text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
                     {cartCount > 99 ? "99+" : cartCount}
                   </span>
                 )}
@@ -151,59 +150,59 @@ export default function Header() {
 
             {/* User Menu */}
             {isLoading ? (
-              <Button variant="ghost" size="icon" disabled>
-                <User className="w-5 h-5 animate-pulse" />
+              <Button variant="ghost" size="icon" disabled className="rounded-full">
+                <User className="w-5 h-5 animate-pulse text-gray-400" />
               </Button>
             ) : isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-1 hidden sm:flex">
-                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Button variant="ghost" size="sm" className="gap-2 hidden sm:flex rounded-full px-4 hover:bg-gray-100">
+                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
                       <User className="w-4 h-4 text-primary" />
                     </div>
-                    <span className="max-w-[100px] truncate text-sm">{user?.name?.split(" ")[0]}</span>
-                    <ChevronDown className="w-4 h-4" />
+                    <span className="max-w-[100px] truncate text-sm font-medium text-gray-700">{user?.name?.split(" ")[0]}</span>
+                    <ChevronDown className="w-4 h-4 text-gray-500" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-56 rounded-2xl shadow-lg border-gray-100">
                   <DropdownMenuLabel>
                     <div className="flex flex-col">
-                      <span className="font-medium">{user?.name}</span>
-                      <span className="text-xs text-muted-foreground">{user?.email}</span>
+                      <span className="font-semibold text-gray-900">{user?.name}</span>
+                      <span className="text-xs text-gray-500">{user?.email}</span>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-gray-100" />
                   <DropdownMenuItem asChild>
-                    <Link href="/profile" className="cursor-pointer">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Profile Settings
+                    <Link href="/profile" className="cursor-pointer py-2 px-3">
+                      <Settings className="w-4 h-4 mr-2 text-gray-600" />
+                      <span className="text-gray-700">Profile Settings</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/orders" className="cursor-pointer">
-                      <Package className="w-4 h-4 mr-2" />
-                      My Orders
+                    <Link href="/orders" className="cursor-pointer py-2 px-3">
+                      <Package className="w-4 h-4 mr-2 text-gray-600" />
+                      <span className="text-gray-700">My Orders</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/wishlist" className="cursor-pointer">
-                      <Heart className="w-4 h-4 mr-2" />
-                      Wishlist
+                    <Link href="/wishlist" className="cursor-pointer py-2 px-3">
+                      <Heart className="w-4 h-4 mr-2 text-gray-600" />
+                      <span className="text-gray-700">Wishlist</span>
                     </Link>
                   </DropdownMenuItem>
                   {isAdmin && (
                     <>
-                      <DropdownMenuSeparator />
+                      <DropdownMenuSeparator className="bg-gray-100" />
                       <DropdownMenuItem asChild>
-                        <Link href="/admin" className="cursor-pointer text-primary">
-                          <LayoutDashboard className="w-4 h-4 mr-2" />
-                          Admin Dashboard
+                        <Link href="/admin" className="cursor-pointer py-2 px-3">
+                          <LayoutDashboard className="w-4 h-4 mr-2 text-primary" />
+                          <span className="text-primary font-medium">Admin Dashboard</span>
                         </Link>
                       </DropdownMenuItem>
                     </>
                   )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
+                  <DropdownMenuSeparator className="bg-gray-100" />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600 cursor-pointer py-2 px-3">
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
                   </DropdownMenuItem>
@@ -212,12 +211,14 @@ export default function Header() {
             ) : (
               <div className="hidden sm:flex items-center gap-2">
                 <Link href="/signin">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className="rounded-full px-5 text-gray-700 hover:bg-gray-100">
                     Sign In
                   </Button>
                 </Link>
                 <Link href="/signup">
-                  <Button size="sm">Sign Up</Button>
+                  <Button size="sm" className="rounded-full px-5 bg-primary hover:bg-primary/90 text-white">
+                    Sign Up
+                  </Button>
                 </Link>
               </div>
             )}
@@ -235,41 +236,53 @@ export default function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden rounded-full hover:bg-gray-100"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-5 h-5 text-gray-700" /> : <Menu className="w-5 h-5 text-gray-700" />}
             </Button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <nav className="md:hidden pb-4 flex flex-col gap-1 border-t border-border pt-3">
+          <nav className="md:hidden pb-4 flex flex-col gap-1 border-t border-gray-100 pt-3 bg-white">
             <Link
               href="/"
-              className={`px-4 py-3 rounded-md ${pathname === "/" ? "text-primary bg-muted" : "text-foreground hover:bg-muted"}`}
+              className={cn(
+                "px-4 py-3 rounded-xl mx-3 font-medium transition-all duration-200",
+                pathname === "/" ? "bg-secondary text-primary" : "text-gray-600 hover:bg-gray-50 hover:text-primary"
+              )}
               onClick={() => setMobileMenuOpen(false)}
             >
               Story
             </Link>
             <Link
               href="/home"
-              className={`px-4 py-3 rounded-md ${pathname.startsWith("/home") ? "text-primary bg-muted" : "text-foreground hover:bg-muted"}`}
+              className={cn(
+                "px-4 py-3 rounded-xl mx-3 font-medium transition-all duration-200",
+                pathname.startsWith("/home") ? "bg-secondary text-primary" : "text-gray-600 hover:bg-gray-50 hover:text-primary"
+              )}
               onClick={() => setMobileMenuOpen(false)}
             >
               Home
             </Link>
             <Link
               href="/shop"
-              className={`px-4 py-3 rounded-md ${pathname.startsWith("/shop") ? "text-primary bg-muted" : "text-foreground hover:bg-muted"}`}
+              className={cn(
+                "px-4 py-3 rounded-xl mx-3 font-medium transition-all duration-200",
+                pathname.startsWith("/shop") ? "bg-secondary text-primary" : "text-gray-600 hover:bg-gray-50 hover:text-primary"
+              )}
               onClick={() => setMobileMenuOpen(false)}
             >
               Shop
             </Link>
             <Link
               href="/contact"
-              className={`px-4 py-3 rounded-md ${pathname.startsWith("/contact") ? "text-primary bg-muted" : "text-foreground hover:bg-muted"}`}
+              className={cn(
+                "px-4 py-3 rounded-xl mx-3 font-medium transition-all duration-200",
+                pathname.startsWith("/contact") ? "bg-secondary text-primary" : "text-gray-600 hover:bg-gray-50 hover:text-primary"
+              )}
               onClick={() => setMobileMenuOpen(false)}
             >
               Quote
@@ -278,14 +291,14 @@ export default function Header() {
               <>
                 <Link
                   href="/orders"
-                  className="px-4 py-3 text-foreground hover:bg-muted rounded-md"
+                  className="px-4 py-3 mx-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 hover:text-primary transition-all duration-200"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   My Orders
                 </Link>
                 <Link
                   href="/profile"
-                  className="px-4 py-3 text-foreground hover:bg-muted rounded-md"
+                  className="px-4 py-3 mx-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 hover:text-primary transition-all duration-200"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Profile Settings
@@ -293,7 +306,7 @@ export default function Header() {
                 {isAdmin && (
                   <Link
                     href="/admin"
-                    className="px-4 py-3 text-primary font-medium hover:bg-muted rounded-md flex items-center gap-2"
+                    className="px-4 py-3 mx-3 rounded-xl font-medium text-primary bg-secondary hover:bg-secondary/80 transition-all duration-200 flex items-center gap-2"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <LayoutDashboard className="w-4 h-4" />
@@ -305,21 +318,21 @@ export default function Header() {
                     handleSignOut()
                     setMobileMenuOpen(false)
                   }}
-                  className="px-4 py-3 text-destructive hover:bg-muted rounded-md text-left flex items-center gap-2"
+                  className="px-4 py-3 mx-3 rounded-xl font-medium text-red-600 hover:bg-red-50 transition-all duration-200 text-left flex items-center gap-2"
                 >
                   <LogOut className="w-4 h-4" />
                   Sign Out
                 </button>
               </>
             ) : (
-              <div className="flex gap-2 px-4 pt-2">
+              <div className="flex gap-2 px-6 pt-2">
                 <Link href="/signin" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="outline" className="w-full bg-transparent">
+                  <Button variant="outline" className="w-full rounded-xl border-2 hover:bg-gray-50">
                     Sign In
                   </Button>
                 </Link>
                 <Link href="/signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                  <Button className="w-full">Sign Up</Button>
+                  <Button className="w-full rounded-xl bg-primary hover:bg-primary/90">Sign Up</Button>
                 </Link>
               </div>
             )}

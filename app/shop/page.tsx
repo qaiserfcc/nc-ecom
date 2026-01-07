@@ -346,11 +346,15 @@ function ShopContent() {
   const FilterPanel = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="font-semibold mb-3">Categories</h3>
+        <h3 className="font-bold mb-4 text-primary text-sm uppercase tracking-wide">Categories</h3>
         <div className="space-y-2">
           <Button
             variant={category === "all" ? "default" : "ghost"}
-            className="w-full justify-start"
+            className={`w-full justify-start rounded-xl transition-all ${
+              category === "all" 
+                ? "bg-secondary text-primary hover:bg-secondary/80" 
+                : "text-gray-600 hover:text-primary hover:bg-gray-50"
+            }`}
             onClick={() => setCategory("all")}
           >
             All Products
@@ -359,21 +363,29 @@ function ShopContent() {
             <Button
               key={cat.id}
               variant={category === cat.slug ? "default" : "ghost"}
-              className="w-full justify-start"
+              className={`w-full justify-start rounded-xl transition-all ${
+                category === cat.slug 
+                  ? "bg-secondary text-primary hover:bg-secondary/80" 
+                  : "text-gray-600 hover:text-primary hover:bg-gray-50"
+              }`}
               onClick={() => setCategory(cat.slug)}
             >
-              {cat.name} ({cat.product_count})
+              {cat.name} <span className="ml-auto text-xs opacity-70">({cat.product_count})</span>
             </Button>
           ))}
         </div>
       </div>
 
-      <div>
-        <h3 className="font-semibold mb-3">Brands</h3>
+      <div className="border-t border-gray-100 pt-6">
+        <h3 className="font-bold mb-4 text-primary text-sm uppercase tracking-wide">Brands</h3>
         <div className="space-y-2">
           <Button
             variant={brandFilter === "all" ? "default" : "ghost"}
-            className="w-full justify-start"
+            className={`w-full justify-start rounded-xl transition-all ${
+              brandFilter === "all" 
+                ? "bg-secondary text-primary hover:bg-secondary/80" 
+                : "text-gray-600 hover:text-primary hover:bg-gray-50"
+            }`}
             onClick={() => setBrandFilter("all")}
           >
             All Brands
@@ -382,7 +394,11 @@ function ShopContent() {
             <Button
               key={brand.id}
               variant={brandFilter === brand.slug ? "default" : "ghost"}
-              className="w-full justify-start"
+              className={`w-full justify-start rounded-xl transition-all ${
+                brandFilter === brand.slug 
+                  ? "bg-secondary text-primary hover:bg-secondary/80" 
+                  : "text-gray-600 hover:text-primary hover:bg-gray-50"
+              }`}
               onClick={() => setBrandFilter(brand.slug)}
             >
               {brand.name}
@@ -391,34 +407,38 @@ function ShopContent() {
         </div>
       </div>
 
-      <div>
-        <h3 className="font-semibold mb-3">Price Range</h3>
-        <Slider value={priceRange} min={0} max={10000} step={100} onValueChange={setPriceRange} className="mb-2" />
-        <div className="flex justify-between text-sm text-muted-foreground">
+      <div className="border-t border-gray-100 pt-6">
+        <h3 className="font-bold mb-4 text-primary text-sm uppercase tracking-wide">Price Range</h3>
+        <Slider value={priceRange} min={0} max={10000} step={100} onValueChange={setPriceRange} className="mb-4" />
+        <div className="flex justify-between text-sm text-gray-600 font-medium">
           <span>Rs. {priceRange[0]}</span>
           <span>Rs. {priceRange[1]}</span>
         </div>
       </div>
 
-      <div>
-        <h3 className="font-semibold mb-3">Filters</h3>
+      <div className="border-t border-gray-100 pt-6">
+        <h3 className="font-bold mb-4 text-primary text-sm uppercase tracking-wide">Filters</h3>
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
             <Checkbox id="featured" checked={featuredOnly} onCheckedChange={(c) => setFeaturedOnly(c as boolean)} />
-            <label htmlFor="featured" className="text-sm cursor-pointer">
+            <label htmlFor="featured" className="text-sm cursor-pointer flex-1 text-gray-700">
               Featured Products
             </label>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
             <Checkbox id="new" checked={newOnly} onCheckedChange={(c) => setNewOnly(c as boolean)} />
-            <label htmlFor="new" className="text-sm cursor-pointer">
+            <label htmlFor="new" className="text-sm cursor-pointer flex-1 text-gray-700">
               New Arrivals
             </label>
           </div>
         </div>
       </div>
 
-      <Button variant="outline" className="w-full bg-transparent" onClick={clearFilters}>
+      <Button 
+        variant="outline" 
+        className="w-full rounded-xl border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-primary hover:border-primary transition-all" 
+        onClick={clearFilters}
+      >
         <X className="w-4 h-4 mr-2" />
         Clear Filters
       </Button>
@@ -428,12 +448,14 @@ function ShopContent() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row gap-8">
+      <main className="min-h-screen bg-[#fcfdfd]">
+        <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+          <div className="flex flex-col md:flex-row gap-6 lg:gap-8">
             {/* Desktop Filters Sidebar */}
-            <aside className="hidden md:block w-64 shrink-0">
-              <FilterPanel />
+            <aside className="hidden md:block w-64 lg:w-72 shrink-0">
+              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 sticky top-24">
+                <FilterPanel />
+              </div>
             </aside>
 
             {/* Main Content */}
@@ -441,20 +463,20 @@ function ShopContent() {
               {/* Search and Sort Bar */}
               <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input
                     placeholder={`Search ${type}...`}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-10"
+                    className="pl-12 h-12 rounded-2xl border-gray-200 focus:border-primary focus:ring-primary"
                   />
                 </div>
                 <div className="flex gap-2">
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="w-[140px] h-12 rounded-2xl border-gray-200">
                       <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-2xl">
                       <SelectItem value="created_at">Newest</SelectItem>
                       {type === "products" && <SelectItem value="current_price">Price</SelectItem>}
                       {type === "bundles" && <SelectItem value="bundle_price">Price</SelectItem>}
@@ -462,10 +484,10 @@ function ShopContent() {
                     </SelectContent>
                   </Select>
                   <Select value={sortOrder} onValueChange={setSortOrder}>
-                    <SelectTrigger className="w-[100px]">
+                    <SelectTrigger className="w-[100px] h-12 rounded-2xl border-gray-200">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-2xl">
                       <SelectItem value="asc">Asc</SelectItem>
                       <SelectItem value="desc">Desc</SelectItem>
                     </SelectContent>
@@ -474,13 +496,13 @@ function ShopContent() {
                   {type === "products" && (
                     <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
                       <SheetTrigger asChild>
-                        <Button variant="outline" className="md:hidden bg-transparent">
-                          <Filter className="w-4 h-4" />
+                        <Button variant="outline" className="md:hidden h-12 rounded-2xl border-gray-200">
+                          <Filter className="w-5 h-5" />
                         </Button>
                       </SheetTrigger>
-                      <SheetContent side="left">
+                      <SheetContent side="left" className="rounded-r-3xl">
                         <SheetHeader>
-                          <SheetTitle>Filters</SheetTitle>
+                          <SheetTitle className="text-primary">Filters</SheetTitle>
                         </SheetHeader>
                         <div className="mt-6">
                           <FilterPanel />
@@ -492,7 +514,7 @@ function ShopContent() {
               </div>
 
               {/* Results Count */}
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-gray-600 mb-6">
                 {allItems.length > 0 
                   ? `Showing ${allItems.length} of ${itemsData?.pagination?.total || allItems.length}`
                   : `${itemsData?.pagination?.total || 0}`} {type === "brands" ? "brands" : type === "bundles" ? "bundles" : "products"} found
@@ -505,37 +527,37 @@ function ShopContent() {
                 </div>
               ) : allItems.length === 0 ? (
                 <div className="text-center py-20">
-                  <p className="text-muted-foreground">No {type} found</p>
+                  <p className="text-gray-600 text-lg">No {type} found</p>
                   {type === "products" && (
-                    <Button variant="link" onClick={clearFilters}>
+                    <Button variant="link" onClick={clearFilters} className="mt-4 text-primary">
                       Clear filters
                     </Button>
                   )}
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {type === "brands" ? (
                       // Render Brands
                       allItems.map((brand: any) => (
                         <a key={brand.id} href={brand.website_url} target="_blank" rel="noopener noreferrer">
-                          <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
-                            <div className="relative aspect-square overflow-hidden bg-muted flex items-center justify-center p-8">
+                          <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 h-full rounded-[24px] border-0">
+                            <div className="relative aspect-square overflow-hidden bg-[#e0e5ce] flex items-center justify-center p-8">
                               <Image
                                 src={brand.logo_url || "/placeholder.svg?height=200&width=200"}
                                 alt={brand.name}
                                 width={200}
                                 height={200}
-                                className="object-contain group-hover:scale-105 transition-transform"
+                                className="object-contain group-hover:scale-110 transition-transform duration-300"
                                 loading="lazy"
                               />
                               {brand.is_featured && (
-                                <Badge className="absolute top-2 right-2 bg-secondary text-secondary-foreground">Featured</Badge>
+                                <Badge className="absolute top-4 right-4 bg-accent text-white rounded-full px-3 py-1">Featured</Badge>
                               )}
                             </div>
-                            <CardContent className="p-4">
-                              <h3 className="font-semibold text-lg mb-2">{brand.name}</h3>
-                              <p className="text-sm text-muted-foreground line-clamp-2">{brand.description}</p>
+                            <CardContent className="p-5">
+                              <h3 className="font-bold text-lg mb-2 text-primary">{brand.name}</h3>
+                              <p className="text-sm text-gray-600 line-clamp-2">{brand.description}</p>
                             </CardContent>
                           </Card>
                         </a>
@@ -544,31 +566,33 @@ function ShopContent() {
                       // Render Bundles
                       allItems.map((bundle: any) => (
                         <Link key={bundle.id} href={`/product/bundle-${bundle.id}`}>
-                          <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
-                            <div className="relative aspect-square overflow-hidden bg-muted">
-                              <Image
-                                src={bundle.image_url || "/placeholder.svg?height=300&width=300"}
-                                alt={bundle.name}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform"
-                                loading="lazy"
-                              />
-                              <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">Bundle</Badge>
+                          <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 h-full rounded-[24px] border-0">
+                            <div className="relative aspect-square overflow-hidden bg-[#e0e5ce] p-4">
+                              <div className="relative w-full h-full rounded-2xl overflow-hidden">
+                                <Image
+                                  src={bundle.image_url || "/placeholder.svg?height=300&width=300"}
+                                  alt={bundle.name}
+                                  fill
+                                  className="object-cover group-hover:scale-110 transition-transform duration-300"
+                                  loading="lazy"
+                                />
+                              </div>
+                              <Badge className="absolute top-6 left-6 bg-primary text-white rounded-full px-3 py-1">Bundle</Badge>
                               {bundle.original_price && bundle.original_price > bundle.bundle_price && (
-                                <Badge variant="destructive" className="absolute top-2 right-2">
+                                <Badge variant="destructive" className="absolute top-6 right-6 rounded-full px-3 py-1">
                                   Save Rs. {(bundle.original_price - bundle.bundle_price).toLocaleString()}
                                 </Badge>
                               )}
                             </div>
-                            <CardContent className="p-3">
-                              <h3 className="font-medium text-sm line-clamp-2 mb-2">{bundle.name}</h3>
-                              <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{bundle.description}</p>
+                            <CardContent className="p-5">
+                              <h3 className="font-semibold text-base line-clamp-2 mb-2 text-gray-900">{bundle.name}</h3>
+                              <p className="text-sm text-gray-600 line-clamp-1 mb-3">{bundle.description}</p>
                               <div className="flex items-center gap-2">
-                                <span className="font-bold text-primary">
+                                <span className="font-bold text-lg text-accent">
                                   Rs. {Number(bundle.bundle_price).toLocaleString()}
                                 </span>
                                 {bundle.original_price && bundle.original_price > bundle.bundle_price && (
-                                  <span className="text-xs text-muted-foreground line-through">
+                                  <span className="text-sm text-gray-500 line-through">
                                     Rs. {Number(bundle.original_price).toLocaleString()}
                                   </span>
                                 )}
@@ -598,64 +622,69 @@ function ShopContent() {
                           
                           return (
                             <Link key={product.id} href={`/product/${product.slug}`}>
-                              <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
-                                <div className="relative aspect-square overflow-hidden bg-muted">
-                                  <OptimizedImage
-                                    src={imageUrl}
-                                    alt={product.name}
-                                    width={300}
-                                    height={300}
-                                    className="group-hover:scale-105 transition-transform w-full h-full"
-                                    loading="lazy"
-                                    onLoad={() => performanceMonitor.recordImageLoad(Date.now())}
-                                    onError={() => {
-                                      console.warn(`Image load error for product: ${product.name}`)
-                                    }}
-                                  />
+                              <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 h-full rounded-[24px] border-0 bg-white">
+                                <div className="relative aspect-square overflow-hidden bg-[#e0e5ce] p-4">
+                                  <div className="relative w-full h-full rounded-2xl overflow-hidden">
+                                    <OptimizedImage
+                                      src={imageUrl}
+                                      alt={product.name}
+                                      width={300}
+                                      height={300}
+                                      className="group-hover:scale-110 transition-transform duration-300 w-full h-full object-cover"
+                                      loading="lazy"
+                                      onLoad={() => performanceMonitor.recordImageLoad(Date.now())}
+                                      onError={() => {
+                                        console.warn(`Image load error for product: ${product.name}`)
+                                      }}
+                                    />
+                                    {/* Hover Overlay */}
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
+                                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2">
+                                        <Button
+                                          size="sm"
+                                          variant="secondary"
+                                          className="h-10 w-10 rounded-full bg-white hover:bg-white/90 shadow-lg"
+                                          onClick={(e) => handleAddToWishlist(product.id, e)}
+                                        >
+                                          <Heart className="w-5 h-5 text-primary" />
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          className="h-10 px-6 rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg font-semibold"
+                                          onClick={(e) => handleAddToCart(product.id, e)}
+                                        >
+                                          <ShoppingCart className="w-4 h-4 mr-2" />
+                                          Add to Cart
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </div>
                                   {product.is_new_arrival && (
-                                    <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground">New</Badge>
+                                    <Badge className="absolute top-6 left-6 bg-accent text-white rounded-full px-3 py-1 shadow-md">New</Badge>
                                   )}
                                   {activeDiscount && (
-                                    <Badge variant="destructive" className="absolute top-2 right-2">
+                                    <Badge variant="destructive" className="absolute top-6 right-6 rounded-full px-3 py-1 shadow-md">
                                       {activeDiscount.discount_type === "percentage"
                                         ? `${activeDiscount.discount_value}% OFF`
                                         : `Rs. ${activeDiscount.discount_value} OFF`}
                                     </Badge>
                                   )}
-                                  <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button
-                                      size="icon"
-                                      variant="secondary"
-                                      className="h-8 w-8"
-                                      onClick={(e) => handleAddToWishlist(product.id, e)}
-                                    >
-                                      <Heart className="w-4 h-4" />
-                                    </Button>
-                                    <Button
-                                      size="icon"
-                                      variant="secondary"
-                                      className="h-8 w-8"
-                                      onClick={(e) => handleAddToCart(product.id, e)}
-                                    >
-                                      <ShoppingCart className="w-4 h-4" />
-                                    </Button>
-                                  </div>
                                 </div>
-                                <CardContent className="p-3">
-                                  <p className="text-xs text-muted-foreground mb-1">{product.category_name}</p>
-                                  <h3 className="font-medium text-sm line-clamp-2 mb-2">{product.name}</h3>
-                                  <div className="space-y-1 text-xs">
-                                    <div className="flex items-center justify-between text-muted-foreground">
-                                      <span>Official Price</span>
-                                      <span className="line-through">{formatPrice(officialPrice)}</span>
+                                <CardContent className="p-5">
+                                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide">{product.category_name}</p>
+                                  <h3 className="font-semibold text-base line-clamp-2 mb-3 text-gray-900 group-hover:text-primary transition-colors">{product.name}</h3>
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                      <span className="text-gray-500">Official Price</span>
+                                      <span className="line-through text-gray-400">{formatPrice(officialPrice)}</span>
                                     </div>
-                                    <div className="flex items-center justify-between text-muted-foreground">
-                                      <span>Selling Price</span>
-                                      <span className="line-through">{formatPrice(sellingPrice)}</span>
+                                    <div className="flex items-center justify-between text-sm">
+                                      <span className="text-gray-500">Selling Price</span>
+                                      <span className="line-through text-gray-400">{formatPrice(sellingPrice)}</span>
                                     </div>
-                                    <div className="flex items-center justify-between font-semibold text-primary">
-                                      <span>Our Discounted Price</span>
-                                      <span>{formatPrice(discountedPrice)}</span>
+                                    <div className="flex items-center justify-between font-bold text-base pt-2 border-t border-gray-100">
+                                      <span className="text-gray-700">Our Price</span>
+                                      <span className="text-accent text-lg">{formatPrice(discountedPrice)}</span>
                                     </div>
                                   </div>
                                 </CardContent>
@@ -666,7 +695,7 @@ function ShopContent() {
                         {/* Show skeleton loaders while loading more products */}
                         {itemsLoading && (
                           <>
-                            {Array.from({ length: 4 }).map((_, i) => (
+                            {Array.from({ length: 3 }).map((_, i) => (
                               <ProductCardSkeleton key={`skeleton-${i}`} />
                             ))}
                           </>
@@ -675,7 +704,7 @@ function ShopContent() {
                     )}
                   </div>
                   {hasMore && (
-                    <div className="flex justify-center mt-8">
+                    <div className="flex justify-center mt-12">
                       <Button
                         onClick={() => {
                           setOffset(offset + 12)
@@ -687,14 +716,17 @@ function ShopContent() {
                         }}
                         disabled={itemsLoading}
                         size="lg"
+                        className="rounded-2xl px-8 h-12 bg-primary hover:bg-primary/90 text-white font-semibold shadow-md hover:shadow-lg transition-all"
                       >
                         {itemsLoading ? (
                           <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                             Loading...
                           </>
                         ) : (
-                          "Load More"
+                          <>
+                            Load More Products
+                          </>
                         )}
                       </Button>
                     </div>
