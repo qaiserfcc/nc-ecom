@@ -122,7 +122,7 @@ function StoryContent() {
               Start the Journey
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
-            <Button size="lg" variant="outline" className="border-2 border-gray-200 text-gray-900 hover:bg-gray-50 font-semibold px-10 py-7 rounded-2xl text-lg hover:shadow-xl hover:-translate-y-0.5 transition-all bg-white">
+            <Button size="lg" className="bg-gradient-to-r from-[#ff5f00] to-[#ff8f40] text-white hover:from-[#ff6f10] hover:to-[#ffa050] font-semibold px-10 py-7 rounded-2xl text-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
               <ShoppingBag className="w-5 h-5 mr-2" />
               Shop Now
             </Button>
@@ -131,14 +131,14 @@ function StoryContent() {
           {/* Feature Pills */}
           <div className="flex flex-wrap justify-center gap-3">
             {[
-              { icon: Shield, text: "100% Authentic" },
-              { icon: Leaf, text: "Certified Organic" },
-              { icon: Truck, text: "Fast Delivery" },
-              { icon: BadgePercent, text: "Extra 10% Off" },
+              { icon: Shield, text: "100% Authentic", color: "from-blue-500 to-indigo-600", bgColor: "bg-blue-50", iconColor: "text-blue-600" },
+              { icon: Leaf, text: "Certified Organic", color: "from-green-500 to-emerald-600", bgColor: "bg-green-50", iconColor: "text-green-600" },
+              { icon: Truck, text: "Fast Delivery", color: "from-purple-500 to-violet-600", bgColor: "bg-purple-50", iconColor: "text-purple-600" },
+              { icon: BadgePercent, text: "Extra 10% Off", color: "from-orange-500 to-amber-600", bgColor: "bg-orange-50", iconColor: "text-orange-600" },
             ].map((item, i) => (
-              <div key={i} className={`flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-gray-200 shadow-sm ${isVisible[0] ? "animate-scale-in" : "opacity-0"}`} style={{ animationDelay: `${0.5 + i * 0.1}s` }}>
-                <item.icon className="w-4 h-4 text-gray-700" />
-                <span className="text-gray-600 text-sm font-medium">{item.text}</span>
+              <div key={i} className={`flex items-center gap-2 px-4 py-2 rounded-2xl ${item.bgColor} border border-gray-200 shadow-sm ${isVisible[0] ? "animate-scale-in" : "opacity-0"}`} style={{ animationDelay: `${0.5 + i * 0.1}s` }}>
+                <item.icon className={`w-4 h-4 ${item.iconColor}`} />
+                <span className={`${item.iconColor} text-sm font-medium`}>{item.text}</span>
               </div>
             ))}
           </div>
@@ -170,36 +170,36 @@ function StoryContent() {
 
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             {[
-              { icon: DollarSign, title: "Budget-Conscious Buyers", pain: "Finding authentic deals without compromising quality", stat: "89%", statLabel: "Want better prices", color: "from-green-500 to-emerald-600", bgColor: "bg-green-50", borderColor: "border-green-200" },
-              { icon: Heart, title: "Health-Focused Families", pain: "Organic products at affordable prices for daily use", stat: "76%", statLabel: "Trust organic brands", color: "from-pink-500 to-rose-600", bgColor: "bg-pink-50", borderColor: "border-pink-200" },
-              { icon: Clock, title: "Smart Time-Savers", pain: "Quick access to quality products without endless searching", stat: "92%", statLabel: "Compare before buying", color: "from-blue-500 to-indigo-600", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
+              { icon: DollarSign, title: "Budget-Conscious Buyers", pain: "Finding authentic deals without compromising quality", stat: "89%", statLabel: "Want better prices", color: "from-green-500 to-emerald-600", bgColor: "bg-gradient-to-br from-green-50 to-emerald-50", borderColor: "border-green-200", iconBg: "bg-green-100", iconColor: "text-green-600" },
+              { icon: Heart, title: "Health-Focused Families", pain: "Organic products at affordable prices for daily use", stat: "76%", statLabel: "Trust organic brands", color: "from-pink-500 to-rose-600", bgColor: "bg-gradient-to-br from-pink-50 to-rose-50", borderColor: "border-pink-200", iconBg: "bg-pink-100", iconColor: "text-pink-600" },
+              { icon: Clock, title: "Smart Time-Savers", pain: "Quick access to quality products without endless searching", stat: "92%", statLabel: "Compare before buying", color: "from-blue-500 to-indigo-600", bgColor: "bg-gradient-to-br from-blue-50 to-indigo-50", borderColor: "border-blue-200", iconBg: "bg-blue-100", iconColor: "text-blue-600" },
             ].map((item, i) => (
-              <div key={i} className={`group relative p-8 rounded-3xl bg-white border border-gray-200 hover:shadow-xl transition-all duration-500 hover:-translate-y-0.5 ${isVisible[1] ? "animate-slide-up" : "opacity-0"}`} style={{ animationDelay: `${0.2 + i * 0.15}s` }}>
-                <div className={`w-16 h-16 rounded-2xl bg-[#e0e5ce] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                  <item.icon className="w-8 h-8 text-gray-700" />
+              <div key={i} className={`group relative p-8 rounded-3xl ${item.bgColor} border ${item.borderColor} hover:shadow-xl transition-all duration-500 hover:-translate-y-0.5 ${isVisible[1] ? "animate-slide-up" : "opacity-0"}`} style={{ animationDelay: `${0.2 + i * 0.15}s` }}>
+                <div className={`w-16 h-16 rounded-2xl ${item.iconBg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                  <item.icon className={`w-8 h-8 ${item.iconColor}`} />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">{item.title}</h3>
                 <p className="text-gray-500 mb-6">{item.pain}</p>
                 <div className="pt-6 border-t border-gray-200/50">
-                  <div className={`text-4xl font-bold text-gray-900 mb-1`}>{item.stat}</div>
+                  <div className={`text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r ${item.color} mb-1`}>{item.stat}</div>
                   <div className="text-gray-400 text-sm">{item.statLabel}</div>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className={`bg-white rounded-3xl p-8 border border-gray-200 shadow-sm ${isVisible[1] ? "animate-slide-up delay-500" : "opacity-0"}`}>
+          <div className={`bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl p-8 border border-indigo-200 shadow-sm ${isVisible[1] ? "animate-slide-up delay-500" : "opacity-0"}`}>
             <h3 className="text-xl font-bold text-gray-900 mb-8 text-center">Our Research Approach</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {[
-                { icon: Users, label: "Customer Surveys", value: "10,000+" },
-                { icon: BarChart3, label: "Data Analysis", value: "2M+ Points" },
-                { icon: MessageCircle, label: "Interviews", value: "500+" },
-                { icon: Globe, label: "Market Research", value: "15 Regions" },
+                { icon: Users, label: "Customer Surveys", value: "10,000+", color: "bg-blue-100", iconColor: "text-blue-600" },
+                { icon: BarChart3, label: "Data Analysis", value: "2M+ Points", color: "bg-purple-100", iconColor: "text-purple-600" },
+                { icon: MessageCircle, label: "Interviews", value: "500+", color: "bg-pink-100", iconColor: "text-pink-600" },
+                { icon: Globe, label: "Market Research", value: "15 Regions", color: "bg-indigo-100", iconColor: "text-indigo-600" },
               ].map((item, i) => (
-                <div key={i} className="text-center p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors">
-                  <div className="w-12 h-12 rounded-xl bg-[#e0e5ce] flex items-center justify-center mx-auto mb-3">
-                    <item.icon className="w-6 h-6 text-gray-700" />
+                <div key={i} className="text-center p-4 rounded-2xl bg-white hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
+                  <div className={`w-12 h-12 rounded-xl ${item.color} flex items-center justify-center mx-auto mb-3`}>
+                    <item.icon className={`w-6 h-6 ${item.iconColor}`} />
                   </div>
                   <div className="text-2xl font-bold text-gray-900 mb-1">{item.value}</div>
                   <div className="text-gray-500 text-sm">{item.label}</div>
@@ -229,14 +229,14 @@ function StoryContent() {
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {[
-              { icon: Leaf, title: "Organic Farms", sub: "Fresh Produce", need: "Needs wider reach", count: "150+ Partners", color: "green" },
-              { icon: Package, title: "Artisan Makers", sub: "Handcrafted Goods", need: "Limited visibility", count: "80+ Creators", color: "amber" },
-              { icon: Heart, title: "Health Foods", sub: "Nutrition & Wellness", need: "Market entry help", count: "200+ Products", color: "rose" },
-              { icon: Building2, title: "Eco Brands", sub: "Sustainable Living", need: "Budget constraints", count: "120+ Brands", color: "teal" },
+              { icon: Leaf, title: "Organic Farms", sub: "Fresh Produce", need: "Needs wider reach", count: "150+ Partners", bgColor: "bg-gradient-to-br from-green-50 to-emerald-50", borderColor: "border-green-200", iconBg: "bg-green-100", iconColor: "text-green-600" },
+              { icon: Package, title: "Artisan Makers", sub: "Handcrafted Goods", need: "Limited visibility", count: "80+ Creators", bgColor: "bg-gradient-to-br from-amber-50 to-orange-50", borderColor: "border-amber-200", iconBg: "bg-amber-100", iconColor: "text-amber-600" },
+              { icon: Heart, title: "Health Foods", sub: "Nutrition & Wellness", need: "Market entry help", count: "200+ Products", bgColor: "bg-gradient-to-br from-rose-50 to-pink-50", borderColor: "border-rose-200", iconBg: "bg-rose-100", iconColor: "text-rose-600" },
+              { icon: Building2, title: "Eco Brands", sub: "Sustainable Living", need: "Budget constraints", count: "120+ Brands", bgColor: "bg-gradient-to-br from-teal-50 to-cyan-50", borderColor: "border-teal-200", iconBg: "bg-teal-100", iconColor: "text-teal-600" },
             ].map((brand, i) => (
-              <div key={i} className={`group relative p-6 rounded-3xl bg-white border border-gray-200 hover:shadow-xl transition-all duration-500 hover:-translate-y-0.5 ${isVisible[2] ? "animate-scale-in" : "opacity-0"}`} style={{ animationDelay: `${0.2 + i * 0.1}s` }}>
-                <div className={`w-14 h-14 rounded-2xl bg-[#e0e5ce] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <brand.icon className={`w-7 h-7 text-${brand.color}-600`} />
+              <div key={i} className={`group relative p-6 rounded-3xl ${brand.bgColor} border ${brand.borderColor} hover:shadow-xl transition-all duration-500 hover:-translate-y-0.5 ${isVisible[2] ? "animate-scale-in" : "opacity-0"}`} style={{ animationDelay: `${0.2 + i * 0.1}s` }}>
+                <div className={`w-14 h-14 rounded-2xl ${brand.iconBg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <brand.icon className={`w-7 h-7 ${brand.iconColor}`} />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-1">{brand.title}</h3>
                 <p className="text-gray-400 text-sm mb-4">{brand.sub}</p>
@@ -248,13 +248,19 @@ function StoryContent() {
             ))}
           </div>
 
-          <div className={`bg-white rounded-3xl p-8 border border-gray-200 shadow-sm ${isVisible[2] ? "animate-slide-up delay-500" : "opacity-0"}`}>
+          <div className={`bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-8 border border-emerald-200 shadow-sm ${isVisible[2] ? "animate-slide-up delay-500" : "opacity-0"}`}>
             <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">Our Rigorous Selection Process</h3>
             <div className="flex flex-wrap justify-center gap-4">
-              {["Quality Verification", "Ethical Sourcing Check", "Price Analysis", "Customer Demand Match", "Sustainability Audit"].map((step, i) => (
-                <div key={i} className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gray-50 border border-gray-200 shadow-sm">
-                  <div className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center font-bold">{i + 1}</div>
-                  <span className="text-gray-700 font-medium">{step}</span>
+              {[
+                { step: "Quality Verification", color: "from-blue-500 to-indigo-600" },
+                { step: "Ethical Sourcing Check", color: "from-green-500 to-emerald-600" },
+                { step: "Price Analysis", color: "from-purple-500 to-violet-600" },
+                { step: "Customer Demand Match", color: "from-orange-500 to-amber-600" },
+                { step: "Sustainability Audit", color: "from-teal-500 to-cyan-600" },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
+                  <div className={`w-6 h-6 rounded-full bg-gradient-to-r ${item.color} text-white text-xs flex items-center justify-center font-bold`}>{i + 1}</div>
+                  <span className="text-gray-700 font-medium">{item.step}</span>
                 </div>
               ))}
             </div>
@@ -286,20 +292,20 @@ function StoryContent() {
             <p className="text-gray-500 text-xl max-w-2xl mx-auto">Our brand and finance teams work together to create win-win partnerships</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {["Win-Win Deals", "Long-Term Support", "Exclusive Offers", "Better Margins"].map((label, i) => {
-              const bgColors = ["from-blue-50 to-cyan-50", "from-emerald-50 to-teal-50", "from-purple-50 to-violet-50", "from-orange-50 to-amber-50"]
-              const borderColors = ["border-blue-200", "border-emerald-200", "border-purple-200", "border-orange-200"]
-              const textColors = ["text-blue-700", "text-emerald-700", "text-purple-700", "text-orange-700"]
-              return (
-                <div key={i} className={`rounded-3xl bg-gradient-to-br ${bgColors[i]} border ${borderColors[i]} p-6 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group`}>
-                  <div className={`w-12 h-12 rounded-xl bg-white border ${borderColors[i]} flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform`}>
-                    <PiggyBank className={`w-6 h-6 ${textColors[i]}`} />
-                  </div>
-                  <div className={`${textColors[i]} font-semibold`}>{label}</div>
-                  <p className="text-gray-500 text-sm mt-1">We negotiate value that converts to real savings.</p>
+            {[
+              { label: "Win-Win Deals", icon: Handshake, bgColors: "from-blue-50 to-cyan-50", borderColors: "border-blue-200", textColors: "text-blue-700", iconBg: "bg-blue-100" },
+              { label: "Long-Term Support", icon: Users, bgColors: "from-emerald-50 to-teal-50", borderColors: "border-emerald-200", textColors: "text-emerald-700", iconBg: "bg-emerald-100" },
+              { label: "Exclusive Offers", icon: BadgePercent, bgColors: "from-purple-50 to-violet-50", borderColors: "border-purple-200", textColors: "text-purple-700", iconBg: "bg-purple-100" },
+              { label: "Better Margins", icon: TrendingUp, bgColors: "from-orange-50 to-amber-50", borderColors: "border-orange-200", textColors: "text-orange-700", iconBg: "bg-orange-100" },
+            ].map((item, i) => (
+              <div key={i} className={`rounded-3xl bg-gradient-to-br ${item.bgColors} border ${item.borderColors} p-6 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group`}>
+                <div className={`w-12 h-12 rounded-xl ${item.iconBg} flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform`}>
+                  <item.icon className={`w-6 h-6 ${item.textColors}`} />
                 </div>
-              )
-            })}
+                <div className={`${item.textColors} font-semibold`}>{item.label}</div>
+                <p className="text-gray-500 text-sm mt-1">We negotiate value that converts to real savings.</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -321,8 +327,13 @@ function StoryContent() {
             <p className="text-gray-500 text-xl max-w-2xl mx-auto">Partnerships and support unlock offers beyond official sales</p>
           </div>
           <div className="flex flex-wrap justify-center gap-3">
-            {["Bulk Purchasing", "Co-Marketing", "Direct Sourcing", "Inventory Support"].map((chip, i) => (
-              <span key={i} className="px-4 py-2 rounded-2xl bg-white text-gray-700 border border-gray-200 text-sm font-medium shadow-sm">{chip}</span>
+            {[
+              { text: "Bulk Purchasing", color: "from-blue-500 to-indigo-600", bgColor: "bg-blue-50", textColor: "text-blue-700" },
+              { text: "Co-Marketing", color: "from-purple-500 to-violet-600", bgColor: "bg-purple-50", textColor: "text-purple-700" },
+              { text: "Direct Sourcing", color: "from-green-500 to-emerald-600", bgColor: "bg-green-50", textColor: "text-green-700" },
+              { text: "Inventory Support", color: "from-orange-500 to-amber-600", bgColor: "bg-orange-50", textColor: "text-orange-700" },
+            ].map((chip, i) => (
+              <span key={i} className={`px-4 py-2 rounded-2xl ${chip.bgColor} ${chip.textColor} border border-gray-200 text-sm font-medium shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5`}>{chip.text}</span>
             ))}
           </div>
         </div>
@@ -364,13 +375,13 @@ function StoryContent() {
           </div>
           <div className="grid sm:grid-cols-3 gap-4">
             {[
-              { label: "Official Price", value: "Rs. 2,000" },
-              { label: "Selling Price", value: "Rs. 1,800" },
-              { label: "Our Price", value: "Rs. 1,620" },
+              { label: "Official Price", value: "Rs. 2,000", bgColor: "bg-gray-50", borderColor: "border-gray-200", textColor: "text-gray-700" },
+              { label: "Selling Price", value: "Rs. 1,800", bgColor: "bg-blue-50", borderColor: "border-blue-200", textColor: "text-blue-700" },
+              { label: "Our Price", value: "Rs. 1,620", bgColor: "bg-gradient-to-br from-green-50 to-emerald-50", borderColor: "border-green-200", textColor: "text-green-700", valueColor: "text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600" },
             ].map((p, i) => (
-              <div key={i} className="rounded-3xl bg-white border border-gray-200 p-6 shadow-sm">
-                <div className="text-gray-400 text-sm">{p.label}</div>
-                <div className={`text-2xl font-bold ${p.label === "Our Price" ? "text-gray-900" : "text-gray-700"}`}>{p.value}</div>
+              <div key={i} className={`rounded-3xl ${p.bgColor} border ${p.borderColor} p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5`}>
+                <div className={`${p.textColor} text-sm`}>{p.label}</div>
+                <div className={`text-2xl font-bold ${p.valueColor || p.textColor}`}>{p.value}</div>
               </div>
             ))}
           </div>
