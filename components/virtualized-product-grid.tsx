@@ -1,13 +1,16 @@
 'use client'
 
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react'
+/* stylelint-disable */
 import Link from 'next/link'
 import Image from 'next/image'
+/* eslint-disable @next/next/no-inline-styles */
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { OptimizedImage } from '@/components/optimized-image'
 import { cn } from '@/lib/utils'
+import { Grid } from 'react-window'
 
 interface VirtualizedProductGridProps {
   items: any[]
@@ -29,70 +32,38 @@ export function VirtualizedProductGrid({
   itemHeight = 400,
   columnCount = 1,
 }: VirtualizedProductGridProps) {
-  const containerRef = React.useRef<HTMLDivElement>(null)
-  const [scrollTop, setScrollTop] = React.useState(0)
-  const [containerHeight, setContainerHeight] = React.useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [containerWidth, setContainerWidth] = useState<number>(0)
+  const [columns, setColumns] = useState<number>(columnCount)
 
-  // Calculate visible items
-  const visibleRange = useMemo(() => {
-    if (containerHeight === 0) return { start: 0, end: items.length }
-
-    const bufferSize = 3 // Number of items to render outside visible area
-    const itemsPerRow = columnCount
-    const rowHeight = itemHeight
-    const visibleRows = Math.ceil(containerHeight / rowHeight) + bufferSize
-
-    const startRow = Math.max(0, Math.floor(scrollTop / rowHeight) - bufferSize)
-    const endRow = startRow + visibleRows
-
-    const start = startRow * itemsPerRow
-    const end = Math.min(items.length, endRow * itemsPerRow)
-
-    return { start, end, startRow, endRow }
-  }, [scrollTop, containerHeight, items.length, itemHeight, columnCount])
-
-  const visibleItems = useMemo(() => {
-    return items.slice(visibleRange.start, visibleRange.end)
-  }, [items, visibleRange])
-
-  const offsetY = useMemo(() => {
-    return (visibleRange.startRow * itemHeight) || 0
-  }, [visibleRange.startRow, itemHeight])
-
-  const totalHeight = useMemo(() => {
-    const rowCount = Math.ceil(items.length / columnCount)
-    return rowCount * itemHeight
-  }, [items.length, columnCount, itemHeight])
-
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.currentTarget
-    setScrollTop(target.scrollTop)
-
-    // Prefetch images for items coming into view
-    if (typeof window !== 'undefined' && 'IntersectionObserver' in window) {
-      const images = target.querySelectorAll('img')
-      images.forEach((img) => {
-        if (!img.src && img.dataset.src) {
-          img.src = img.dataset.src
-        }
-      })
-    }
-  }, [])
-
-  React.useEffect(() => {
-    if (containerRef.current) {
-      setContainerHeight(containerRef.current.clientHeight)
-    }
-
-    const handleResize = () => {
-      if (containerRef.current) {
-        setContainerHeight(containerRef.current.clientHeight)
+  // Measure container width using ResizeObserver
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const width = Math.floor(entry.contentRect.width)
+        setContainerWidth(width)
+        // Responsive columns similar to Tailwind breakpoints
+        if (width >= 1280) setColumns(4)
+        else if (width >= 1024) setColumns(3)
+        else if (width >= 640) setColumns(2)
+        else setColumns(1)
       }
-    }
-
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
   }, [])
+
+  // Derive column width from container width and gap
+  const gap = 24 // matches gap-6
+  const columnWidth = useMemo(() => {
+    if (containerWidth === 0) return 300
+    const totalGap = gap * (columns - 1)
+    return Math.floor((containerWidth - totalGap) / columns)
+  }, [containerWidth, columns])
+
+  const rowCount = useMemo(() => Math.ceil(items.length / columns), [items.length, columns])
 
   if (isLoading) {
     return (
@@ -114,69 +85,60 @@ export function VirtualizedProductGrid({
     )
   }
 
-  // For smaller lists, use regular grid
-  if (items.length < 50) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {items.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            productImages={productImages}
-            onAddToCart={onAddToCart}
-            onAddToWishlist={onAddToWishlist}
-          />
-        ))}
-      </div>
-    )
-  }
-
-  // For large lists, use virtualized grid
   return (
-    <div
-      ref={containerRef}
-      className="w-full h-full overflow-y-auto scrollbar-hide"
-      onScroll={handleScroll}
-      style={{
-        height: 'calc(100vh - 300px)',
-      }}
-    >
-      <div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4"
-        style={{
-          height: totalHeight,
-          position: 'relative',
-        }}
-      >
-        {/* Spacer for items before visible range */}
-        <div
-          style={{
-            gridColumn: '1 / -1',
-            height: offsetY,
-            pointerEvents: 'none',
-          }}
-        />
+    <div ref={containerRef} className="w-full h-[calc(100vh-300px)]">
+      {containerWidth > 0 ? (
+        <Grid
+          columnCount={columns}
+          columnWidth={columnWidth}
+          defaultHeight={Math.max(400, typeof window !== 'undefined' ? Math.floor(window.innerHeight - 300) : 600)}
+          rowCount={rowCount}
+          rowHeight={itemHeight}
+          defaultWidth={containerWidth}
+          className={cn('px-4')}
+          cellComponent={function GridCell(props: any) {
+            const { columnIndex, rowIndex, style, ...rest } = props
+            const index = rowIndex * columns + columnIndex
+            const r = useRef<HTMLDivElement>(null)
+            useEffect(() => {
+              const el = r.current
+              if (!el) return
+              for (const key of Object.keys(style || {})) {
+                // @ts-ignore
+                el.style[key] = style[key]
+              }
+            }, [style])
 
-        {/* Visible items */}
-        {visibleItems.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            productImages={productImages}
-            onAddToCart={onAddToCart}
-            onAddToWishlist={onAddToWishlist}
-          />
-        ))}
+            if (index >= items.length) return <div ref={r} />
 
-        {/* Spacer for items after visible range */}
-        <div
-          style={{
-            gridColumn: '1 / -1',
-            height: Math.max(0, totalHeight - offsetY - (visibleRange.end * itemHeight)),
-            pointerEvents: 'none',
+            const product = items[index]
+            return (
+              <div ref={r} className="p-3">
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  productImages={productImages}
+                  onAddToCart={onAddToCart}
+                  onAddToWishlist={onAddToWishlist}
+                />
+              </div>
+            )
           }}
+          cellProps={{}}
         />
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {items.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              productImages={productImages}
+              onAddToCart={onAddToCart}
+              onAddToWishlist={onAddToWishlist}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

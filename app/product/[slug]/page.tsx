@@ -216,6 +216,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                       className={`relative w-20 h-20 rounded-md overflow-hidden shrink-0 border-2 cursor-pointer hover:opacity-75 transition-opacity ${
                         selectedImage === index ? "border-primary" : "border-transparent"
                       }`}
+                      aria-label={`Select image ${index + 1}`}
                     >
                       <Image
                         src={img.image_url || placeholderImage}
@@ -326,7 +327,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                   )}
                   {product.stock_quantity === 0 ? "Out of Stock" : "Add to Cart"}
                 </Button>
-                <Button variant="outline" size="lg" onClick={handleAddToWishlist}>
+                <Button variant="outline" size="lg" onClick={handleAddToWishlist} aria-label="Add to wishlist">
                   <Heart className="w-5 h-5" />
                 </Button>
               </div>

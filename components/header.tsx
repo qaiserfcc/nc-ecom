@@ -73,6 +73,15 @@ export default function Header() {
                 pathname === "/" ? "text-primary" : ""
               }`}
             >
+              Story
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
+            </Link>
+            <Link
+              href="/home"
+              className={`text-foreground hover:text-primary font-medium transition-colors duration-200 relative group ${
+                pathname.startsWith("/home") ? "text-primary" : ""
+              }`}
+            >
               Home
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
             </Link>
@@ -92,7 +101,7 @@ export default function Header() {
               }`}
             >
               Quote
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
+              <span className="absolute bottom-0 left-0 w-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
             </Link>
             {isAuthenticated && (
               <Link
@@ -240,6 +249,13 @@ export default function Header() {
             <Link
               href="/"
               className={`px-4 py-3 rounded-md ${pathname === "/" ? "text-primary bg-muted" : "text-foreground hover:bg-muted"}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Story
+            </Link>
+            <Link
+              href="/home"
+              className={`px-4 py-3 rounded-md ${pathname.startsWith("/home") ? "text-primary bg-muted" : "text-foreground hover:bg-muted"}`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Home

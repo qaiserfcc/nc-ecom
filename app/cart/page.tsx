@@ -1,6 +1,7 @@
 "use client"
+/* eslint-disable @next/next/no-inline-styles */
 
-import { useRouter } from "next/navigation"
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import useSWR from "swr"
@@ -17,29 +18,43 @@ import { notify } from "@/lib/utils/notifications"
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export default function CartPage() {
-  const router = useRouter()
   const { isAuthenticated, isLoading: authLoading } = useAuth()
   const { data, isLoading, mutate } = useSWR(isAuthenticated ? "/api/cart" : null, fetcher)
+  const [updatingId, setUpdatingId] = useState<number | null>(null)
+  const [removingId, setRemovingId] = useState<number | null>(null)
+  const [isClearing, setIsClearing] = useState(false)
 
   const items = data?.items || []
-  const subtotal = data?.subtotal || 0
-  const totals = items.reduce(
-    (acc: { original: number; final: number }, item: any) => {
+  const computedTotals = items.reduce(
+    (acc: { original: number; selling: number }, item: any) => {
       const baseOriginal = Number(item.original_price) + (Number(item.price_modifier) || 0)
-      const baseFinal = Number(item.current_price) + (Number(item.price_modifier) || 0)
+      const baseSelling = Number(item.current_price) + (Number(item.price_modifier) || 0)
       return {
         original: acc.original + baseOriginal * item.quantity,
-        final: acc.final + baseFinal * item.quantity,
+        selling: acc.selling + baseSelling * item.quantity,
       }
     },
-    { original: 0, final: 0 },
+    { original: 0, selling: 0 },
   )
-  const totalDiscount = Math.max(0, totals.original - totals.final)
-  const totalDiscountPercent = totals.original > 0 ? Math.round((totalDiscount / totals.original) * 100) : 0
+
+  const totalsData = data?.totals
+  const originalTotal = totalsData?.original ?? computedTotals.original
+  const sellingTotal = totalsData?.selling ?? computedTotals.selling
+  const officialDiscount = totalsData?.officialDiscount ?? Math.max(0, originalTotal - sellingTotal)
+  const officialDiscountPercent =
+    totalsData?.officialDiscountPercent ?? (originalTotal > 0 ? Math.round((officialDiscount / originalTotal) * 100) : 0)
+  const promoAmount = totalsData?.promoAmount ?? 0
+  const promoPercent = totalsData?.promoPercent ?? 0
+  const cumulativeDiscount = totalsData?.cumulativeDiscount ?? officialDiscount + promoAmount
+  const cumulativeDiscountPercent =
+    totalsData?.cumulativeDiscountPercent ?? (originalTotal > 0 ? Math.round((cumulativeDiscount / originalTotal) * 100) : 0)
+  const finalAmount = totalsData?.final ?? Math.max(0, sellingTotal - promoAmount)
+  const promotionLabel = totalsData?.promotion?.name || (promoAmount > 0 ? `Promotion ${promoPercent}%` : "No promotion active")
 
   const updateQuantity = async (itemId: number, quantity: number) => {
     if (quantity < 1) return
-    
+
+    setUpdatingId(itemId)
     const toastId = notify.loading("Updating quantity...")
     try {
       const response = await fetch("/api/cart", {
@@ -47,53 +62,61 @@ export default function CartPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ item_id: itemId, quantity }),
       })
-      
+
       if (!response.ok) {
         throw new Error("Failed to update quantity")
       }
-      
+
       mutate()
       notify.dismiss(toastId)
       notify.success("Quantity updated", `Item quantity set to ${quantity}`)
     } catch (error) {
       notify.dismiss(toastId)
       notify.error("Failed to update quantity", error instanceof Error ? error.message : "Please try again")
+    } finally {
+      setUpdatingId(null)
     }
   }
 
   const removeItem = async (itemId: number) => {
+    setRemovingId(itemId)
     const toastId = notify.loading("Removing item from cart...")
     try {
       const response = await fetch(`/api/cart?id=${itemId}`, { method: "DELETE" })
-      
+
       if (!response.ok) {
         throw new Error("Failed to remove item")
       }
-      
+
       mutate()
       notify.dismiss(toastId)
       notify.success("Item removed", "Item has been removed from your cart")
     } catch (error) {
       notify.dismiss(toastId)
       notify.error("Failed to remove item", error instanceof Error ? error.message : "Please try again")
+    } finally {
+      setRemovingId(null)
     }
   }
 
   const clearCart = async () => {
+    setIsClearing(true)
     const toastId = notify.loading("Clearing cart...")
     try {
       const response = await fetch("/api/cart", { method: "DELETE" })
-      
+
       if (!response.ok) {
         throw new Error("Failed to clear cart")
       }
-      
+
       mutate()
       notify.dismiss(toastId)
       notify.success("Cart cleared", "All items have been removed from your cart")
     } catch (error) {
       notify.dismiss(toastId)
       notify.error("Failed to clear cart", error instanceof Error ? error.message : "Please try again")
+    } finally {
+      setIsClearing(false)
     }
   }
 
@@ -129,11 +152,11 @@ export default function CartPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
+      <main className="min-h-screen bg-gradient-to-b from-background via-background to-[#0f172a]">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8 animate-fade-in">
             <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Shopping Cart</h1>
-            <p className="text-muted-foreground">You have {data?.itemCount || 0} item{(data?.itemCount || 0) !== 1 ? 's' : ''} in your cart</p>
+            <p className="text-muted-foreground text-sm md:text-base">You have {data?.itemCount || 0} item{(data?.itemCount || 0) !== 1 ? 's' : ''} in your cart</p>
           </div>
 
           {isLoading ? (
@@ -153,15 +176,15 @@ export default function CartPage() {
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Cart Items */}
               <div className="lg:col-span-2 space-y-4">
-                {items.map((item: any, index: number) => {
+                {items.map((item: any) => {
                   const baseOriginal = Number(item.original_price) + (Number(item.price_modifier) || 0)
                   const baseFinal = Number(item.current_price) + (Number(item.price_modifier) || 0)
                   const lineOriginal = baseOriginal * item.quantity
                   const lineFinal = baseFinal * item.quantity
                   const lineDiscountPercent = baseOriginal > 0 ? Math.round(((baseOriginal - baseFinal) / baseOriginal) * 100) : 0
                   return (
-                    <div key={item.id} className={`animate-fade-in`} style={{ animationDelay: `${index * 50}ms` }}>
-                      <Card className="bg-gradient-to-br from-white/95 to-white/85 backdrop-blur-sm hover:shadow-lg transition-all duration-300 border-border/50">
+                    <div key={item.id} className="animate-fade-in">
+                      <Card className="bg-gradient-to-br from-slate-900/70 via-slate-900/60 to-slate-800/50 text-foreground backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-border/40">
                         <CardContent className="p-4">
                           <div className="flex gap-4">
                             <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-muted to-muted/50 shrink-0 group">
@@ -175,7 +198,7 @@ export default function CartPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <Link href={`/product/${item.slug}`} className="hover:text-primary transition">
-                                <h3 className="font-medium line-clamp-2 text-base break-words">{item.name}</h3>
+                                <h3 className="font-semibold line-clamp-2 text-base break-words">{item.name}</h3>
                               </Link>
                               {item.variant_name && (
                                 <p className="text-sm text-muted-foreground mt-1">
@@ -188,11 +211,11 @@ export default function CartPage() {
                                   <span className="line-through">Rs. {baseOriginal.toLocaleString()}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-muted-foreground">
-                                  <span>Selling Price</span>
-                                  <span className="line-through">Rs. {baseFinal.toLocaleString()}</span>
+                                  <span>Official Discount</span>
+                                  <span className="text-green-400 font-semibold">-{lineDiscountPercent}%</span>
                                 </div>
-                                <div className="flex items-center justify-between font-semibold text-primary">
-                                  <span>Our Discounted Price</span>
+                                <div className="flex items-center justify-between text-primary font-semibold">
+                                  <span>Our Offer Price</span>
                                   <span>Rs. {lineFinal.toLocaleString()}</span>
                                 </div>
                               </div>
@@ -203,8 +226,9 @@ export default function CartPage() {
                                 size="icon"
                                 className="text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
                                 onClick={() => removeItem(item.id)}
+                                disabled={removingId === item.id || updatingId === item.id}
                               >
-                                <Trash2 className="w-4 h-4" />
+                                {removingId === item.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                               </Button>
                               <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
                                 <Button
@@ -212,9 +236,9 @@ export default function CartPage() {
                                   size="icon"
                                   className="h-8 w-8 bg-transparent border-0 hover:bg-muted transition-colors"
                                   onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                  disabled={item.quantity <= 1}
+                                  disabled={item.quantity <= 1 || updatingId === item.id}
                                 >
-                                  <Minus className="w-3 h-3" />
+                                  {updatingId === item.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Minus className="w-3 h-3" />}
                                 </Button>
                                 <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
                                 <Button
@@ -222,9 +246,9 @@ export default function CartPage() {
                                   size="icon"
                                   className="h-8 w-8 bg-transparent border-0 hover:bg-muted transition-colors"
                                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                  disabled={item.quantity >= item.stock_quantity}
+                                  disabled={item.quantity >= item.stock_quantity || updatingId === item.id}
                                 >
-                                  <Plus className="w-3 h-3" />
+                                  {updatingId === item.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
                                 </Button>
                               </div>
                             </div>
@@ -238,7 +262,8 @@ export default function CartPage() {
                   <Button variant="outline" asChild className="hover:bg-muted transition-colors">
                     <Link href="/shop">← Continue Shopping</Link>
                   </Button>
-                  <Button variant="destructive" onClick={clearCart} className="opacity-80 hover:opacity-100 transition-opacity">
+                  <Button variant="destructive" onClick={clearCart} className="opacity-80 hover:opacity-100 transition-opacity" disabled={isClearing}>
+                    {isClearing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     Clear Cart
                   </Button>
                 </div>
@@ -246,41 +271,57 @@ export default function CartPage() {
 
               {/* Order Summary */}
               <div>
-                <div className="sticky top-24 animate-fade-in" style={{ animationDelay: '150ms' }}>
-                  <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 shadow-lg">
+                <div className="sticky top-24 animate-fade-in">
+                  <Card className="bg-gradient-to-br from-slate-900/70 via-slate-900/60 to-slate-800/50 border-primary/20 shadow-xl text-foreground">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-xl">Order Summary</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="space-y-3 bg-white/50 rounded-lg p-3">
+                      <div className="space-y-3 bg-slate-800/60 rounded-lg p-3 border border-border/40">
                         <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground text-sm">Subtotal ({data?.itemCount || 0} items)</span>
-                          <span className="font-semibold">Rs. {totals.original.toLocaleString()}</span>
+                          <span className="text-muted-foreground text-sm">Original ({data?.itemCount || 0} items)</span>
+                          <span className="font-semibold">Rs. {originalTotal.toLocaleString()}</span>
                         </div>
-                        {totalDiscount > 0 && (
-                          <div className="flex justify-between items-center text-green-600">
-                            <span className="text-sm font-medium">Discount Applied</span>
-                            <span className="font-bold">-Rs. {totalDiscount.toLocaleString()}</span>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Selling (official)</span>
+                          <span className="font-semibold">Rs. {sellingTotal.toLocaleString()}</span>
+                        </div>
+                        {officialDiscount > 0 && (
+                          <div className="flex justify-between items-center text-green-400 text-sm">
+                            <span className="font-medium">Official Discount</span>
+                            <span className="font-bold">-Rs. {officialDiscount.toLocaleString()} ({officialDiscountPercent}%)</span>
                           </div>
                         )}
-                        <div className="flex justify-between items-center text-green-600 text-sm">
-                          <span>Savings</span>
-                          <span className="font-bold">{totalDiscountPercent}%</span>
+                        <div className="flex justify-between items-center text-primary text-sm">
+                          <span className="font-semibold">Applied Promotion</span>
+                          <span className="font-bold">{promoAmount > 0 ? `-Rs. ${promoAmount.toLocaleString()}` : promotionLabel}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-green-300 text-sm">
+                          <span>Total Savings</span>
+                          <span className="font-bold">{cumulativeDiscountPercent}%</span>
                         </div>
                       </div>
+
+                      <div className="space-y-2 rounded-lg p-3 bg-slate-800/40 border border-border/40 text-sm text-muted-foreground">
+                        <p className="text-sm font-semibold text-foreground">Savings breakdown</p>
+                        <p>Official discount: {officialDiscountPercent}%</p>
+                        <p>Official + promotion: {Math.min(100, cumulativeDiscountPercent)}%</p>
+                      </div>
+
                       <div className="border-t border-border/50 pt-3">
                         <div className="flex justify-between items-center">
                           <span className="text-muted-foreground">Shipping</span>
-                          <span className="text-green-600 font-medium">Free</span>
+                          <span className="text-green-400 font-medium">Free</span>
                         </div>
                       </div>
-                      <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-3 border border-primary/20">
+                      <div className="bg-gradient-to-r from-primary/15 to-primary/5 rounded-lg p-3 border border-primary/20">
                         <div className="flex justify-between items-center">
-                          <span className="text-lg font-bold">Total Amount</span>
-                          <span className="text-2xl font-bold text-primary">Rs. {totals.final.toLocaleString()}</span>
+                          <span className="text-lg font-bold">Final Payable</span>
+                          <span className="text-2xl font-bold text-primary">Rs. {finalAmount.toLocaleString()}</span>
                         </div>
+                        {promoAmount > 0 && <p className="text-xs text-muted-foreground mt-1">{promotionLabel}</p>}
                       </div>
-                      <p className="text-xs text-muted-foreground text-center">Runtime promos applied automatically</p>
+                      <p className="text-xs text-muted-foreground text-center">Promotions calculated server-side to match checkout</p>
                     </CardContent>
                     <CardFooter>
                       <Button className="w-full bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg transition-all duration-300 py-6 text-base font-semibold" asChild>

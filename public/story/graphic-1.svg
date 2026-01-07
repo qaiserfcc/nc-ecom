@@ -1,0 +1,20 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="warmGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF7A1A" stop-opacity="0.95"/>
+      <stop offset="50%" stop-color="#FFB347" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#FFF2E5" stop-opacity="0.9"/>
+    </linearGradient>
+    <radialGradient id="peachHalo" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#FFE7D1" stop-opacity="1" />
+      <stop offset="100%" stop-color="#FFF7EF" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="900" fill="#FFF8F1"/>
+  <rect x="-80" y="-40" width="1360" height="980" fill="url(#peachHalo)"/>
+  <path d="M1200 420C1030 340 880 340 720 410C560 480 430 500 300 470C170 440 60 350 0 300V900H1200V420Z" fill="url(#warmGlow)"/>
+  <circle cx="260" cy="200" r="160" fill="#FFEDD5" opacity="0.55"/>
+  <circle cx="940" cy="240" r="140" fill="#FFD8A8" opacity="0.35"/>
+  <circle cx="720" cy="120" r="90" fill="#FFB347" opacity="0.25"/>
+  <path d="M160 640C320 590 520 610 700 660C880 710 1060 700 1200 640V900H0V700C40 690 100 670 160 640Z" fill="#FFEAD7" opacity="0.9"/>
+</svg>

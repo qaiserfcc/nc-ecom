@@ -1,0 +1,20 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sunrise" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF6B00" stop-opacity="0.9"/>
+      <stop offset="45%" stop-color="#FF9A3E" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#FFE7D1" stop-opacity="0.95"/>
+    </linearGradient>
+    <radialGradient id="amber" cx="40%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#FFF1E6" stop-opacity="1" />
+      <stop offset="100%" stop-color="#FFF7EF" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="900" fill="#FFF7ED"/>
+  <rect x="-60" y="-80" width="1300" height="1040" fill="url(#amber)"/>
+  <path d="M0 520C120 470 260 440 420 460C620 490 760 410 940 390C1060 380 1140 400 1200 420V900H0V520Z" fill="url(#sunrise)"/>
+  <path d="M1200 560C1040 520 900 520 760 560C620 600 480 600 360 560C240 520 120 500 0 520V900H1200V560Z" fill="#FFE8D6" opacity="0.9"/>
+  <circle cx="1020" cy="180" r="130" fill="#FFC38B" opacity="0.35"/>
+  <circle cx="300" cy="160" r="110" fill="#FFB347" opacity="0.3"/>
+  <circle cx="640" cy="120" r="80" fill="#FFE6CC" opacity="0.5"/>
+</svg>

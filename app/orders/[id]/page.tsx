@@ -141,10 +141,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         </p>
                         {index < statusSteps.length - 1 && (
                           <div
-                            className={`hidden sm:block absolute h-1 w-full top-5 left-1/2 ${
+                            className={`hidden sm:block absolute h-1 w-[calc(100%-2.5rem)] top-5 left-1/2 ${
                               index < currentStepIndex ? "bg-primary" : "bg-muted"
                             }`}
-                            style={{ width: "calc(100% - 2.5rem)" }}
                           />
                         )}
                       </div>

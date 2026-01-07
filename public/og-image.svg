@@ -1,0 +1,22 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ogSky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF7A1A" stop-opacity="0.95"/>
+      <stop offset="50%" stop-color="#FF9F45" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#FFF4E5" stop-opacity="0.95"/>
+    </linearGradient>
+    <radialGradient id="ogGlow" cx="40%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#FFF3E6" stop-opacity="1" />
+      <stop offset="100%" stop-color="#FFF7EF" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#FFF8F2"/>
+  <rect x="-40" y="-60" width="1280" height="750" fill="url(#ogGlow)"/>
+  <path d="M0 360C140 300 320 280 500 320C700 360 900 260 1200 300V630H0V360Z" fill="url(#ogSky)"/>
+  <path d="M1200 440C1040 410 880 420 720 460C560 500 410 500 280 460C170 425 80 410 0 420V630H1200V440Z" fill="#FFE6D3" opacity="0.9"/>
+  <circle cx="230" cy="140" r="120" fill="#FFEDD5" opacity="0.45"/>
+  <circle cx="940" cy="120" r="110" fill="#FFC997" opacity="0.4"/>
+  <circle cx="620" cy="110" r="80" fill="#FFE0BF" opacity="0.45"/>
+  <text x="80" y="410" fill="#331A0B" font-family="'Inter', 'Helvetica', 'Arial', sans-serif" font-size="72" font-weight="700" opacity="0.9">Namecheap Story</text>
+  <text x="80" y="470" fill="#5C2C12" font-family="'Inter', 'Helvetica', 'Arial', sans-serif" font-size="34" font-weight="500" opacity="0.85">From local brands to premium savings for everyone.</text>
+</svg>

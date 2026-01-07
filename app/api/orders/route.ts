@@ -9,6 +9,39 @@ function generateOrderNumber(): string {
   return `NC-${timestamp}-${random}`
 }
 
+async function getActivePromotion(subtotal: number) {
+  const discounts = await sql`
+    SELECT * FROM discounts 
+    WHERE is_active = true 
+      AND apply_to_all = true
+      AND start_date <= NOW() 
+      AND end_date >= NOW()
+      AND (min_purchase_amount IS NULL OR min_purchase_amount <= ${subtotal})
+    ORDER BY discount_value DESC
+    LIMIT 1
+  `
+
+  if (discounts.length === 0) {
+    return { amount: 0, percent: 0, promotion: null as any }
+  }
+
+  const discount = discounts[0]
+  let amount = 0
+  let percent = 0
+
+  if (discount.discount_type === "percentage") {
+    percent = Number.parseFloat(discount.discount_value)
+    amount = subtotal * (percent / 100)
+    if (discount.max_discount_amount && amount > Number.parseFloat(discount.max_discount_amount)) {
+      amount = Number.parseFloat(discount.max_discount_amount)
+    }
+  } else {
+    amount = Number.parseFloat(discount.discount_value)
+  }
+
+  return { amount, percent, promotion: discount }
+}
+
 // GET orders (user sees their orders, admin sees all)
 export async function GET(request: NextRequest) {
   try {
@@ -115,7 +148,7 @@ export async function POST(request: NextRequest) {
 
     // Get cart items
     const cartItems = await sql`
-      SELECT ci.*, p.current_price, pv.price_modifier
+      SELECT ci.*, p.current_price, p.original_price, pv.price_modifier
       FROM cart_items ci
       JOIN products p ON ci.product_id = p.id
       LEFT JOIN product_variants pv ON ci.variant_id = pv.id
@@ -126,38 +159,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 })
     }
 
-    // Calculate subtotal
-    const subtotal = cartItems.reduce((acc, item) => {
-      const price = Number.parseFloat(item.current_price) + (Number.parseFloat(item.price_modifier) || 0)
-      return acc + price * item.quantity
-    }, 0)
+    const totals = cartItems.reduce(
+      (acc, item) => {
+        const priceModifier = Number.parseFloat(item.price_modifier) || 0
+        const original = Number.parseFloat(item.original_price) + priceModifier
+        const selling = Number.parseFloat(item.current_price) + priceModifier
+        const qty = item.quantity
+        acc.original += original * qty
+        acc.selling += selling * qty
+        return acc
+      },
+      { original: 0, selling: 0 },
+    )
 
-    // Get active discounts
-    const discounts = await sql`
-      SELECT * FROM discounts 
-      WHERE is_active = true 
-        AND apply_to_all = true
-        AND start_date <= NOW() 
-        AND end_date >= NOW()
-        AND (min_purchase_amount IS NULL OR min_purchase_amount <= ${subtotal})
-      ORDER BY discount_value DESC
-      LIMIT 1
-    `
-
-    let discountApplied = 0
-    if (discounts.length > 0) {
-      const discount = discounts[0]
-      if (discount.discount_type === "percentage") {
-        discountApplied = subtotal * (Number.parseFloat(discount.discount_value) / 100)
-        if (discount.max_discount_amount && discountApplied > Number.parseFloat(discount.max_discount_amount)) {
-          discountApplied = Number.parseFloat(discount.max_discount_amount)
-        }
-      } else {
-        discountApplied = Number.parseFloat(discount.discount_value)
-      }
-    }
-
-    const totalAmount = subtotal - discountApplied
+    const { amount: promoAmount } = await getActivePromotion(totals.selling)
+    const subtotal = totals.selling
+    const discountApplied = promoAmount
+    const totalAmount = Math.max(0, subtotal - promoAmount)
 
     // Create order
     const orderNumber = generateOrderNumber()

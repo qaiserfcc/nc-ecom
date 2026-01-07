@@ -1,4 +1,6 @@
 'use client'
+/* eslint-disable @next/next/no-inline-styles */
+'use client'
 
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
@@ -130,17 +132,14 @@ export function OptimizedImage({
   }
 
   return (
-    <div className={cn('relative w-full overflow-hidden', className)} style={{ width, height }}>
+    <div className={cn('relative w-full overflow-hidden', className)}>
       {/* Blur placeholder while loading */}
       {isLoading && !hasError && (
         <div
           className={cn(
             'absolute inset-0 bg-gradient-to-br from-muted via-muted/70 to-muted/50',
-            'animate-pulse z-0 w-full h-full'
+            'animate-pulse z-0 w-full h-full backdrop-blur-lg'
           )}
-          style={{
-            backdropFilter: 'blur(10px)',
-          }}
         />
       )}
 
@@ -169,11 +168,8 @@ export function OptimizedImage({
         <div
           className={cn(
             'absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent',
-            'animate-shimmer z-1'
+            'animate-pulse z-1'
           )}
-          style={{
-            animation: 'shimmer 2s infinite',
-          }}
         />
       )}
 

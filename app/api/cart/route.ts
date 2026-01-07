@@ -2,6 +2,39 @@ import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
 
+async function getActivePromotion(subtotal: number) {
+  const discounts = await sql`
+    SELECT * FROM discounts 
+    WHERE is_active = true 
+      AND apply_to_all = true
+      AND start_date <= NOW() 
+      AND end_date >= NOW()
+      AND (min_purchase_amount IS NULL OR min_purchase_amount <= ${subtotal})
+    ORDER BY discount_value DESC
+    LIMIT 1
+  `
+
+  if (discounts.length === 0) {
+    return { amount: 0, percent: 0, promotion: null as any }
+  }
+
+  const discount = discounts[0]
+  let amount = 0
+  let percent = 0
+
+  if (discount.discount_type === "percentage") {
+    percent = Number.parseFloat(discount.discount_value)
+    amount = subtotal * (percent / 100)
+    if (discount.max_discount_amount && amount > Number.parseFloat(discount.max_discount_amount)) {
+      amount = Number.parseFloat(discount.max_discount_amount)
+    }
+  } else {
+    amount = Number.parseFloat(discount.discount_value)
+  }
+
+  return { amount, percent, promotion: discount }
+}
+
 // GET cart items
 export async function GET() {
   try {
@@ -21,16 +54,53 @@ export async function GET() {
     `
 
     // Calculate totals
-    const subtotal = items.reduce((acc, item) => {
-      const price = Number.parseFloat(item.current_price) + (Number.parseFloat(item.price_modifier) || 0)
-      return acc + price * item.quantity
-    }, 0)
+    const totals = items.reduce(
+      (acc, item) => {
+        const priceModifier = Number.parseFloat(item.price_modifier) || 0
+        const original = Number.parseFloat(item.original_price) + priceModifier
+        const selling = Number.parseFloat(item.current_price) + priceModifier
+        const qty = item.quantity
+        acc.original += original * qty
+        acc.selling += selling * qty
+        acc.itemCount += qty
+        return acc
+      },
+      { original: 0, selling: 0, itemCount: 0 },
+    )
+
+    const officialDiscount = Math.max(0, totals.original - totals.selling)
+    const officialDiscountPercent = totals.original > 0 ? Math.round((officialDiscount / totals.original) * 100) : 0
+
+    const { amount: promoAmount, percent: promoPercent, promotion } = await getActivePromotion(totals.selling)
+    const finalAmount = Math.max(0, totals.selling - promoAmount)
+    const cumulativeDiscount = officialDiscount + promoAmount
+    const cumulativeDiscountPercent = totals.original > 0 ? Math.round((cumulativeDiscount / totals.original) * 100) : 0
 
     return NextResponse.json({
       items,
-      subtotal,
-      totalAmount: subtotal,
-      itemCount: items.reduce((acc, item) => acc + item.quantity, 0),
+      subtotal: totals.selling,
+      totalAmount: finalAmount,
+      itemCount: totals.itemCount,
+      totals: {
+        original: totals.original,
+        selling: totals.selling,
+        officialDiscount,
+        officialDiscountPercent,
+        promoAmount,
+        promoPercent,
+        cumulativeDiscount,
+        cumulativeDiscountPercent,
+        final: finalAmount,
+        promotion: promotion
+          ? {
+              id: promotion.id,
+              name: promotion.name,
+              type: promotion.discount_type,
+              value: promotion.discount_value,
+              maxDiscountAmount: promotion.max_discount_amount,
+            }
+          : null,
+      },
     })
   } catch (error) {
     console.error("Get cart error:", error)

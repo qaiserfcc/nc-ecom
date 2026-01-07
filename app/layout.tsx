@@ -11,10 +11,40 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Namecheap - Organic Beauty & Health Products",
-  description: "Premium organic skincare, haircare, and health products with profit-sharing community benefits",
+  title: "Namecheap Story | Premium Savings, Local Support",
+  description:
+    "Discover how Namecheap partners with local organic brands to bring exclusive discounts directly to you through strategic financial support.",
+  keywords: ["Namecheap", "Discounts", "Organic Products", "Local Brands", "Financial Support"],
+  authors: [{ name: "Namecheap Team" }],
   generator: "v0.app",
   manifest: "/manifest.json",
+  openGraph: {
+    title: "How Namecheap Brings You Extra Value",
+    description:
+      "A graphical story of our journey from studying user needs to delivering premium organic products at unbeatable prices.",
+    url: "https://your-domain.com",
+    siteName: "Namecheap Story",
+    images: [
+      {
+        url: "/og-image.svg",
+        width: 1200,
+        height: 630,
+        alt: "Namecheap Story Preview",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Namecheap Story | Extra Discounts for You",
+    description: "See how we support local brands to lower prices for our users.",
+    images: ["/og-image.svg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: [
       {
@@ -57,7 +87,7 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#B8860B",
+  themeColor: "#ff7a1a",
 }
 
 export default function RootLayout({

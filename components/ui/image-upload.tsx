@@ -164,6 +164,7 @@ export function ImageUpload({
         onChange={handleFileChange}
         className="hidden"
         disabled={loading}
+        aria-label={label}
       />
 
       {error && (
