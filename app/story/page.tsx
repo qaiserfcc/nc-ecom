@@ -88,8 +88,8 @@ function StoryContent() {
       <div className="fixed right-6 top-1/2 -translate-y-1/2 z-50 hidden lg:flex flex-col gap-2">
         {steps.map((step, i) => (
           <button key={i} onClick={() => sectionRefs.current[i]?.scrollIntoView({ behavior: "smooth" })} className="group flex items-center gap-3">
-            <span className={`text-xs font-medium transition-all duration-300 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 ${activeSection === i ? "text-[#ff5f00]" : "text-gray-400"}`}>{step.label}</span>
-            <div className={`w-3 h-3 rounded-full transition-all duration-300 ${activeSection > i ? "bg-[#ff5f00] scale-75" : activeSection === i ? "bg-[#ff5f00] scale-125 ring-4 ring-orange-100" : "bg-gray-200 scale-75 group-hover:bg-gray-300"}`} />
+            <span className={`text-xs font-medium transition-all duration-300 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 ${activeSection === i ? "text-[#ff8f40]" : "text-gray-400"}`}>{step.label}</span>
+            <div className={`w-3 h-3 rounded-full transition-all duration-300 ${activeSection > i ? "bg-[#ff8f40] scale-75" : activeSection === i ? "bg-[#ff8f40] scale-125 ring-4 ring-orange-100" : "bg-gray-200 scale-75 group-hover:bg-gray-300"}`} />
           </button>
         ))}
       </div>
@@ -110,7 +110,7 @@ function StoryContent() {
             <span className="font-medium">Discover How We Save You More</span>
           </div>
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-gray-900 mb-6 leading-tight">
-            The <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff5f00] to-[#ff8f40]">Namecheap</span>
+            The <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff8f40] to-[#ffb070]">Namecheap</span>
             <br />
             <span className="text-gray-600">Extra Discount</span> Story
           </h1>
@@ -122,7 +122,7 @@ function StoryContent() {
               Start the Journey
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
-            <Button size="lg" className="bg-gradient-to-r from-[#ff5f00] to-[#ff8f40] text-white hover:from-[#ff6f10] hover:to-[#ffa050] font-semibold px-10 py-7 rounded-2xl text-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
+            <Button size="lg" className="bg-gradient-to-r from-[#ff8f40] to-[#ffb070] text-white hover:from-[#ffa050] hover:to-[#ffc090] font-semibold px-10 py-7 rounded-2xl text-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
               <ShoppingBag className="w-5 h-5 mr-2" />
               Shop Now
             </Button>
@@ -269,7 +269,7 @@ function StoryContent() {
           <div className={`mt-8 text-center ${isVisible[2] ? "animate-slide-up delay-700" : "opacity-0"}`}>
             <div className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white border border-gray-200 shadow-sm">
               <Lightbulb className="w-6 h-6 text-gray-700" />
-              <p className="text-gray-700"><span className="font-bold text-[#ff5f00]">Perfect Alignment:</span> These brands offer exactly what users need, but lack the platform to reach them</p>
+              <p className="text-gray-700"><span className="font-bold text-[#ff8f40]">Perfect Alignment:</span> These brands offer exactly what users need, but lack the platform to reach them</p>
             </div>
           </div>
         </div>
