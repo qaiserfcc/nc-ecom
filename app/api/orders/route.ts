@@ -144,7 +144,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { shipping_address, payment_method = "cash_on_delivery" } = await request.json()
+    const { 
+      shipping_address, 
+      payment_method = "cash_on_delivery",
+      shipping_method_id,
+      shipping_cost = 0,
+      delivery_time,
+      delivery_location
+    } = await request.json()
 
     // Get cart items
     const cartItems = await sql`
@@ -175,13 +182,22 @@ export async function POST(request: NextRequest) {
     const { amount: promoAmount } = await getActivePromotion(totals.selling)
     const subtotal = totals.selling
     const discountApplied = promoAmount
-    const totalAmount = Math.max(0, subtotal - promoAmount)
+    const totalAmount = Math.max(0, subtotal - promoAmount + Number(shipping_cost || 0))
 
     // Create order
     const orderNumber = generateOrderNumber()
     const orderResult = await sql`
-      INSERT INTO orders (order_number, user_id, total_amount, subtotal, discount_applied, status, payment_method, shipping_address)
-      VALUES (${orderNumber}, ${session.user.id}::uuid, ${totalAmount}, ${subtotal}, ${discountApplied}, 'pending', ${payment_method}, ${shipping_address})
+      INSERT INTO orders (
+        order_number, user_id, total_amount, subtotal, discount_applied, 
+        status, payment_method, shipping_address, shipping_method_id, 
+        shipping_cost, delivery_time, delivery_location
+      )
+      VALUES (
+        ${orderNumber}, ${session.user.id}::uuid, ${totalAmount}, ${subtotal}, 
+        ${discountApplied}, 'pending', ${payment_method}, ${shipping_address},
+        ${shipping_method_id || null}, ${shipping_cost || 0}, ${delivery_time || null}, 
+        ${delivery_location || null}
+      )
       RETURNING *
     `
 

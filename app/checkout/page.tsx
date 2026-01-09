@@ -16,9 +16,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, CreditCard, Banknote, ShoppingBag, CheckCircle, MessageCircle } from "lucide-react"
+import { Loader2, CreditCard, Banknote, ShoppingBag, CheckCircle, MessageCircle, Truck } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -27,6 +28,7 @@ export default function CheckoutPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const { data: cartData, isLoading: cartLoading } = useSWR(isAuthenticated ? "/api/cart" : null, fetcher)
   const { data: profileData } = useSWR(isAuthenticated ? "/api/users/profile" : null, fetcher)
+  const { data: shippingData } = useSWR("/api/shipping-methods?activeOnly=true", fetcher)
 
   const [paymentMethod, setPaymentMethod] = useState("cash_on_delivery")
   const [address, setAddress] = useState("")
@@ -36,6 +38,9 @@ export default function CheckoutPage() {
   const [error, setError] = useState("")
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [orderNumber, setOrderNumber] = useState("")
+  const [deliveryLocation, setDeliveryLocation] = useState("all")
+  const [deliveryTime, setDeliveryTime] = useState("")
+  const [selectedShippingMethod, setSelectedShippingMethod] = useState<number | null>(null)
 
   const items = cartData?.items || []
   const subtotal = cartData?.subtotal || 0
@@ -52,6 +57,31 @@ export default function CheckoutPage() {
   const cumulativeDiscountPercent = totalsData?.cumulativeDiscountPercent ?? 0
   const finalAmount = totalsData?.final ?? 0
   const promotionLabel = totalsData?.promotion?.name || (promoAmount > 0 ? `Promotion ${promoPercent}%` : "No promotion active")
+
+  // Calculate shipping cost based on selected method
+  const shippingMethods = shippingData?.shippingMethods || []
+  const getApplicableShippingMethods = () => {
+    return shippingMethods.filter((method: any) => {
+      // Check location
+      if (method.location_type !== 'all' && method.location_type !== deliveryLocation) {
+        return false
+      }
+      // Check min order amount for free shipping
+      if (method.is_free_shipping && method.min_order_amount && finalAmount < method.min_order_amount) {
+        return false
+      }
+      // Check max order amount
+      if (method.max_order_amount && finalAmount > method.max_order_amount) {
+        return false
+      }
+      return true
+    })
+  }
+
+  const applicableShippingMethods = getApplicableShippingMethods()
+  const selectedMethod = applicableShippingMethods.find((m: any) => m.id === selectedShippingMethod)
+  const shippingCost = selectedMethod ? Number(selectedMethod.base_cost) : 0
+  const totalWithShipping = finalAmount + shippingCost
 
   // Pre-fill address from profile
   useState(() => {
@@ -117,6 +147,11 @@ export default function CheckoutPage() {
       return
     }
 
+    if (!selectedShippingMethod) {
+      notify.error("Missing information", "Please select a shipping method")
+      return
+    }
+
     setLoading(true)
     setError("")
     
@@ -143,6 +178,10 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           shipping_address: `${address}${phone ? ` | Phone: ${phone}` : ""}${notes ? ` | Notes: ${notes}` : ""}`,
           payment_method: paymentMethod,
+          shipping_method_id: selectedShippingMethod,
+          shipping_cost: shippingCost,
+          delivery_time: deliveryTime || null,
+          delivery_location: deliveryLocation,
         }),
       })
 
@@ -306,6 +345,84 @@ export default function CheckoutPage() {
                 </CardContent>
               </Card>
 
+              {/* Shipping Method Card */}
+              <Card className="bg-white border-gray-100 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300">
+                <CardHeader className="border-b border-gray-100">
+                  <CardTitle className="flex items-center gap-2 text-gray-900">
+                    <Truck className="w-5 h-5" />
+                    Shipping Method
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="delivery_location" className="font-semibold">Delivery Location <span className="text-destructive">*</span></Label>
+                    <Select value={deliveryLocation} onValueChange={setDeliveryLocation}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select delivery location" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Locations</SelectItem>
+                        <SelectItem value="lahore">Lahore</SelectItem>
+                        <SelectItem value="out_of_lahore">Outside Lahore</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="font-semibold">Select Shipping Method <span className="text-destructive">*</span></Label>
+                    <RadioGroup 
+                      value={selectedShippingMethod?.toString() || ""} 
+                      onValueChange={(value) => setSelectedShippingMethod(Number(value))}
+                    >
+                      {applicableShippingMethods.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">No shipping methods available for selected location</p>
+                      ) : (
+                        applicableShippingMethods.map((method: any) => (
+                          <div 
+                            key={method.id}
+                            className="flex items-center space-x-3 p-4 border-2 border-border bg-white rounded-2xl cursor-pointer hover:shadow-md hover:border-primary/50 transition-all duration-200 group"
+                          >
+                            <RadioGroupItem value={method.id.toString()} id={`shipping-${method.id}`} />
+                            <Label htmlFor={`shipping-${method.id}`} className="flex items-center gap-4 cursor-pointer flex-1">
+                              <div className="p-2 bg-blue-50 rounded-xl group-hover:shadow-sm transition-all">
+                                <Truck className="w-5 h-5 text-blue-600" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-semibold text-foreground">{method.name}</p>
+                                <p className="text-sm text-muted-foreground">{method.description}</p>
+                                <p className="text-sm font-medium mt-1">
+                                  {method.is_free_shipping && method.min_order_amount && finalAmount >= method.min_order_amount 
+                                    ? <span className="text-green-600">FREE</span>
+                                    : <span>Rs {Number(method.base_cost).toLocaleString()}</span>
+                                  }
+                                </p>
+                              </div>
+                            </Label>
+                          </div>
+                        ))
+                      )}
+                    </RadioGroup>
+                  </div>
+
+                  {selectedMethod?.is_same_day && (
+                    <div className="space-y-2">
+                      <Label htmlFor="delivery_time" className="font-semibold">Preferred Delivery Time</Label>
+                      <Select value={deliveryTime} onValueChange={setDeliveryTime}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select delivery time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="morning">Morning (9 AM - 12 PM)</SelectItem>
+                          <SelectItem value="afternoon">Afternoon (12 PM - 3 PM)</SelectItem>
+                          <SelectItem value="evening">Evening (3 PM - 6 PM)</SelectItem>
+                          <SelectItem value="night">Night (6 PM - 9 PM)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               <Card className="bg-white border-gray-100 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300">
                 <CardHeader className="border-b border-gray-100">
                   <CardTitle className="text-gray-900">Payment Method</CardTitle>
@@ -442,13 +559,15 @@ export default function CheckoutPage() {
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground">Shipping</span>
-                        <span className="text-green-600 font-medium">Free</span>
+                        <span className={shippingCost === 0 ? "text-green-600 font-medium" : "font-medium"}>
+                          {shippingCost === 0 ? "Free" : `Rs ${shippingCost.toLocaleString()}`}
+                        </span>
                       </div>
                       <Separator />
                       <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl p-4 border border-primary/20">
                         <div className="flex justify-between items-center">
                           <span className="text-lg font-bold">Final Payable</span>
-                          <span className="text-2xl font-bold text-primary">Rs. {finalAmount.toLocaleString()}</span>
+                          <span className="text-2xl font-bold text-primary">Rs {totalWithShipping.toLocaleString()}</span>
                         </div>
                         {promoAmount > 0 && <p className="text-xs text-muted-foreground mt-1">{promotionLabel}</p>}
                       </div>
