@@ -21,10 +21,13 @@ import {
   Loader2,
   Image as ImageIcon,
   FolderTree,
+  TrendingUp,
+  Settings,
 } from "lucide-react"
 
 const sidebarItems = [
   { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/admin/dashboard", icon: TrendingUp, label: "Enhanced Dashboard" },
   { href: "/admin/products", icon: Package, label: "Products" },
   { href: "/admin/categories", icon: FolderTree, label: "Categories" },
   { href: "/admin/bundles", icon: Package, label: "Bundles" },
@@ -34,6 +37,7 @@ const sidebarItems = [
   { href: "/admin/banners", icon: ImageIcon, label: "Banners" },
   { href: "/admin/discounts", icon: Tag, label: "Discounts" },
   { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
+  { href: "/admin/meta-pixel", icon: Settings, label: "Meta Pixel" },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

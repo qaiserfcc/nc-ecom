@@ -6,6 +6,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { SocketProvider } from "@/lib/socket-client"
+import { MetaPixel } from "@/components/analytics/meta-pixel"
+import { AnalyticsProvider } from "@/components/analytics/analytics-provider"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -101,13 +103,16 @@ export default function RootLayout({
     <html lang="en" className="bg-background" suppressHydrationWarning>
       <body className={`font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <SocketProvider>
-            {children}
-            <Toaster richColors position="top-right" />
-          </SocketProvider>
+          <AnalyticsProvider>
+            <SocketProvider>
+              {children}
+              <Toaster richColors position="top-right" />
+            </SocketProvider>
+          </AnalyticsProvider>
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />
+        <MetaPixel />
       </body>
     </html>
   )
