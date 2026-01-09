@@ -1,9 +1,7 @@
 import { cookies } from "next/headers"
 import { sql } from "./db"
 import bcrypt from "bcryptjs"
-import { SignJWT, jwtVerify } from "jose"
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "your-secret-key-change-in-production")
+import { createToken, verifyToken } from "./auth-token"
 
 export interface User {
   id: string
@@ -22,24 +20,7 @@ export interface Session {
   user: User
 }
 
-// Create JWT token
-export async function createToken(userId: string): Promise<string> {
-  return new SignJWT({ userId })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(JWT_SECRET)
-}
-
-// Verify JWT token
-export async function verifyToken(token: string): Promise<{ userId: string } | null> {
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET)
-    return payload as { userId: string }
-  } catch {
-    return null
-  }
-}
+export { createToken, verifyToken }
 
 // Get current session from cookies
 export async function getSession(): Promise<Session | null> {

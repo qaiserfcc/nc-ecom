@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
+import { handleApiError, ApiErrors } from "@/lib/api-error-handler"
+import { SocketEvents } from "@/lib/socket-events"
 
 // Generate order number
 function generateOrderNumber(): string {
@@ -47,7 +49,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      throw ApiErrors.unauthorized()
     }
 
     const { searchParams } = new URL(request.url)
@@ -131,8 +133,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Get orders error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -141,9 +142,8 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      throw ApiErrors.unauthorized()
     }
-
     const { 
       shipping_address, 
       payment_method = "cash_on_delivery",
@@ -227,9 +227,16 @@ export async function POST(request: NextRequest) {
     // Clear cart
     await sql`DELETE FROM cart_items WHERE user_id = ${session.user.id}::uuid`
 
+    // Emit socket event for new order
+    await SocketEvents.notifyOrderPlaced(
+      order.id,
+      order.order_number,
+      session.user.id,
+      parseFloat(order.total_amount)
+    ).catch(console.error)
+
     return NextResponse.json({ order }, { status: 201 })
   } catch (error) {
-    console.error("Create order error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }

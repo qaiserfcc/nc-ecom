@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
+import { SocketProvider } from "@/lib/socket-client"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -100,8 +101,10 @@ export default function RootLayout({
     <html lang="en" className="bg-background" suppressHydrationWarning>
       <body className={`font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          {children}
-          <Toaster />
+          <SocketProvider>
+            {children}
+            <Toaster richColors position="top-right" />
+          </SocketProvider>
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />

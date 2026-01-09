@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
+import { handleApiError, ApiErrors } from "@/lib/api-error-handler"
+import { SocketEvents } from "@/lib/socket-events"
 
 // GET single product
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -40,8 +42,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({ product: result[0] })
   } catch (error) {
-    console.error("Get product error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -50,7 +51,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const session = await getSession()
     if (!session || session.user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      throw ApiErrors.unauthorized('Admin access required')
     }
 
     const { id } = await params
@@ -90,11 +91,24 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         thumbnail_url = COALESCE(${thumbnail_url}, thumbnail_url),
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ${Number.parseInt(id)}
-      RETURNING *
+      RETURNING *, (SELECT current_price FROM products WHERE id = ${Number.parseInt(id)}) as old_price
     `
 
     if (result.length === 0) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 })
+      throw ApiErrors.notFound('Product')
+    }
+
+    const product = result[0]
+    
+    // Notify price change if applicable
+    if (current_price !== undefined && product.old_price !== current_price) {
+      await SocketEvents.notifyProductPriceChange(
+        product.id,
+        product.name,
+        product.slug,
+        product.old_price,
+        current_price
+      ).catch(console.error)
     }
 
     // Update images if provided
@@ -121,8 +135,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({ product: result[0] })
   } catch (error) {
-    console.error("Update product error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -131,7 +144,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   try {
     const session = await getSession()
     if (!session || session.user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      throw ApiErrors.unauthorized('Admin access required')
     }
 
     const { id } = await params
@@ -142,12 +155,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     `
 
     if (result.length === 0) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 })
+      throw ApiErrors.notFound('Product')
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Delete product error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }

@@ -6,8 +6,34 @@ if (typeof WebSocket === 'undefined') {
   (global as any).WebSocket = ws
 }
 
-// Create a singleton database connection
-const sql = neon(process.env.DATABASE_URL!)
+let _sql: any | null = null
+
+function getSql() {
+  if (_sql) return _sql
+  const connectionString = process.env.DATABASE_URL
+  if (!connectionString) {
+    throw new Error(
+      "DATABASE_URL is not set. Ensure .env.local contains DATABASE_URL and you start the server via `npm run dev` or `npm start` (which load env)."
+    )
+  }
+  _sql = neon(connectionString)
+  return _sql
+}
+
+// Export a callable proxy so existing `sql\`...\`` usage keeps working.
+const sql: any = new Proxy(
+  () => {
+    throw new Error('sql proxy should not be called directly')
+  },
+  {
+    apply(_target, thisArg, argArray) {
+      return getSql().apply(thisArg, argArray as any)
+    },
+    get(_target, prop) {
+      return (getSql() as any)[prop]
+    },
+  }
+)
 
 // Export both the sql function and a db object for convenience
 export { sql }

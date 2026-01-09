@@ -1,13 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
+import { handleApiError, ApiErrors } from "@/lib/api-error-handler"
+import { SocketEvents } from "@/lib/socket-events"
 
 // GET discounts (admin only)
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session || session.user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      throw ApiErrors.unauthorized('Admin access required')
     }
 
     const { searchParams } = new URL(request.url)
@@ -52,8 +54,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Get discounts error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session || session.user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      throw ApiErrors.unauthorized('Admin access required')
     }
 
     const body = await request.json()
@@ -86,9 +87,22 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `
 
-    return NextResponse.json({ discount: result[0] }, { status: 201 })
+    const discount = result[0]
+
+    // Notify about new promotion if active and applies to all
+    if (discount.is_active && discount.apply_to_all) {
+      const percentage = discount.discount_type === 'percentage' 
+        ? parseFloat(discount.discount_value)
+        : 0
+      await SocketEvents.notifyNewPromotion(
+        discount.code,
+        percentage,
+        discount.description || ''
+      ).catch(console.error)
+    }
+
+    return NextResponse.json({ discount }, { status: 201 })
   } catch (error) {
-    console.error("Create discount error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }
