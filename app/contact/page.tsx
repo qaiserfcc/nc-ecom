@@ -1,6 +1,7 @@
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
+import ContactQuoteForm from "@/components/contact-quote-form"
 import { Mail, Phone, MapPin, Clock, MessageCircle, Send } from "lucide-react"
 
 export default function ContactPage() {
@@ -169,6 +170,10 @@ export default function ContactPage() {
                       qaiserfcc@gmail.com
                     </a>
                   </p>
+                </div>
+
+                <div className="pt-6">
+                  <ContactQuoteForm />
                 </div>
               </div>
             </div>

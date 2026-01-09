@@ -30,6 +30,7 @@ export async function initDatabaseListener() {
     'discount_percentage_changed',
     'order_placed',
     'order_status_changed',
+    'quote_submitted',
   ]
 
   try {
@@ -95,6 +96,13 @@ export async function handleDatabaseNotification(channel: string, payload: any) 
         await emitToUser(data.userId, 'order:status-changed', data)
         // Notify admins
         await emitToAdmins('order:status-changed', data)
+        break
+
+      case 'quote_submitted':
+        await emitToAdmins('quote:submitted', data)
+        if (data.userId) {
+          await emitToUser(data.userId, 'quote:submitted', data)
+        }
         break
     }
   } catch (error) {

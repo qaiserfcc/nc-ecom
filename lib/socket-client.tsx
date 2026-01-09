@@ -25,6 +25,7 @@ interface NotificationData {
   productId?: number
   orderId?: number
   discountId?: number
+  quoteId?: number
 }
 
 export function SocketProvider({ children }: { children: ReactNode }) {
@@ -108,6 +109,13 @@ export function SocketProvider({ children }: { children: ReactNode }) {
           label: 'View Order',
           onClick: () => window.location.href = `/orders/${data.orderId}`,
         },
+      })
+    })
+
+    // Quote submitted
+    socketInstance.on('quote:submitted', (data: any) => {
+      toast.success('Quote Submitted', {
+        description: data?.quoteId ? `Request #${data.quoteId} received${data?.email ? ` (${data.email})` : ''}` : 'Your request was received',
       })
     })
 

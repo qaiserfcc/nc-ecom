@@ -105,7 +105,7 @@ export async function emitToUsersWithProductInWishlist(productId: number, event:
   
   const { sql } = await import('./db')
   const wishlistItems = await sql`
-    SELECT DISTINCT user_id FROM wishlist WHERE product_id = ${productId}
+    SELECT DISTINCT user_id FROM wishlists WHERE product_id = ${productId}
   `
   
   wishlistItems.forEach((item) => {

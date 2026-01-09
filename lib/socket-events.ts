@@ -45,4 +45,13 @@ export const SocketEvents = {
       emitToAdmins('order:status-changed', data),
     ])
   },
+
+  // Quote events
+  async notifyQuoteSubmitted(quoteId: number, userId: string | null, name: string, email: string) {
+    const data = { quoteId, userId, name, email, timestamp: new Date().toISOString() }
+    await emitToAdmins('quote:submitted', data)
+    if (userId) {
+      await emitToUser(userId, 'quote:submitted', data)
+    }
+  },
 }
