@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
-import { verifyAuth } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 
 // GET /api/shipping-methods/[id] - Get single shipping method
 export async function GET(
@@ -36,8 +36,8 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const authResult = await verifyAuth(req)
-    if (!authResult.isValid || authResult.user?.role !== 'admin') {
+    const session = await getSession()
+    if (!session || session.user.role !== 'admin') {
       return NextResponse.json(
         { error: "Unauthorized - Admin access required" },
         { status: 401 }
@@ -111,8 +111,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const authResult = await verifyAuth(req)
-    if (!authResult.isValid || authResult.user?.role !== 'admin') {
+    const session = await getSession()
+    if (!session || session.user.role !== 'admin') {
       return NextResponse.json(
         { error: "Unauthorized - Admin access required" },
         { status: 401 }
