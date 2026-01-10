@@ -1,8 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 
 interface Banner {
@@ -67,20 +65,6 @@ export default function HeroBanner() {
           className="w-full h-full object-cover"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-black/45" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-balance text-white mb-4">
-            Premium Organic Products for You
-          </h1>
-          <p className="text-base sm:text-lg text-gray-100 max-w-2xl mb-6">
-            Discover authentic skincare, haircare, and organic foods with profit-sharing benefits
-          </p>
-          <Link href="/shop">
-            <Button className="px-6 sm:px-8 py-2 sm:py-3">
-              Shop Now
-            </Button>
-          </Link>
-        </div>
       </section>
     )
   }
@@ -101,27 +85,6 @@ export default function HeroBanner() {
           className="w-full h-full object-cover"
           loading="lazy"
         />
-      </div>
-
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/40" />
-
-      {/* Content with Animation */}
-      <div 
-        key={`content-${currentIndex}`}
-        className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-10 animate-slide-up"
-      >
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-balance text-white mb-4">
-          {currentBanner.title}
-        </h1>
-        <p className="text-base sm:text-lg text-gray-100 max-w-2xl mb-6">
-          {currentBanner.description}
-        </p>
-        <Link href={currentBanner.link_url || "/shop"}>
-          <Button className="px-6 sm:px-8 py-2 sm:py-3 text-base animate-scale-in">
-            Shop Now
-          </Button>
-        </Link>
       </div>
 
       {/* Navigation Arrows */}

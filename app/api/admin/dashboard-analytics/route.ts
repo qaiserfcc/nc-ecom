@@ -27,6 +27,9 @@ export async function GET(request: Request) {
         break
     }
 
+    const fromDate = new Date()
+    fromDate.setDate(fromDate.getDate() - intervalDays)
+
     // Get comprehensive overview stats
     const [
       totalUsers,
@@ -68,7 +71,7 @@ export async function GET(request: Request) {
         COUNT(*) as orders,
         AVG(total_amount) as avg_order_value
       FROM orders
-      WHERE created_at >= CURRENT_DATE - INTERVAL '${intervalDays} days' AND status != 'cancelled'
+      WHERE created_at >= ${fromDate} AND status != 'cancelled'
       GROUP BY DATE(created_at)
       ORDER BY date ASC
     `
@@ -80,7 +83,7 @@ export async function GET(request: Request) {
         COUNT(*) as count,
         SUM(total_amount) as revenue
       FROM orders
-      WHERE created_at >= CURRENT_DATE - INTERVAL '${intervalDays} days'
+      WHERE created_at >= ${fromDate}
       GROUP BY status
       ORDER BY count DESC
     `
@@ -99,7 +102,7 @@ export async function GET(request: Request) {
       FROM products p
       JOIN order_items oi ON p.id = oi.product_id
       JOIN orders o ON oi.order_id = o.id
-      WHERE o.created_at >= CURRENT_DATE - INTERVAL '${intervalDays} days' 
+      WHERE o.created_at >= ${fromDate} 
         AND o.status != 'cancelled'
       GROUP BY p.id, p.name, p.slug, p.image_url, p.current_price
       ORDER BY total_revenue DESC
@@ -117,7 +120,7 @@ export async function GET(request: Request) {
         COUNT(a.id) as view_count
       FROM analytics a
       JOIN products p ON a.product_id = p.id
-      WHERE a.event_type = 'view' AND a.created_at >= CURRENT_DATE - INTERVAL '${intervalDays} days'
+      WHERE a.event_type = 'view' AND a.created_at >= ${fromDate}
       GROUP BY p.id, p.name, p.slug, p.image_url, p.current_price
       ORDER BY view_count DESC
       LIMIT 10
@@ -143,7 +146,7 @@ export async function GET(request: Request) {
         SUM(CASE WHEN event_type = 'add_to_wishlist' THEN 1 ELSE 0 END) as wishlist,
         SUM(CASE WHEN event_type = 'purchase' THEN 1 ELSE 0 END) as purchases
       FROM analytics
-      WHERE created_at >= CURRENT_DATE - INTERVAL '${intervalDays} days'
+      WHERE created_at >= ${fromDate}
     `
 
     // Get hourly order distribution
@@ -164,7 +167,7 @@ export async function GET(request: Request) {
         DATE(created_at) as date,
         COUNT(*) as new_customers
       FROM users
-      WHERE role = 'customer' AND created_at >= CURRENT_DATE - INTERVAL '${intervalDays} days'
+      WHERE role = 'customer' AND created_at >= ${fromDate}
       GROUP BY DATE(created_at)
       ORDER BY date ASC
     `
@@ -183,7 +186,7 @@ export async function GET(request: Request) {
       JOIN products p ON c.id = p.category_id
       LEFT JOIN order_items oi ON p.id = oi.product_id
       LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'cancelled'
-        AND o.created_at >= CURRENT_DATE - INTERVAL '${intervalDays} days'
+        AND o.created_at >= ${fromDate}
       GROUP BY c.id, c.name, c.slug
       ORDER BY total_revenue DESC NULLS LAST
       LIMIT 10
@@ -200,7 +203,7 @@ export async function GET(request: Request) {
         MAX(o.created_at) as last_order_date
       FROM users u
       JOIN orders o ON u.id = o.user_id
-      WHERE o.status != 'cancelled' AND o.created_at >= CURRENT_DATE - INTERVAL '${intervalDays} days'
+      WHERE o.status != 'cancelled' AND o.created_at >= ${fromDate}
       GROUP BY u.id, u.name, u.email
       ORDER BY total_spent DESC
       LIMIT 10
