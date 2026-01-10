@@ -7,6 +7,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { SocketProvider } from "@/lib/socket-client"
 import { ApiFetchInterceptor } from "@/lib/api-fetch-interceptor"
+import { MetaPixel } from "@/components/analytics/meta-pixel"
+import { AnalyticsProvider } from "@/components/analytics/analytics-provider"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -107,9 +109,16 @@ export default function RootLayout({
             {children}
             <Toaster richColors position="top-right" />
           </SocketProvider>
+          <AnalyticsProvider>
+            <SocketProvider>
+              {children}
+              <Toaster richColors position="top-right" />
+            </SocketProvider>
+          </AnalyticsProvider>
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />
+        <MetaPixel />
       </body>
     </html>
   )
