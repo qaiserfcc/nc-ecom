@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { sql } from "@/lib/db"
+import { handleApiError } from "@/lib/api-error-handler"
 
 // GET active global discount
 export async function GET() {
@@ -23,7 +24,6 @@ export async function GET() {
 
     return NextResponse.json({ discount: discounts[0] })
   } catch (error) {
-    console.error("Get active discount error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }

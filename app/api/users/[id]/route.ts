@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
+import { handleApiError } from "@/lib/api-error-handler"
 
 const normalizeRole = (value?: string | null) => {
   if (!value) return null
@@ -33,8 +34,7 @@ export async function GET(
 
     return NextResponse.json({ user: user[0] })
   } catch (error) {
-    console.error("Get user error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -82,11 +82,7 @@ export async function PUT(
 
     return NextResponse.json({ user: result[0] })
   } catch (error: any) {
-    console.error("Update user error:", error)
-    return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }
 
@@ -127,10 +123,6 @@ export async function DELETE(
 
     return NextResponse.json({ message: "User deleted successfully" })
   } catch (error: any) {
-    console.error("Delete user error:", error)
-    return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }

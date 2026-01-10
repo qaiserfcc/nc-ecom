@@ -6,6 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { SocketProvider } from "@/lib/socket-client"
+import { ApiFetchInterceptor } from "@/lib/api-fetch-interceptor"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -102,6 +103,7 @@ export default function RootLayout({
       <body className={`font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <SocketProvider>
+            <ApiFetchInterceptor />
             {children}
             <Toaster richColors position="top-right" />
           </SocketProvider>

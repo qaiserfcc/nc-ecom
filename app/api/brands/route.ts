@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from "next/server"
 import { sql } from "@/lib/db"
+import { handleApiError } from "@/lib/api-error-handler"
 
 // GET all brand partnerships
 export async function GET(req: NextRequest) {
@@ -46,8 +47,7 @@ export async function GET(req: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Get brands error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -83,10 +83,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ brand: result[0] }, { status: 201 })
   } catch (error) {
-    console.error("Error creating brand:", error)
-    return NextResponse.json(
-      { error: "Failed to create brand" },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }

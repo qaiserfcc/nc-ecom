@@ -1,5 +1,5 @@
 'use client'
-/* eslint-disable @next/next/no-inline-styles */
+
 'use client'
 
 import Image from 'next/image'

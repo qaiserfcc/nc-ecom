@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getSession } from "@/lib/auth"
+import { handleApiError } from "@/lib/api-error-handler"
 
 // GET WhatsApp metrics and logs (admin only)
 export async function GET(request: NextRequest) {
@@ -52,8 +53,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ error: "Invalid type parameter" }, { status: 400 })
   } catch (error) {
-    console.error("WhatsApp metrics error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -310,7 +310,6 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Export metrics error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }

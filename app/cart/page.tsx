@@ -1,5 +1,5 @@
 "use client"
-/* eslint-disable @next/next/no-inline-styles */
+
 
 import { useState } from "react"
 import Image from "next/image"

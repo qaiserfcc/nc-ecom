@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from "next/server"
 import { sql } from "@/lib/db"
+import { handleApiError } from "@/lib/api-error-handler"
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -37,8 +38,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     return NextResponse.json({ bundle: bundle[0] })
   } catch (error) {
-    console.error("Get bundle error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -78,11 +78,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({ bundle: result[0] })
   } catch (error) {
-    console.error("Error updating bundle:", error)
-    return NextResponse.json(
-      { error: "Failed to update bundle" },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }
 
@@ -107,10 +103,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     return NextResponse.json({ message: "Bundle deleted successfully" })
   } catch (error) {
-    console.error("Error deleting bundle:", error)
-    return NextResponse.json(
-      { error: "Failed to delete bundle" },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
+import { handleApiError } from "@/lib/api-error-handler"
 
 export async function POST() {
   try {
@@ -7,7 +8,6 @@ export async function POST() {
     cookieStore.delete("auth-token")
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Signout error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }

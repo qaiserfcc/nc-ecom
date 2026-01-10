@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
 import { getSession } from "@/lib/auth"
+import { handleApiError } from "@/lib/api-error-handler"
 
 const sql = neon(process.env.DATABASE_URL!)
 
@@ -112,12 +113,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Get products error:", error instanceof Error ? error.message : String(error))
-    console.error("Full error:", error)
-    return NextResponse.json({ 
-      error: "Internal server error",
-      details: error instanceof Error ? error.message : String(error)
-    }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -184,7 +180,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ product }, { status: 201 })
   } catch (error) {
-    console.error("Create product error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }

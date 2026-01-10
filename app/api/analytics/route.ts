@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
+import { handleApiError } from "@/lib/api-error-handler"
 
 // GET analytics (admin only)
 export async function GET() {
@@ -73,7 +74,6 @@ export async function GET() {
       dailyRevenue,
     })
   } catch (error) {
-    console.error("Get analytics error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }

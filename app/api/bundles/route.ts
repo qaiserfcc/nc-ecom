@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from "next/server"
 import { sql } from "@/lib/db"
+import { handleApiError } from "@/lib/api-error-handler"
 
 // GET all bundles
 export async function GET(req: NextRequest) {
@@ -76,8 +77,7 @@ export async function GET(req: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Get bundles error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -102,10 +102,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ bundle: result[0] }, { status: 201 })
   } catch (error) {
-    console.error("Error creating bundle:", error)
-    return NextResponse.json(
-      { error: "Failed to create bundle" },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }

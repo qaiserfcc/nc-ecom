@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
+import { handleApiError } from "@/lib/api-error-handler"
 
 // GET current user profile
 export async function GET() {
@@ -21,8 +22,7 @@ export async function GET() {
 
     return NextResponse.json({ user: result[0] })
   } catch (error) {
-    console.error("Get profile error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -52,7 +52,6 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ user: result[0] })
   } catch (error) {
-    console.error("Update profile error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }

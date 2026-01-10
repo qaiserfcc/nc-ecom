@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
 import bcrypt from "bcryptjs"
+import { handleApiError } from "@/lib/api-error-handler"
 
 const normalizeRole = (value?: string | null) => {
   if (!value) return null
@@ -71,8 +72,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Get users error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -122,11 +122,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result[0], { status: 201 })
   } catch (error: any) {
-    console.error("Create user error:", error)
-    return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }
 

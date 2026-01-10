@@ -4,7 +4,7 @@ import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react'
 /* stylelint-disable */
 import Link from 'next/link'
 import Image from 'next/image'
-/* eslint-disable @next/next/no-inline-styles */
+
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'

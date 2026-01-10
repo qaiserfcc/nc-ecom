@@ -26,7 +26,7 @@ export default function ContactQuoteForm() {
     try {
       const res = await fetch("/api/quotes", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-skip-api-toast": "1" },
         body: JSON.stringify({
           name: name.trim(),
           email: email.trim(),

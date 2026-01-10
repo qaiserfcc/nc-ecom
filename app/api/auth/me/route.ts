@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
+import { handleApiError } from "@/lib/api-error-handler"
 
 export async function GET() {
   try {
@@ -11,7 +12,6 @@ export async function GET() {
 
     return NextResponse.json({ user: session.user })
   } catch (error) {
-    console.error("Get user error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }

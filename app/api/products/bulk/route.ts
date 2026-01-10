@@ -4,6 +4,7 @@ import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
 import { optimizeImageBuffer } from "@/lib/image-optimizer"
 import { uploadImageBuffer } from "@/lib/storage"
+import { handleApiError } from "@/lib/api-error-handler"
 
 export const runtime = "nodejs"
 
@@ -136,8 +137,7 @@ export async function POST(request: NextRequest) {
       errors,
     })
   } catch (error) {
-    console.error("Bulk upload error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -187,7 +187,6 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ updated: updated.map((row: any) => row.id) })
   } catch (error) {
-    console.error("Bulk edit error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return handleApiError(error)
   }
 }
