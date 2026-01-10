@@ -104,13 +104,9 @@ export default function RootLayout({
     <html lang="en" className="bg-background" suppressHydrationWarning>
       <body className={`font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <SocketProvider>
-            <ApiFetchInterceptor />
-            {children}
-            <Toaster richColors position="top-right" />
-          </SocketProvider>
           <AnalyticsProvider>
             <SocketProvider>
+              <ApiFetchInterceptor />
               {children}
               <Toaster richColors position="top-right" />
             </SocketProvider>

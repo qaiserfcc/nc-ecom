@@ -9,6 +9,7 @@
     "lint": "node ./node_modules/eslint/bin/eslint.js --no-config-lookup -c ./eslint.config.mjs .",
     "start": "dotenv -e .env.local -- tsx server.ts",
     "db:init": "tsx scripts/init-db.ts",
+    "db:banners:reset": "dotenv -e .env.local -- tsx scripts/reset-homepage-banners.ts",
     "test": "vitest",
     "test:smoke": "vitest run tests/api/smoke.test.ts"
   },
