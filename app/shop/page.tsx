@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Slider } from "@/components/ui/slider"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Search, Filter, Heart, ShoppingCart, Loader2, X } from "lucide-react"
+import { Search, Filter, Heart, ShoppingCart, Loader2, X, ChevronRight, ChevronDown } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
 import { ProductCardSkeleton } from "@/components/product-card-skeleton"
@@ -357,11 +357,31 @@ function ShopContent() {
     setOffset(0) // Reset pagination
   }
 
-  const FilterPanel = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="font-bold mb-4 text-primary text-sm uppercase tracking-wide">Categories</h3>
-        <div className="space-y-2">
+  const FilterPanel = () => {
+    const [categoriesCollapsed, setCategoriesCollapsed] = useState(false)
+    const [expandedCategories, setExpandedCategories] = useState<Record<number, boolean>>({})
+    const toggleParent = (id: number) => {
+      setExpandedCategories((prev) => ({ ...prev, [id]: !prev[id] }))
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* Categories Section */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-primary text-sm uppercase tracking-wide">Categories</h3>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-gray-600 hover:text-primary"
+              onClick={() => setCategoriesCollapsed(!categoriesCollapsed)}
+              aria-label={categoriesCollapsed ? "Expand categories" : "Collapse categories"}
+            >
+              {categoriesCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            </Button>
+          </div>
+          {!categoriesCollapsed && (
+            <div className="space-y-2 max-h-[320px] overflow-y-auto pr-2">
           <Button
             variant={category === "all" ? "default" : "ghost"}
             className={`w-full justify-start rounded-xl transition-all ${
@@ -375,21 +395,36 @@ function ShopContent() {
           </Button>
           {mainCategories.map((parent: any) => {
             const children = subcategories.filter((c: any) => c.parent_category_id === parent.id)
+            const isExpanded = !!expandedCategories[parent.id]
             return (
               <div key={parent.id} className="space-y-2">
-                <Button
-                  variant={activeMainCategoryId === parent.id ? "default" : "ghost"}
-                  className={`w-full justify-start rounded-xl transition-all ${
-                    activeMainCategoryId === parent.id 
-                      ? "bg-secondary text-primary hover:bg-secondary/80" 
-                      : "text-gray-600 hover:text-primary hover:bg-gray-50"
-                  }`}
-                  onClick={() => setCategory(parent.slug)}
-                >
-                  {parent.name} <span className="ml-auto text-xs opacity-70">({parent.product_count})</span>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={activeMainCategoryId === parent.id ? "default" : "ghost"}
+                    className={`flex-1 justify-start rounded-xl transition-all ${
+                      activeMainCategoryId === parent.id 
+                        ? "bg-secondary text-primary hover:bg-secondary/80" 
+                        : "text-gray-600 hover:text-primary hover:bg-gray-50"
+                    }`}
+                    onClick={() => setCategory(parent.slug)}
+                  >
+                    {parent.name}
+                    <span className="ml-auto text-xs opacity-70">({parent.product_count})</span>
+                  </Button>
+                  {children.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-gray-600 hover:text-primary"
+                      onClick={() => toggleParent(parent.id)}
+                      aria-label={isExpanded ? "Collapse subcategories" : "Expand subcategories"}
+                    >
+                      {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                    </Button>
+                  )}
+                </div>
 
-                {children.length > 0 && (
+                {isExpanded && children.length > 0 && (
                   <div className="pt-2 pl-4 border-l border-gray-100 space-y-2">
                     {children.map((child: any) => (
                       <Button
@@ -410,10 +445,12 @@ function ShopContent() {
               </div>
             )
           })}
+            </div>
+          )}
         </div>
-      </div>
 
-      <div className="border-t border-gray-100 pt-6">
+        {/* Brands Section */}
+        <div className="border-t border-gray-100 pt-6">
         <h3 className="font-bold mb-4 text-primary text-sm uppercase tracking-wide">Brands</h3>
         <div className="space-y-2">
           <Button
@@ -442,18 +479,20 @@ function ShopContent() {
             </Button>
           ))}
         </div>
-      </div>
+        </div>
 
-      <div className="border-t border-gray-100 pt-6">
+        {/* Price Range Section */}
+        <div className="border-t border-gray-100 pt-6">
         <h3 className="font-bold mb-4 text-primary text-sm uppercase tracking-wide">Price Range</h3>
         <Slider value={priceRange} min={0} max={10000} step={100} onValueChange={setPriceRange} className="mb-4" />
         <div className="flex justify-between text-sm text-gray-600 font-medium">
           <span>Rs. {priceRange[0]}</span>
           <span>Rs. {priceRange[1]}</span>
         </div>
-      </div>
+        </div>
 
-      <div className="border-t border-gray-100 pt-6">
+        {/* Filters Section */}
+        <div className="border-t border-gray-100 pt-6">
         <h3 className="font-bold mb-4 text-primary text-sm uppercase tracking-wide">Filters</h3>
         <div className="space-y-3">
           <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
@@ -469,9 +508,10 @@ function ShopContent() {
             </label>
           </div>
         </div>
-      </div>
+        </div>
 
-      <Button 
+        {/* Clear Filters Button */}
+        <Button 
         variant="outline" 
         className="w-full rounded-xl border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-primary hover:border-primary transition-all" 
         onClick={clearFilters}
@@ -479,8 +519,9 @@ function ShopContent() {
         <X className="w-4 h-4 mr-2" />
         Clear Filters
       </Button>
-    </div>
-  )
+      </div>
+    )
+  }
 
   return (
     <>
