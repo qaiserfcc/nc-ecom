@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { DesignSwitcher } from "@/components/design-switcher"
+import { useDesignTheme } from "@/lib/contexts/design-theme-context"
 import useSWR from "swr"
 import { cn } from "@/lib/utils"
 
@@ -37,6 +38,7 @@ const fetcher = (url: string) => fetch(url).then((res) => (res.ok ? res.json() :
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { user, isLoading, isAuthenticated, isAdmin, signOut } = useAuth()
+  const { headerStyle, headerStyles: headerStylesConfig } = useDesignTheme()
   const router = useRouter()
   const pathname = usePathname()
 
@@ -52,18 +54,42 @@ export default function Header() {
     router.push("/")
   }
 
+  // Get current header style config
+  const currentHeaderConfig = headerStylesConfig[headerStyle].config
+
+  // Determine logo height based on style
+  const logoHeightClass =
+    currentHeaderConfig.logoSize === "small"
+      ? "h-[40px]"
+      : currentHeaderConfig.logoSize === "large"
+        ? "h-[65px]"
+        : "h-[55px]"
+
+  // Apply header background based on style
+  const headerBgClass =
+    headerStyle === "modern"
+      ? "bg-gradient-to-r from-white via-background to-white backdrop-blur-md"
+      : "bg-white"
+
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
+    <header
+      className={cn(
+        "z-50",
+        currentHeaderConfig.sticky ? "sticky top-0" : "relative",
+        headerBgClass,
+        currentHeaderConfig.shadow
+      )}
+    >
       <div className="container mx-auto px-6">
-        <div className="flex items-center justify-between h-20">
+        <div className={cn("flex items-center justify-between", currentHeaderConfig.padding)}>
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <Image 
-              src="/logo-banner-xl.png" 
-              alt="Namecheap Extra Discount" 
-              width={800} 
-              height={200} 
-              className="h-[55px] w-auto"
+            <Image
+              src="/logo-banner-xl.png"
+              alt="Namecheap Extra Discount"
+              width={800}
+              height={200}
+              className={cn(logoHeightClass, "w-auto")}
               priority
             />
           </Link>

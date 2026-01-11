@@ -12,11 +12,25 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useDesignTheme } from "@/lib/contexts/design-theme-context"
 import { ThemeVariant } from "@/lib/design-themes"
+import { HeaderStyleVariant } from "@/lib/header-styles"
+import { FooterStyleVariant } from "@/lib/footer-styles"
 
 export function DesignSwitcher() {
-  const { currentTheme, setTheme, themes } = useDesignTheme()
+  const {
+    currentTheme,
+    setTheme,
+    themes,
+    headerStyle,
+    setHeaderStyle,
+    headerStyles,
+    footerStyle,
+    setFooterStyle,
+    footerStyles,
+  } = useDesignTheme()
 
   const themeOrder: ThemeVariant[] = ["orange-classic", "green-eco", "purple-premium", "blue-modern"]
+  const headerStyleOrder: HeaderStyleVariant[] = ["classic", "minimal", "modern"]
+  const footerStyleOrder: FooterStyleVariant[] = ["classic", "compact", "extended"]
 
   const getThemeColorClass = (themeId: ThemeVariant) => {
     switch (themeId) {
@@ -46,10 +60,13 @@ export function DesignSwitcher() {
           <span className="sr-only">Change design theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64 rounded-2xl shadow-lg border-gray-100">
-        <DropdownMenuLabel className="text-base font-semibold">Design Themes</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-72 rounded-2xl shadow-lg border-gray-100">
+        <DropdownMenuLabel className="text-base font-semibold">Design Settings</DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-gray-100" />
+
+        {/* Color Themes */}
         <div className="p-2">
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-2">Color Theme</div>
           {themeOrder.map((themeId) => {
             const theme = themes[themeId]
             const isActive = currentTheme === themeId
@@ -62,7 +79,9 @@ export function DesignSwitcher() {
                 }`}
               >
                 <div className="flex items-center gap-3 w-full">
-                  <div className={`w-6 h-6 rounded-full ${getThemeColorClass(themeId)} flex-shrink-0 ${isActive ? "ring-2 ring-offset-2 ring-gray-400" : ""}`} />
+                  <div
+                    className={`w-6 h-6 rounded-full ${getThemeColorClass(themeId)} flex-shrink-0 ${isActive ? "ring-2 ring-offset-2 ring-gray-400" : ""}`}
+                  />
                   <div className="flex-1">
                     <div className="font-medium text-gray-900 flex items-center gap-2">
                       {theme.name}
@@ -76,6 +95,58 @@ export function DesignSwitcher() {
               </DropdownMenuItem>
             )
           })}
+        </div>
+
+        <DropdownMenuSeparator className="bg-gray-100" />
+
+        {/* Header Styles */}
+        <div className="p-2">
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-2">Header Style</div>
+          <div className="flex gap-2">
+            {headerStyleOrder.map((styleId) => {
+              const style = headerStyles[styleId]
+              const isActive = headerStyle === styleId
+              return (
+                <button
+                  key={styleId}
+                  onClick={() => setHeaderStyle(styleId)}
+                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {style.name}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <DropdownMenuSeparator className="bg-gray-100" />
+
+        {/* Footer Styles */}
+        <div className="p-2">
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-2">Footer Style</div>
+          <div className="flex gap-2">
+            {footerStyleOrder.map((styleId) => {
+              const style = footerStyles[styleId]
+              const isActive = footerStyle === styleId
+              return (
+                <button
+                  key={styleId}
+                  onClick={() => setFooterStyle(styleId)}
+                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {style.name}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
