@@ -27,22 +27,22 @@ export function DesignThemeProvider({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     setMounted(true)
-    // Load theme from localStorage
-    const savedTheme = localStorage.getItem("design-theme") as ThemeVariant
-    if (savedTheme && designThemes[savedTheme]) {
-      setCurrentTheme(savedTheme)
+    // Load theme from localStorage with validation
+    const savedTheme = localStorage.getItem("design-theme")
+    if (savedTheme && savedTheme in designThemes) {
+      setCurrentTheme(savedTheme as ThemeVariant)
     }
-    
-    // Load header style from localStorage
-    const savedHeaderStyle = localStorage.getItem("header-style") as HeaderStyleVariant
-    if (savedHeaderStyle && headerStyles[savedHeaderStyle]) {
-      setHeaderStyleState(savedHeaderStyle)
+
+    // Load header style from localStorage with validation
+    const savedHeaderStyle = localStorage.getItem("header-style")
+    if (savedHeaderStyle && savedHeaderStyle in headerStyles) {
+      setHeaderStyleState(savedHeaderStyle as HeaderStyleVariant)
     }
-    
-    // Load footer style from localStorage
-    const savedFooterStyle = localStorage.getItem("footer-style") as FooterStyleVariant
-    if (savedFooterStyle && footerStyles[savedFooterStyle]) {
-      setFooterStyleState(savedFooterStyle)
+
+    // Load footer style from localStorage with validation
+    const savedFooterStyle = localStorage.getItem("footer-style")
+    if (savedFooterStyle && savedFooterStyle in footerStyles) {
+      setFooterStyleState(savedFooterStyle as FooterStyleVariant)
     }
   }, [])
 

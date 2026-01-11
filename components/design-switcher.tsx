@@ -14,6 +14,7 @@ import { useDesignTheme } from "@/lib/contexts/design-theme-context"
 import { ThemeVariant } from "@/lib/design-themes"
 import { HeaderStyleVariant } from "@/lib/header-styles"
 import { FooterStyleVariant } from "@/lib/footer-styles"
+import { cn } from "@/lib/utils"
 
 export function DesignSwitcher() {
   const {
@@ -74,13 +75,18 @@ export function DesignSwitcher() {
               <DropdownMenuItem
                 key={themeId}
                 onClick={() => setTheme(themeId)}
-                className={`cursor-pointer rounded-xl mb-1 py-3 px-3 ${
+                className={cn(
+                  "cursor-pointer rounded-xl mb-1 py-3 px-3",
                   isActive ? "bg-gray-100" : "hover:bg-gray-50"
-                }`}
+                )}
               >
                 <div className="flex items-center gap-3 w-full">
                   <div
-                    className={`w-6 h-6 rounded-full ${getThemeColorClass(themeId)} flex-shrink-0 ${isActive ? "ring-2 ring-offset-2 ring-gray-400" : ""}`}
+                    className={cn(
+                      "w-6 h-6 rounded-full flex-shrink-0",
+                      getThemeColorClass(themeId),
+                      isActive && "ring-2 ring-offset-2 ring-gray-400"
+                    )}
                   />
                   <div className="flex-1">
                     <div className="font-medium text-gray-900 flex items-center gap-2">
@@ -110,11 +116,12 @@ export function DesignSwitcher() {
                 <button
                   key={styleId}
                   onClick={() => setHeaderStyle(styleId)}
-                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                  className={cn(
+                    "flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all",
                     isActive
                       ? "bg-primary text-primary-foreground"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                  )}
                 >
                   {style.name}
                 </button>
@@ -136,11 +143,12 @@ export function DesignSwitcher() {
                 <button
                   key={styleId}
                   onClick={() => setFooterStyle(styleId)}
-                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                  className={cn(
+                    "flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all",
                     isActive
                       ? "bg-primary text-primary-foreground"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                  )}
                 >
                   {style.name}
                 </button>

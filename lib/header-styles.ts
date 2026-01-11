@@ -16,6 +16,7 @@ export interface HeaderStyle {
     logoSize: "small" | "medium" | "large"
     navPosition: "center" | "right"
     showBorder: boolean
+    background: string
   }
 }
 
@@ -32,6 +33,7 @@ export const headerStyles: Record<HeaderStyleVariant, HeaderStyle> = {
       logoSize: "medium",
       navPosition: "right",
       showBorder: true,
+      background: "bg-white",
     },
   },
   minimal: {
@@ -46,6 +48,7 @@ export const headerStyles: Record<HeaderStyleVariant, HeaderStyle> = {
       logoSize: "small",
       navPosition: "right",
       showBorder: false,
+      background: "bg-white",
     },
   },
   modern: {
@@ -60,6 +63,7 @@ export const headerStyles: Record<HeaderStyleVariant, HeaderStyle> = {
       logoSize: "large",
       navPosition: "center",
       showBorder: false,
+      background: "bg-gradient-to-r from-white via-background to-white backdrop-blur-md",
     },
   },
 }

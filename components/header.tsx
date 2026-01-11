@@ -65,18 +65,12 @@ export default function Header() {
         ? "h-[65px]"
         : "h-[55px]"
 
-  // Apply header background based on style
-  const headerBgClass =
-    headerStyle === "modern"
-      ? "bg-gradient-to-r from-white via-background to-white backdrop-blur-md"
-      : "bg-white"
-
   return (
     <header
       className={cn(
         "z-50",
         currentHeaderConfig.sticky ? "sticky top-0" : "relative",
-        headerBgClass,
+        currentHeaderConfig.background,
         currentHeaderConfig.shadow
       )}
     >
