@@ -73,9 +73,12 @@ export async function POST(request: NextRequest) {
 
     const { name, slug, description, image_url, parent_category_id } = await request.json()
 
+    // Normalize parent_category_id: treat null, undefined, 0, and empty string as NULL
+    const normalizedParentId = parent_category_id && parent_category_id !== 0 ? parent_category_id : null
+
     const result = await sql`
       INSERT INTO categories (name, slug, description, image_url, parent_category_id)
-      VALUES (${name}, ${slug}, ${description}, ${image_url}, ${parent_category_id || null})
+      VALUES (${name}, ${slug}, ${description}, ${image_url}, ${normalizedParentId})
       RETURNING *
     `
 

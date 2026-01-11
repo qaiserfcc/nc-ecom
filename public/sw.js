@@ -7,16 +7,20 @@ const CACHE_NAMES = {
 }
 
 const IMAGE_CACHE_TIMEOUT = 5000 // 5 seconds timeout for images
+const API_CACHE_TIMEOUT = 30000 // API requests can take longer (DB/network)
 
 // Cache strategies
 const CACHE_STRATEGIES = {
   // Network first, fall back to cache
   networkFirst: async (request) => {
     try {
+      const url = new URL(request.url)
+      const timeoutMs = url.pathname.startsWith('/api/') ? API_CACHE_TIMEOUT : IMAGE_CACHE_TIMEOUT
+
       const response = await Promise.race([
         fetch(request),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Network timeout')), IMAGE_CACHE_TIMEOUT)
+          setTimeout(() => reject(new Error('Network timeout')), timeoutMs)
         ),
       ])
       

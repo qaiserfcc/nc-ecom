@@ -41,8 +41,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const categoryId = Number.parseInt(id)
     const { name, slug, description, image_url, parent_category_id } = await request.json()
 
+    // Normalize parent_category_id: treat null, undefined, 0, and empty string as NULL
+    const normalizedParentId = parent_category_id && parent_category_id !== 0 ? parent_category_id : null
+
     // Prevent circular references
-    if (parent_category_id === categoryId) {
+    if (normalizedParentId === categoryId) {
       return NextResponse.json({ error: "A category cannot be its own parent" }, { status: 400 })
     }
 
@@ -52,7 +55,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           slug = ${slug},
           description = ${description},
           image_url = ${image_url},
-          parent_category_id = ${parent_category_id || null}
+          parent_category_id = ${normalizedParentId}
       WHERE id = ${categoryId}
       RETURNING *
     `

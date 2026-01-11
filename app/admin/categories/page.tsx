@@ -106,6 +106,11 @@ export default function AdminCategoriesPage() {
       const method = editingCategory.id ? "PUT" : "POST"
       const url = editingCategory.id ? `/api/categories/${editingCategory.id}` : "/api/categories"
 
+      // Normalize parent_category_id: treat null, undefined, 0, and empty string as null
+      const normalizedParentId = editingCategory.parent_category_id && editingCategory.parent_category_id !== 0 
+        ? editingCategory.parent_category_id 
+        : null
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
@@ -114,7 +119,7 @@ export default function AdminCategoriesPage() {
           slug: editingCategory.slug,
           description: editingCategory.description,
           image_url: editingCategory.image_url,
-          parent_category_id: editingCategory.parent_category_id || null,
+          parent_category_id: normalizedParentId,
         }),
       })
 
@@ -351,11 +356,15 @@ export default function AdminCategoriesPage() {
             <div className="space-y-2">
               <Label htmlFor="parent">Parent Category (for subcategories)</Label>
               <Select
-                value={editingCategory?.parent_category_id?.toString() || "none"}
+                value={
+                  editingCategory?.parent_category_id && editingCategory.parent_category_id !== 0
+                    ? editingCategory.parent_category_id.toString()
+                    : "none"
+                }
                 onValueChange={(value) =>
                   setEditingCategory({
                     ...editingCategory,
-                    parent_category_id: value === "none" ? null : Number.parseInt(value),
+                    parent_category_id: value === "none" || value === "0" ? null : Number.parseInt(value),
                   })
                 }
               >
