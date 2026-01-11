@@ -373,39 +373,43 @@ function ShopContent() {
           >
             All Products
           </Button>
-          {mainCategories.map((cat: any) => (
-            <Button
-              key={cat.id}
-              variant={activeMainCategoryId === cat.id ? "default" : "ghost"}
-              className={`w-full justify-start rounded-xl transition-all ${
-                activeMainCategoryId === cat.id 
-                  ? "bg-secondary text-primary hover:bg-secondary/80" 
-                  : "text-gray-600 hover:text-primary hover:bg-gray-50"
-              }`}
-              onClick={() => setCategory(cat.slug)}
-            >
-              {cat.name} <span className="ml-auto text-xs opacity-70">({cat.product_count})</span>
-            </Button>
-          ))}
-
-          {activeMainSubcategories.length > 0 && (
-            <div className="pt-2 pl-4 border-l border-gray-100 space-y-2">
-              {activeMainSubcategories.map((cat: any) => (
+          {mainCategories.map((parent: any) => {
+            const children = subcategories.filter((c: any) => c.parent_category_id === parent.id)
+            return (
+              <div key={parent.id} className="space-y-2">
                 <Button
-                  key={cat.id}
-                  variant={category === cat.slug ? "default" : "ghost"}
+                  variant={activeMainCategoryId === parent.id ? "default" : "ghost"}
                   className={`w-full justify-start rounded-xl transition-all ${
-                    category === cat.slug
-                      ? "bg-secondary text-primary hover:bg-secondary/80"
+                    activeMainCategoryId === parent.id 
+                      ? "bg-secondary text-primary hover:bg-secondary/80" 
                       : "text-gray-600 hover:text-primary hover:bg-gray-50"
                   }`}
-                  onClick={() => setCategory(cat.slug)}
+                  onClick={() => setCategory(parent.slug)}
                 >
-                  {cat.name} <span className="ml-auto text-xs opacity-70">({cat.product_count})</span>
+                  {parent.name} <span className="ml-auto text-xs opacity-70">({parent.product_count})</span>
                 </Button>
-              ))}
-            </div>
-          )}
+
+                {children.length > 0 && (
+                  <div className="pt-2 pl-4 border-l border-gray-100 space-y-2">
+                    {children.map((child: any) => (
+                      <Button
+                        key={child.id}
+                        variant={category === child.slug ? "default" : "ghost"}
+                        className={`w-full justify-start rounded-xl transition-all ${
+                          category === child.slug
+                            ? "bg-secondary text-primary hover:bg-secondary/80"
+                            : "text-gray-600 hover:text-primary hover:bg-gray-50"
+                        }`}
+                        onClick={() => setCategory(child.slug)}
+                      >
+                        {child.name} <span className="ml-auto text-xs opacity-70">({child.product_count})</span>
+                      </Button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
 
