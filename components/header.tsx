@@ -28,7 +28,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/lib/hooks/use-auth"
+import { DesignSwitcher } from "@/components/design-switcher"
 import useSWR from "swr"
+import { cn } from "@/lib/utils"
 
 const fetcher = (url: string) => fetch(url).then((res) => (res.ok ? res.json() : null))
 
@@ -125,6 +127,9 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
+            {/* Design Switcher */}
+            <DesignSwitcher />
+
             {/* WhatsApp */}
             <a 
               href="https://wa.me/923110484849?text=Hi%20Namecheap%2C%20I%20would%20like%20to%20place%20an%20order."

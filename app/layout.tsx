@@ -9,6 +9,7 @@ import { SocketProvider } from "@/lib/socket-client"
 import { ApiFetchInterceptor } from "@/lib/api-fetch-interceptor"
 import { MetaPixel } from "@/components/analytics/meta-pixel"
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider"
+import { DesignThemeProvider } from "@/lib/contexts/design-theme-context"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -103,15 +104,17 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-background" suppressHydrationWarning>
       <body className={`font-sans antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <AnalyticsProvider>
-            <SocketProvider>
-              <ApiFetchInterceptor />
-              {children}
-              <Toaster richColors position="top-right" />
-            </SocketProvider>
-          </AnalyticsProvider>
-        </ThemeProvider>
+        <DesignThemeProvider>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+            <AnalyticsProvider>
+              <SocketProvider>
+                <ApiFetchInterceptor />
+                {children}
+                <Toaster richColors position="top-right" />
+              </SocketProvider>
+            </AnalyticsProvider>
+          </ThemeProvider>
+        </DesignThemeProvider>
         <Analytics />
         <SpeedInsights />
         <MetaPixel />
