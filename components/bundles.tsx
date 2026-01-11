@@ -94,10 +94,12 @@ export default function Bundles() {
                 <CardContent className="p-0">
                   <Link href={`/bundle/${bundle.id}`}>
                     <div className="relative overflow-hidden bg-muted h-40 sm:h-48">
-                      <img
+                      <Image
                         src={bundle.image_url || "/placeholder.svg"}
                         alt={bundle.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
+                        fill
+                        className="object-cover group-hover:scale-110 transition duration-300"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
                     </div>
                   </Link>

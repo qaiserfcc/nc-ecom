@@ -2,6 +2,7 @@
 
 import { useState, use } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import useSWR from "swr"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
@@ -74,11 +75,14 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
             {/* Brand Logo */}
             <div className="space-y-4">
-              <div className="rounded-lg overflow-hidden bg-muted p-8 min-h-96 flex items-center justify-center">
-                <img
+              <div className="rounded-lg overflow-hidden bg-muted p-8 min-h-96 flex items-center justify-center relative">
+                <Image
                   src={brand.logo_url || "/placeholder.svg"}
                   alt={brand.name}
+                  width={400}
+                  height={400}
                   className="max-w-full max-h-96 object-contain"
+                  sizes="(max-width: 768px) 100vw, 400px"
                 />
               </div>
             </div>

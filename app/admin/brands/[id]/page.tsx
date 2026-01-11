@@ -186,11 +186,13 @@ export default function EditBrandPage({ params }: { params: Promise<{ id: string
                 type="url"
               />
               {formData.logo_url && (
-                <div className="mt-2">
-                  <img
+                <div className="mt-2 relative w-20 h-20">
+                  <Image
                     src={formData.logo_url}
                     alt="Logo preview"
-                    className="w-20 h-20 object-cover rounded border"
+                    fill
+                    className="object-cover rounded border"
+                    sizes="80px"
                   />
                 </div>
               )}

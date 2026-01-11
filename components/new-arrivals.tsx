@@ -187,11 +187,13 @@ export default function NewArrivals() {
               >
                 <CardContent className="p-0">
                   <Link href={`/product/${product.slug}`}>
-                    <div className="relative overflow-hidden bg-gradient-to-br from-secondary/25 via-white to-primary/15 h-40 sm:h-48 flex items-center justify-center">
-                      <img
+                    <div className="relative overflow-hidden bg-gradient-to-br from-secondary/25 via-white to-primary/15 h-40 sm:h-48">
+                      <Image
                         src={product.image_url || "/placeholder.svg"}
                         alt={product.name}
-                        className="max-h-full max-w-full object-contain"
+                        fill
+                        className="object-contain"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
                       {discount && (

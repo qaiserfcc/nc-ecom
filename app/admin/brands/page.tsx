@@ -168,12 +168,14 @@ export default function BrandsPage() {
                   {currentBrands.map((brand) => (
                     <TableRow key={brand.id}>
                       <TableCell>
-                        <div className="w-10 h-10 rounded border bg-muted flex items-center justify-center">
+                        <div className="w-10 h-10 rounded border bg-muted flex items-center justify-center relative">
                           {brand.logo_url ? (
-                            <img
+                            <Image
                               src={brand.logo_url}
                               alt={brand.name}
-                              className="w-full h-full object-cover rounded"
+                              fill
+                              className="object-cover rounded"
+                              sizes="40px"
                             />
                           ) : (
                             <span className="text-xs text-muted-foreground">No logo</span>

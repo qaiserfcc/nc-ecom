@@ -117,14 +117,13 @@ export function ImageUpload({
 
       {preview ? (
         <div className="space-y-3">
-          <div className="relative inline-block">
-            <img
+          <div className="relative inline-block w-full max-w-xs h-64">
+            <Image
               src={preview}
               alt="Preview"
-              className="max-w-xs max-h-64 rounded-lg border border-border object-cover"
-              onError={(e) => {
-                e.currentTarget.src = placeholder
-              }}
+              fill
+              className="rounded-lg border border-border object-cover"
+              sizes="320px"
             />
             <Button
               type="button"

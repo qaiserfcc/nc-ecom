@@ -93,8 +93,8 @@ export default function Brands() {
           {brands.map((brand) => (
             <Link key={brand.id} href={`/brand/${brand.id}`}>
               <div className="flex flex-col items-center gap-3 p-4 rounded-lg hover:bg-background/50 transition">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-white border border-border flex items-center justify-center overflow-hidden">
-                  <img src={brand.logo_url || "/placeholder.svg"} alt={brand.name} className="w-full h-full object-cover" />
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-white border border-border flex items-center justify-center overflow-hidden relative">
+                  <Image src={brand.logo_url || "/placeholder.svg"} alt={brand.name} fill className="object-cover" sizes="(max-width: 640px) 80px, 96px" />
                 </div>
                 <p className="text-center text-sm sm:text-base font-medium text-foreground hover:text-primary">
                   {brand.name}

@@ -59,11 +59,13 @@ export default function HeroBanner() {
   if (error || banners.length === 0) {
     return (
       <section className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] overflow-hidden rounded-lg md:rounded-xl">
-        <img
+        <Image
           src={fallbackImage}
           alt="Natural skincare products banner"
-          className="w-full h-full object-cover"
-          loading="lazy"
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
         />
       </section>
     )
@@ -79,11 +81,13 @@ export default function HeroBanner() {
         key={currentIndex}
         className="absolute inset-0 animate-fade-in"
       >
-        <img
+        <Image
           src={imageSrc}
           alt={currentBanner.title}
-          className="w-full h-full object-cover"
-          loading="lazy"
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
         />
       </div>
 

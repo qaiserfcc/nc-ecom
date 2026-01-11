@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import useSWR from "swr"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -129,14 +130,13 @@ export default function AdminBannersPage() {
                   {displayedBanners.map((banner: any) => (
                     <TableRow key={banner.id}>
                       <TableCell>
-                        <div className="w-16 h-10 rounded border overflow-hidden bg-muted">
-                          <img
-                            src={banner.image_url}
+                        <div className="w-16 h-10 rounded border overflow-hidden bg-muted relative">
+                          <Image
+                            src={banner.image_url || "/placeholder.svg"}
                             alt={banner.title}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "/placeholder.svg"
-                            }}
+                            fill
+                            className="object-cover"
+                            sizes="64px"
                           />
                         </div>
                       </TableCell>

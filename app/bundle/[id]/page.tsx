@@ -130,10 +130,12 @@ export default function BundlePage({ params }: { params: Promise<{ id: string }>
             {/* Bundle Image */}
             <div className="space-y-4">
               <div className="relative aspect-square rounded-lg overflow-hidden bg-muted">
-                <img
+                <Image
                   src={bundle.image_url || "/placeholder.svg"}
                   alt={bundle.name}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
                 {savingsPercent > 0 && (
                   <Badge variant="destructive" className="absolute top-4 right-4">
@@ -171,11 +173,15 @@ export default function BundlePage({ params }: { params: Promise<{ id: string }>
                   {items.map((item: any) => (
                     <Card key={item.id}>
                       <CardContent className="p-4 flex items-start gap-4">
-                        <img
-                          src={item.product_image || "/placeholder.svg"}
-                          alt={item.product_name}
-                          className="w-20 h-20 rounded object-cover"
-                        />
+                        <div className="w-20 h-20 relative rounded overflow-hidden flex-shrink-0">
+                          <Image
+                            src={item.product_image || "/placeholder.svg"}
+                            alt={item.product_name}
+                            fill
+                            className="object-cover"
+                            sizes="80px"
+                          />
+                        </div>
                         <div className="flex-1">
                           <Link href={`/product/${item.product_id}`}>
                             <h4 className="font-semibold hover:text-primary">
