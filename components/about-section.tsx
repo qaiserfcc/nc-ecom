@@ -1,28 +1,32 @@
+"use client"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Heart, Users, Leaf, Award } from "lucide-react"
+import { useDesignTheme } from "@/lib/contexts/design-theme-context"
+import { getContentForTheme } from "@/lib/content-variations"
 
 export default function AboutSection() {
+  const { currentTheme } = useDesignTheme()
+  const content = getContentForTheme(currentTheme)
+
   return (
     <section className="py-8 sm:py-12 md:py-16 bg-[#fcfdfd]">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center mb-12 md:mb-16">
           <div>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-900">About Namecheap</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-900">{content.about.headline}</h2>
+            <p className="text-gray-600 mb-4 text-sm sm:text-base leading-relaxed">{content.about.description}</p>
             <p className="text-gray-600 mb-4 text-sm sm:text-base leading-relaxed">
-              Namecheap is a community platform that shares its own profit with users by giving them more discount than
-              the official price. We make quality products affordable through smart buying and profit sharing.
-            </p>
-            <p className="text-gray-600 mb-4 text-sm sm:text-base leading-relaxed">
-              <strong>First way:</strong> We buy in bulk to get 20% discount from suppliers, then sell individual 
-              items to you with 10% discount from retail price.
+              <strong>First way:</strong> We buy in bulk to get 20% discount from suppliers, then sell individual items
+              to you with 10% discount from retail price.
             </p>
             <p className="text-gray-600 mb-6 text-sm sm:text-base leading-relaxed">
-              <strong>Second way:</strong> Our referral program earns us 20% commission - we share half (10%) with 
-              you and keep 10% for operations.
+              <strong>Second way:</strong> Our referral program earns us 20% commission - we share half (10%) with you
+              and keep 10% for operations.
             </p>
             <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-              Join our community where everyone wins - better prices for you, sustainable growth for us, and shared profits 
-              that benefit our entire network of members.
+              Join our community where everyone wins - better prices for you, sustainable growth for us, and shared
+              profits that benefit our entire network of members.
             </p>
           </div>
 
@@ -61,55 +65,21 @@ export default function AboutSection() {
           </div>
         </div>
 
-        {/* Why Choose Namecheap */}
+        {/* Why Choose Namecheap - Dynamic Content */}
         <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 md:p-10">
-          <h3 className="text-xl sm:text-2xl font-bold mb-6 text-gray-900">Why Choose Namecheap?</h3>
+          <h3 className="text-xl sm:text-2xl font-bold mb-6 text-gray-900">{content.features.title}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex gap-3">
-              <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 mt-1 text-xs font-bold">
-                ✓
+            {content.features.items.map((item, index) => (
+              <div key={index} className="flex gap-3">
+                <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 mt-1 text-xs font-bold">
+                  ✓
+                </div>
+                <div>
+                  <p className="font-semibold text-sm sm:text-base text-gray-900">{item.title}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">{item.description}</p>
+                </div>
               </div>
-              <div>
-                <p className="font-semibold text-sm sm:text-base text-gray-900">10% Bulk Buy Savings</p>
-                <p className="text-xs sm:text-sm text-gray-600">
-                  We buy in bulk with 20% discount, share 10% with you
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 mt-1 text-xs font-bold">
-                ✓
-              </div>
-              <div>
-                <p className="font-semibold text-sm sm:text-base text-gray-900">10% Referral Commission</p>
-                <p className="text-xs sm:text-sm text-gray-600">
-                  Earn 10% from our 20% referral income when you share
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 mt-1 text-xs font-bold">
-                ✓
-              </div>
-              <div>
-                <p className="font-semibold text-sm sm:text-base text-gray-900">Automatic Discounts</p>
-                <p className="text-xs sm:text-sm text-gray-600">
-                  Latest promotions applied automatically at checkout
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 mt-1 text-xs font-bold">
-                ✓
-              </div>
-              <div>
-                <p className="font-semibold text-sm sm:text-base text-gray-900">Cash on Delivery</p>
-                <p className="text-xs sm:text-sm text-gray-600">Pay safely when you receive your order</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
