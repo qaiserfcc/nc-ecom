@@ -34,12 +34,16 @@ export default function NewProductPage() {
   const categories = categoriesData?.categories || []
   const brands = brandsData?.brands || []
 
+  const mainCategories = categories.filter((cat: any) => !cat.parent_category_id)
+  const subcategories = categories.filter((cat: any) => cat.parent_category_id)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
   const [name, setName] = useState("")
   const [slug, setSlug] = useState("")
   const [categoryId, setCategoryId] = useState("")
+  const [subcategoryId, setSubcategoryId] = useState("")
   const [brandId, setBrandId] = useState("")
   const [description, setDescription] = useState("")
   const [shortDescription, setShortDescription] = useState("")
@@ -51,6 +55,10 @@ export default function NewProductPage() {
   const [isFeatured, setIsFeatured] = useState(false)
   const [isNewArrival, setIsNewArrival] = useState(false)
   const [variants, setVariants] = useState<Variant[]>([])
+
+  const selectedCategorySubcategories = categoryId
+    ? subcategories.filter((cat: any) => cat.parent_category_id === Number.parseInt(categoryId))
+    : []
 
   const generateSlug = (text: string) => {
     return text
@@ -84,7 +92,8 @@ export default function NewProductPage() {
     e.preventDefault()
     setError("")
 
-    if (!name || !categoryId || !brandId || !originalPrice || !currentPrice) {
+    const finalCategoryId = subcategoryId || categoryId
+    if (!name || !finalCategoryId || !brandId || !originalPrice || !currentPrice) {
       setError("Please fill in all required fields")
       return
     }
@@ -98,7 +107,7 @@ export default function NewProductPage() {
         body: JSON.stringify({
           name,
           slug: slug || generateSlug(name),
-          category_id: Number.parseInt(categoryId),
+          category_id: Number.parseInt(finalCategoryId),
           brand_id: Number.parseInt(brandId),
           description,
           short_description: shortDescription,
@@ -166,12 +175,37 @@ export default function NewProductPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="category">Category *</Label>
-                <Select value={categoryId} onValueChange={setCategoryId}>
+                <Select
+                  value={categoryId}
+                  onValueChange={(value) => {
+                    setCategoryId(value)
+                    setSubcategoryId("")
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((cat: any) => (
+                    {mainCategories.map((cat: any) => (
+                      <SelectItem key={cat.id} value={cat.id.toString()}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="subcategory">Subcategory</Label>
+                <Select
+                  value={subcategoryId}
+                  onValueChange={setSubcategoryId}
+                  disabled={!categoryId || selectedCategorySubcategories.length === 0}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a subcategory (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {selectedCategorySubcategories.map((cat: any) => (
                       <SelectItem key={cat.id} value={cat.id.toString()}>
                         {cat.name}
                       </SelectItem>

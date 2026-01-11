@@ -140,6 +140,21 @@ function ShopContent() {
   const { data: brandsData } = useSWR("/api/brands", fetcher)
   const { data: discountData } = useSWR("/api/discounts/active", fetcher)
 
+  const categories = categoriesData?.categories || []
+  const mainCategories = categories.filter((cat: any) => !cat.parent_category_id)
+  const subcategories = categories.filter((cat: any) => cat.parent_category_id)
+
+  const selectedCategoryObj = category !== "all" ? categories.find((c: any) => c.slug === category) : null
+  const activeMainCategoryId = selectedCategoryObj
+    ? selectedCategoryObj.parent_category_id
+      ? selectedCategoryObj.parent_category_id
+      : selectedCategoryObj.id
+    : null
+
+  const activeMainSubcategories = activeMainCategoryId
+    ? subcategories.filter((c: any) => c.parent_category_id === activeMainCategoryId)
+    : []
+
   const activeDiscount = discountData?.discount
 
   // Helper to calculate discounted price
@@ -279,7 +294,6 @@ function ShopContent() {
     prefetchNextPage()
   }, [prefetchNextPage])
   
-  const categories = categoriesData?.categories || []
   const brands = brandsData?.brands || []
 
   // Reset pagination when filters change
@@ -359,12 +373,12 @@ function ShopContent() {
           >
             All Products
           </Button>
-          {categories.map((cat: any) => (
+          {mainCategories.map((cat: any) => (
             <Button
               key={cat.id}
-              variant={category === cat.slug ? "default" : "ghost"}
+              variant={activeMainCategoryId === cat.id ? "default" : "ghost"}
               className={`w-full justify-start rounded-xl transition-all ${
-                category === cat.slug 
+                activeMainCategoryId === cat.id 
                   ? "bg-secondary text-primary hover:bg-secondary/80" 
                   : "text-gray-600 hover:text-primary hover:bg-gray-50"
               }`}
@@ -373,6 +387,25 @@ function ShopContent() {
               {cat.name} <span className="ml-auto text-xs opacity-70">({cat.product_count})</span>
             </Button>
           ))}
+
+          {activeMainSubcategories.length > 0 && (
+            <div className="pt-2 pl-4 border-l border-gray-100 space-y-2">
+              {activeMainSubcategories.map((cat: any) => (
+                <Button
+                  key={cat.id}
+                  variant={category === cat.slug ? "default" : "ghost"}
+                  className={`w-full justify-start rounded-xl transition-all ${
+                    category === cat.slug
+                      ? "bg-secondary text-primary hover:bg-secondary/80"
+                      : "text-gray-600 hover:text-primary hover:bg-gray-50"
+                  }`}
+                  onClick={() => setCategory(cat.slug)}
+                >
+                  {cat.name} <span className="ml-auto text-xs opacity-70">({cat.product_count})</span>
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

@@ -38,6 +38,8 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export default function AdminProductsPage() {
   const [search, setSearch] = useState("")
+  const [filterCategoryId, setFilterCategoryId] = useState("all")
+  const [filterSubcategoryId, setFilterSubcategoryId] = useState("all")
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
@@ -52,10 +54,22 @@ export default function AdminProductsPage() {
   const [optimizingImages, setOptimizingImages] = useState(false)
   const itemsPerPage = 12
 
-  const { data, isLoading, mutate } = useSWR(
-    `/api/products?search=${search}&limit=${itemsPerPage}&offset=${(currentPage - 1) * itemsPerPage}`,
-    fetcher
-  )
+  const productsUrl = (() => {
+    const params = new URLSearchParams()
+    params.set("search", search)
+    params.set("limit", String(itemsPerPage))
+    params.set("offset", String((currentPage - 1) * itemsPerPage))
+
+    if (filterSubcategoryId !== "all") {
+      params.set("subcategory_id", filterSubcategoryId)
+    } else if (filterCategoryId !== "all") {
+      params.set("category_id", filterCategoryId)
+    }
+
+    return `/api/products?${params.toString()}`
+  })()
+
+  const { data, isLoading, mutate } = useSWR(productsUrl, fetcher)
 
   const { data: categoriesData } = useSWR("/api/categories?limit=1000", fetcher)
   const { data: brandsData } = useSWR("/api/brands", fetcher)
@@ -73,6 +87,10 @@ export default function AdminProductsPage() {
   // Get subcategories for selected category
   const selectedCategorySubcategories = bulkCategoryId !== "no-change" 
     ? subcategories.filter((cat: any) => cat.parent_category_id === Number.parseInt(bulkCategoryId))
+    : []
+
+  const selectedFilterCategorySubcategories = filterCategoryId !== "all"
+    ? subcategories.filter((cat: any) => cat.parent_category_id === Number.parseInt(filterCategoryId))
     : []
 
   const allSelected = products.length > 0 && selectedIds.length === products.length
@@ -257,6 +275,56 @@ export default function AdminProductsPage() {
           }}
           className="pl-10"
         />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 max-w-2xl">
+        <div className="space-y-2">
+          <Label className="text-sm">Category</Label>
+          <Select
+            value={filterCategoryId}
+            onValueChange={(value) => {
+              setFilterCategoryId(value)
+              setFilterSubcategoryId("all")
+              setCurrentPage(1)
+            }}
+          >
+            <SelectTrigger className="h-10">
+              <SelectValue placeholder="All categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All categories</SelectItem>
+              {mainCategories.map((category: any) => (
+                <SelectItem key={category.id} value={String(category.id)}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm">Subcategory</Label>
+          <Select
+            value={filterSubcategoryId}
+            onValueChange={(value) => {
+              setFilterSubcategoryId(value)
+              setCurrentPage(1)
+            }}
+            disabled={filterCategoryId === "all" || selectedFilterCategorySubcategories.length === 0}
+          >
+            <SelectTrigger className="h-10">
+              <SelectValue placeholder="All subcategories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All subcategories</SelectItem>
+              {selectedFilterCategorySubcategories.map((category: any) => (
+                <SelectItem key={category.id} value={String(category.id)}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {selectedIds.length > 0 && (

@@ -8,7 +8,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get("search")
-    const limit = Math.min(Number.parseInt(searchParams.get("limit") || "12"), 12)
+    const rawLimit = Number.parseInt(searchParams.get("limit") || "1000")
+    const limit = Math.min(rawLimit, 1000)
     const offset = Number.parseInt(searchParams.get("offset") || "0")
 
     let categories

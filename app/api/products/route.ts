@@ -10,6 +10,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get("category")
+    const categoryId = searchParams.get("category_id")
+    const subcategoryId = searchParams.get("subcategory_id")
     const search = searchParams.get("search")
     const featured = searchParams.get("featured")
     const newArrival = searchParams.get("new")
@@ -25,9 +27,28 @@ export async function GET(request: NextRequest) {
     const filters: string[] = []
     const countFilters: string[] = []
 
-    if (category) {
-      filters.push(`c.slug = '${category.replace(/'/g, "''")}'`)
-      countFilters.push(`c.slug = '${category.replace(/'/g, "''")}'`)
+    if (subcategoryId) {
+      const parsedSubcategoryId = Number.parseInt(subcategoryId)
+      if (Number.isFinite(parsedSubcategoryId)) {
+        filters.push(`c.id = ${parsedSubcategoryId}`)
+        countFilters.push(`c.id = ${parsedSubcategoryId}`)
+      }
+    } else if (categoryId) {
+      const parsedCategoryId = Number.parseInt(categoryId)
+      if (Number.isFinite(parsedCategoryId)) {
+        // Match products directly in the main category OR in any of its subcategories
+        filters.push(`(c.id = ${parsedCategoryId} OR c.parent_category_id = ${parsedCategoryId})`)
+        countFilters.push(`(c.id = ${parsedCategoryId} OR c.parent_category_id = ${parsedCategoryId})`)
+      }
+    } else if (category) {
+      const escapedCategory = category.replace(/'/g, "''")
+      // If the slug is a main category, include its subcategories; if it's already a subcategory, match just itself.
+      const clause = `(
+        c.slug = '${escapedCategory}'
+        OR c.parent_category_id = (SELECT id FROM categories WHERE slug = '${escapedCategory}' AND parent_category_id IS NULL)
+      )`
+      filters.push(clause)
+      countFilters.push(clause)
     }
 
     if (search) {
