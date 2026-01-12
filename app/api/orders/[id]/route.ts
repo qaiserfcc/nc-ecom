@@ -13,6 +13,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const { id } = await params
+    const orderId = Number.parseInt(id)
 
     let order
     if (session.user.role === "admin") {
@@ -20,27 +21,31 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         SELECT o.*, u.name as customer_name, u.email as customer_email, u.phone as customer_phone,
                (SELECT json_agg(json_build_object(
                  'id', oi.id, 'product_id', oi.product_id, 'quantity', oi.quantity, 
-                 'price_at_purchase', oi.price_at_purchase, 'product_name', p.name, 'product_image', p.image_url
+                 'price_at_purchase', oi.price_at_purchase, 
+                 'original_price_at_purchase', oi.original_price_at_purchase,
+                 'product_name', p.name, 'product_image', p.image_url
                ))
                FROM order_items oi
                JOIN products p ON oi.product_id = p.id
                WHERE oi.order_id = o.id) as items
         FROM orders o
         JOIN users u ON o.user_id = u.id
-        WHERE o.id = ${Number.parseInt(id)} OR o.order_number = ${id}
+        WHERE ${!isNaN(orderId) ? sql`o.id = ${orderId}` : sql`FALSE`} OR o.order_number = ${id}
       `
     } else {
       order = await sql`
         SELECT o.*,
                (SELECT json_agg(json_build_object(
                  'id', oi.id, 'product_id', oi.product_id, 'quantity', oi.quantity, 
-                 'price_at_purchase', oi.price_at_purchase, 'product_name', p.name, 'product_image', p.image_url
+                 'price_at_purchase', oi.price_at_purchase,
+                 'original_price_at_purchase', oi.original_price_at_purchase,
+                 'product_name', p.name, 'product_image', p.image_url
                ))
                FROM order_items oi
                JOIN products p ON oi.product_id = p.id
                WHERE oi.order_id = o.id) as items
         FROM orders o
-        WHERE (o.id = ${Number.parseInt(id)} OR o.order_number = ${id})
+        WHERE (${!isNaN(orderId) ? sql`o.id = ${orderId}` : sql`FALSE`} OR o.order_number = ${id})
           AND o.user_id = ${session.user.id}::uuid
       `
     }

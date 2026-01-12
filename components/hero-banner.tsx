@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 
 interface Banner {

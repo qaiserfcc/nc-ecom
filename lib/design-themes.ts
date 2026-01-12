@@ -195,4 +195,4 @@ export const designThemes: Record<ThemeVariant, DesignTheme> = {
   },
 }
 
-export const defaultTheme: ThemeVariant = "orange-classic"
+export const defaultTheme: ThemeVariant = "purple-premium"

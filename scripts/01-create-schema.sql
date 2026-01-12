@@ -119,6 +119,7 @@ CREATE TABLE IF NOT EXISTS order_items (
   variant_id INTEGER REFERENCES product_variants(id),
   quantity INTEGER NOT NULL,
   price_at_purchase DECIMAL(10, 2) NOT NULL,
+  original_price_at_purchase DECIMAL(10, 2),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

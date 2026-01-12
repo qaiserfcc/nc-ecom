@@ -701,7 +701,7 @@ function ShopContent() {
                           return (
                             <Link key={product.id} href={`/product/${product.slug}`}>
                               <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 h-full rounded-[24px] border-0 bg-white">
-                                <div className="relative aspect-square overflow-hidden bg-[#e0e5ce] p-4">
+                                <div className="relative aspect-square overflow-hidden bg-[var(--color-product-bg,#e0e5ce)] p-4">
                                   <div className="relative w-full h-full rounded-2xl overflow-hidden">
                                     <OptimizedImage
                                       src={imageUrl}

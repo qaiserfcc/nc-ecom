@@ -164,10 +164,10 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 <CardContent className="space-y-4">
                   {order.items?.map((item: any) => {
                     const baseOriginal = Number(item.original_price_at_purchase ?? item.price_at_purchase)
-                    const baseFinal = Number(item.price_at_purchase)
+                    const baseSelling = Number(item.price_at_purchase)
                     const lineOriginal = baseOriginal * item.quantity
-                    const lineFinal = baseFinal * item.quantity
-                    const lineDiscountPercent = baseOriginal > 0 ? Math.round(((baseOriginal - baseFinal) / baseOriginal) * 100) : 0
+                    const lineSelling = baseSelling * item.quantity
+                    const lineDiscountPercent = baseOriginal > 0 ? Math.round(((baseOriginal - baseSelling) / baseOriginal) * 100) : 0
                     return (
                       <div key={item.id} className="flex gap-4">
                         <div className="relative w-20 h-20 rounded overflow-hidden bg-muted shrink-0">
@@ -187,11 +187,13 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                           <h3 className="font-medium">{item.product_name}</h3>
                           <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-primary">Rs. {lineFinal.toLocaleString()}</p>
-                            <p className="text-sm text-muted-foreground line-through">Rs. {lineOriginal.toLocaleString()}</p>
+                            {lineDiscountPercent > 0 && (
+                              <p className="text-sm text-muted-foreground line-through">Rs. {lineOriginal.toLocaleString()}</p>
+                            )}
+                            <p className="font-medium text-primary">Rs. {lineSelling.toLocaleString()}</p>
                           </div>
                         </div>
-                        <p className="font-medium">Rs. {lineFinal.toLocaleString()}</p>
+                        <p className="font-medium">Rs. {lineSelling.toLocaleString()}</p>
                       </div>
                     )
                   })}
@@ -201,39 +203,83 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
             {/* Order Summary */}
             <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Order Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Original</span>
-                    <span className="line-through">
-                      Rs. {(Number(order.subtotal) + Number(order.discount_applied || 0)).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-green-600">
-                    <span>Discount</span>
-                    <span>
-                      -Rs. {Number(order.discount_applied || 0).toLocaleString()} (
-                      {Number(order.subtotal) + Number(order.discount_applied || 0) > 0
-                        ? Math.round((Number(order.discount_applied || 0) /
-                            (Number(order.subtotal) + Number(order.discount_applied || 0))) * 100)
-                        : 0}
-                      %)
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Shipping</span>
-                    <span className="text-green-600">Free</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total</span>
-                    <span className="text-primary">Rs. {Number(order.total_amount).toLocaleString()}</span>
-                  </div>
-                </CardContent>
-              </Card>
+              {(() => {
+                // Calculate totals from items
+                const itemsArray = order.items || []
+                const originalTotal = itemsArray.reduce((sum: number, item: any) => {
+                  const baseOriginal = Number(item.original_price_at_purchase ?? item.price_at_purchase)
+                  return sum + (baseOriginal * item.quantity)
+                }, 0)
+                const sellingTotal = Number(order.subtotal || 0)
+                const officialDiscount = originalTotal - sellingTotal
+                const officialDiscountPercent = originalTotal > 0 ? Math.round((officialDiscount / originalTotal) * 100) : 0
+                const promoDiscount = Number(order.discount_applied || 0)
+                const promoPercent = sellingTotal > 0 ? Math.round((promoDiscount / sellingTotal) * 100) : 0
+                const cumulativeDiscount = officialDiscount + promoDiscount
+                const cumulativeDiscountPercent = originalTotal > 0 ? Math.round((cumulativeDiscount / originalTotal) * 100) : 0
+                const finalAmount = Number(order.total_amount || 0) - Number(order.shipping_cost || 0)
+                
+                return (
+                  <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
+                    <CardHeader className="pb-3 border-b border-gray-100">
+                      <CardTitle className="text-xl text-gray-900">Order Summary</CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1">{itemsArray.length} item{itemsArray.length !== 1 ? 's' : ''} in this order</p>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="space-y-3">
+                        <div className="space-y-2 bg-gray-50 rounded-2xl p-3 border border-gray-100">
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground">Official Price ({itemsArray.length} items)</span>
+                            <span className="font-semibold">Rs. {originalTotal.toLocaleString()}</span>
+                          </div>
+                          {officialDiscount > 0 && (
+                            <>
+                              <div className="flex justify-between items-center text-xs border-t pt-2">
+                                <span className="text-muted-foreground">Official Discount</span>
+                                <span className="text-green-500 font-semibold">
+                                  -{officialDiscountPercent}% (Rs. {officialDiscount.toLocaleString()})
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-muted-foreground">After Official Discount</span>
+                                <span className="font-semibold">Rs. {sellingTotal.toLocaleString()}</span>
+                              </div>
+                            </>
+                          )}
+                          {promoDiscount > 0 && (
+                            <>
+                              <div className="flex justify-between items-center text-xs border-t pt-2">
+                                <span className="text-muted-foreground">Our Active Discount</span>
+                                <span className="text-green-500 font-semibold">
+                                  -{promoPercent}% (Rs. {promoDiscount.toLocaleString()})
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center text-xs text-primary font-semibold border-t pt-2">
+                                <span>Cumulative Discount</span>
+                                <span>{cumulativeDiscountPercent}% (Rs. {cumulativeDiscount.toLocaleString()})</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Shipping</span>
+                          <span className={Number(order.shipping_cost || 0) === 0 ? "text-green-600 font-medium" : "font-medium"}>
+                            {Number(order.shipping_cost || 0) === 0 ? "Free" : `Rs. ${Number(order.shipping_cost || 0).toLocaleString()}`}
+                          </span>
+                        </div>
+                        <Separator />
+                        <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl p-4 border border-primary/20">
+                          <div className="flex justify-between items-center">
+                            <span className="text-lg font-bold">Final Paid</span>
+                            <span className="text-2xl font-bold text-primary">Rs. {Number(order.total_amount || 0).toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })()}
+
 
               <Card>
                 <CardHeader>

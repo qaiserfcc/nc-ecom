@@ -206,9 +206,10 @@ export async function POST(request: NextRequest) {
     // Create order items
     for (const item of cartItems) {
       const price = Number.parseFloat(item.current_price) + (Number.parseFloat(item.price_modifier) || 0)
+      const originalPrice = Number.parseFloat(item.original_price) + (Number.parseFloat(item.price_modifier) || 0)
       await sql`
-        INSERT INTO order_items (order_id, product_id, variant_id, quantity, price_at_purchase)
-        VALUES (${order.id}, ${item.product_id}, ${item.variant_id}, ${item.quantity}, ${price})
+        INSERT INTO order_items (order_id, product_id, variant_id, quantity, price_at_purchase, original_price_at_purchase)
+        VALUES (${order.id}, ${item.product_id}, ${item.variant_id}, ${item.quantity}, ${price}, ${originalPrice})
       `
 
       // Update stock
