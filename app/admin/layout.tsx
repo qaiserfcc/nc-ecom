@@ -23,6 +23,7 @@ import {
   FolderTree,
   TrendingUp,
   Settings,
+  Truck,
 } from "lucide-react"
 
 const sidebarItems = [
@@ -36,6 +37,7 @@ const sidebarItems = [
   { href: "/admin/users", icon: Users, label: "Users" },
   { href: "/admin/banners", icon: ImageIcon, label: "Banners" },
   { href: "/admin/discounts", icon: Tag, label: "Discounts" },
+  { href: "/admin/shipping-methods", icon: Truck, label: "Shipping Methods" },
   { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
   { href: "/admin/meta-pixel", icon: Settings, label: "Meta Pixel" },
 ]
