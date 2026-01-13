@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Heart, ShoppingCart, Minus, Plus, Truck, Shield, RotateCcw, Loader2, ChevronLeft } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
+import { useConfirm } from "@/components/ui/confirm-dialog"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -21,6 +22,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   const { slug } = use(params)
   const router = useRouter()
   const { isAuthenticated } = useAuth()
+  const confirmDialog = useConfirm()
   const [quantity, setQuantity] = useState(1)
   const [selectedVariant, setSelectedVariant] = useState<number | null>(null)
   const [selectedImage, setSelectedImage] = useState(0)
@@ -39,6 +41,15 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
       return
     }
 
+    const ok = await confirmDialog({
+      title: "Add to cart",
+      description: `Add ${quantity} item(s) to your shopping cart?`,
+      confirmText: "Add",
+      variant: "default",
+    })
+    
+    if (!ok) return
+
     setAddingToCart(true)
     const toastId = notify.loading("Adding to cart...")
     
@@ -53,11 +64,12 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
         }),
       })
       
+      notify.dismiss(toastId)
+      
       if (!response.ok) {
         throw new Error("Failed to add to cart")
       }
       
-      notify.dismiss(toastId)
       notify.success("Added to cart!", `${quantity} item(s) added - view your cart`)
       setTimeout(() => router.push("/cart"), 1500)
     } catch (error) {
@@ -76,6 +88,15 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
       return
     }
 
+    const ok = await confirmDialog({
+      title: "Add to wishlist",
+      description: "Save this item to your wishlist?",
+      confirmText: "Add",
+      variant: "default",
+    })
+    
+    if (!ok) return
+
     const toastId = notify.loading("Adding to wishlist...")
     try {
       const response = await fetch("/api/wishlist", {
@@ -84,11 +105,12 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
         body: JSON.stringify({ product_id: product.id }),
       })
       
+      notify.dismiss(toastId)
+      
       if (!response.ok) {
         throw new Error("Failed to add to wishlist")
       }
       
-      notify.dismiss(toastId)
       notify.success("Added to wishlist!", "View your wishlist anytime")
     } catch (error) {
       notify.dismiss(toastId)

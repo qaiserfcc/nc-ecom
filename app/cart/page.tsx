@@ -321,12 +321,6 @@ export default function CartPage() {
                         )}
                       </div>
 
-                      <div className="border-t border-border/50 pt-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground">Shipping</span>
-                          <span className="text-green-400 font-medium">Free</span>
-                        </div>
-                      </div>
                       <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl p-4 border border-primary/20">
                         <div className="flex justify-between items-center">
                           <span className="text-lg font-bold">Final Payable</span>

@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, Plus, Edit, Trash2, Package } from "lucide-react"
 import { notify } from "@/lib/utils/notifications"
 import { useAuth } from "@/lib/hooks/use-auth"
+import { useConfirm } from "@/components/ui/confirm-dialog"
 
 interface ShippingMethod {
   id: number
@@ -29,6 +30,7 @@ interface ShippingMethod {
 
 export default function ShippingMethodsPage() {
   const router = useRouter()
+  const confirmDialog = useConfirm()
   const { user, isLoading: authLoading } = useAuth()
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([])
   const [loading, setLoading] = useState(true)
@@ -125,14 +127,22 @@ export default function ShippingMethodsPage() {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this shipping method?')) {
-      return
-    }
+    const ok = await confirmDialog({
+      title: "Delete shipping method",
+      description: "This will remove the shipping option for customers.",
+      confirmText: "Delete",
+      variant: "destructive",
+    })
+
+    if (!ok) return
 
     try {
+      const loadingToastId = notify.loading("Waiting for delete confirmation...")
       const res = await fetch(`/api/shipping-methods/${id}`, {
         method: 'DELETE'
       })
+
+      notify.dismiss(loadingToastId)
 
       if (!res.ok) {
         throw new Error('Failed to delete shipping method')

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Loader2, Plus, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { notify } from "@/lib/utils/notifications"
+import { useConfirm } from "@/components/ui/confirm-dialog"
 
 interface Bundle {
   id: number
@@ -23,6 +24,7 @@ interface Bundle {
 
 export default function BundlesPage() {
   const router = useRouter()
+  const confirmDialog = useConfirm()
   const [bundles, setBundles] = useState<Bundle[]>([])
   const [filteredBundles, setFilteredBundles] = useState<Bundle[]>([])
   const [loading, setLoading] = useState(true)
@@ -69,11 +71,21 @@ export default function BundlesPage() {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this bundle?")) return
+    const ok = await confirmDialog({
+      title: "Delete bundle",
+      description: "This will permanently remove the bundle.",
+      confirmText: "Delete",
+      variant: "destructive",
+    })
+
+    if (!ok) return
 
     try {
       setDeleting(id)
+      const loadingToastId = notify.loading("Waiting for delete confirmation...")
       const response = await fetch(`/api/bundles/${id}`, { method: "DELETE" })
+      notify.dismiss(loadingToastId)
+      
       if (!response.ok) throw new Error("Failed to delete bundle")
       notify.success("Bundle deleted successfully")
       setBundles(bundles.filter((b) => b.id !== id))

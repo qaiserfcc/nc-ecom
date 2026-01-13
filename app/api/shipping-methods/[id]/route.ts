@@ -1,26 +1,32 @@
 import { NextRequest, NextResponse } from "next/server"
-import { query } from "@/lib/db"
+import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
 
 // GET /api/shipping-methods/[id] - Get single shipping method
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const result = await query(
-      "SELECT * FROM shipping_methods WHERE id = $1",
-      [params.id]
-    )
+    const { id: rawId } = await params
+    const id = parseInt(rawId)
+    if (isNaN(id)) {
+      return NextResponse.json(
+        { error: "Invalid shipping method ID" },
+        { status: 400 }
+      )
+    }
 
-    if (result.rows.length === 0) {
+    const result = await sql`SELECT * FROM shipping_methods WHERE id = ${id}`
+
+    if (result.length === 0) {
       return NextResponse.json(
         { error: "Shipping method not found" },
         { status: 404 }
       )
     }
 
-    return NextResponse.json({ shippingMethod: result.rows[0] })
+    return NextResponse.json({ shippingMethod: result[0] })
   } catch (error: any) {
     console.error("Error fetching shipping method:", error)
     return NextResponse.json(
@@ -33,7 +39,7 @@ export async function GET(
 // PUT /api/shipping-methods/[id] - Update shipping method (admin only)
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession()
@@ -41,6 +47,15 @@ export async function PUT(
       return NextResponse.json(
         { error: "Unauthorized - Admin access required" },
         { status: 401 }
+      )
+    }
+
+    const { id: rawId } = await params
+    const id = parseInt(rawId)
+    if (isNaN(id)) {
+      return NextResponse.json(
+        { error: "Invalid shipping method ID" },
+        { status: 400 }
       )
     }
 
@@ -58,44 +73,31 @@ export async function PUT(
       sort_order 
     } = body
 
-    const result = await query(
-      `UPDATE shipping_methods 
-       SET name = $1, 
-           description = $2, 
-           base_cost = $3, 
-           min_order_amount = $4,
-           max_order_amount = $5,
-           is_free_shipping = $6,
-           location_type = $7,
-           is_same_day = $8,
-           is_active = $9,
-           sort_order = $10,
+    const result = await sql`
+      UPDATE shipping_methods 
+       SET name = ${name}, 
+           description = ${description || null}, 
+           base_cost = ${base_cost || 0}, 
+           min_order_amount = ${min_order_amount || null},
+           max_order_amount = ${max_order_amount || null},
+           is_free_shipping = ${is_free_shipping || false},
+           location_type = ${location_type || 'all'},
+           is_same_day = ${is_same_day || false},
+           is_active = ${is_active !== undefined ? is_active : true},
+           sort_order = ${sort_order || 0},
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $11
-       RETURNING *`,
-      [
-        name,
-        description || null,
-        base_cost || 0,
-        min_order_amount || null,
-        max_order_amount || null,
-        is_free_shipping || false,
-        location_type || 'all',
-        is_same_day || false,
-        is_active !== undefined ? is_active : true,
-        sort_order || 0,
-        params.id
-      ]
-    )
+       WHERE id = ${id}
+       RETURNING *
+    `
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return NextResponse.json(
         { error: "Shipping method not found" },
         { status: 404 }
       )
     }
 
-    return NextResponse.json({ shippingMethod: result.rows[0] })
+    return NextResponse.json({ shippingMethod: result[0] })
   } catch (error: any) {
     console.error("Error updating shipping method:", error)
     return NextResponse.json(
@@ -108,7 +110,7 @@ export async function PUT(
 // DELETE /api/shipping-methods/[id] - Delete shipping method (admin only)
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession()
@@ -119,12 +121,18 @@ export async function DELETE(
       )
     }
 
-    const result = await query(
-      "DELETE FROM shipping_methods WHERE id = $1 RETURNING *",
-      [params.id]
-    )
+    const { id: rawId } = await params
+    const id = parseInt(rawId)
+    if (isNaN(id)) {
+      return NextResponse.json(
+        { error: "Invalid shipping method ID" },
+        { status: 400 }
+      )
+    }
 
-    if (result.rows.length === 0) {
+    const result = await sql`DELETE FROM shipping_methods WHERE id = ${id} RETURNING *`
+
+    if (result.length === 0) {
       return NextResponse.json(
         { error: "Shipping method not found" },
         { status: 404 }

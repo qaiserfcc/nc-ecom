@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import useSWR from "swr"
+import { useEffect } from "react"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -60,18 +61,11 @@ export default function CheckoutPage() {
 
   // Calculate shipping cost based on selected method
   const shippingMethods = shippingData?.shippingMethods || []
+  
   const getApplicableShippingMethods = () => {
     return shippingMethods.filter((method: any) => {
-      // Check location
+      // Check location - must match or be 'all'
       if (method.location_type !== 'all' && method.location_type !== deliveryLocation) {
-        return false
-      }
-      // Check min order amount for free shipping
-      if (method.is_free_shipping && method.min_order_amount && finalAmount < method.min_order_amount) {
-        return false
-      }
-      // Check max order amount
-      if (method.max_order_amount && finalAmount > method.max_order_amount) {
         return false
       }
       return true
@@ -80,8 +74,59 @@ export default function CheckoutPage() {
 
   const applicableShippingMethods = getApplicableShippingMethods()
   const selectedMethod = applicableShippingMethods.find((m: any) => m.id === selectedShippingMethod)
-  const shippingCost = selectedMethod ? Number(selectedMethod.base_cost) : 0
+  
+  // Calculate shipping cost - free if meets minimum order amount for free shipping methods
+  const getShippingCost = (method: any) => {
+    if (!method) return 0
+    if (method.is_free_shipping && method.min_order_amount && finalAmount >= method.min_order_amount) {
+      return 0
+    }
+    return Number(method.base_cost)
+  }
+  
+  const shippingCost = getShippingCost(selectedMethod)
   const totalWithShipping = finalAmount + shippingCost
+  
+  // Check if order qualifies for free shipping
+  const freeShippingThreshold = shippingMethods.find((m: any) => m.is_free_shipping)?.min_order_amount || 2999
+  const qualifiesForFreeShipping = finalAmount >= freeShippingThreshold
+  const amountToFreeShipping = freeShippingThreshold - finalAmount
+
+  // Auto-select appropriate shipping method based on order total
+  useEffect(() => {
+    if (applicableShippingMethods.length > 0) {
+      // Find free shipping method if order qualifies
+      const freeMethod = applicableShippingMethods.find((m: any) => 
+        m.is_free_shipping && !m.is_same_day && m.min_order_amount && finalAmount >= m.min_order_amount
+      )
+      
+      // Find standard shipping method (not free, not same-day)
+      const standardMethod = applicableShippingMethods.find((m: any) => 
+        !m.is_free_shipping && !m.is_same_day
+      )
+      
+      // Auto-select: free shipping if qualified, otherwise standard (only on initial load)
+      if (!selectedShippingMethod) {
+        if (qualifiesForFreeShipping && freeMethod) {
+          setSelectedShippingMethod(freeMethod.id)
+        } else if (standardMethod) {
+          setSelectedShippingMethod(standardMethod.id)
+        }
+      }
+      // If currently on same-day, keep same-day. If on standard/free, update based on qualification
+      else {
+        const currentMethod = applicableShippingMethods.find((m: any) => m.id === selectedShippingMethod)
+        if (currentMethod && !currentMethod.is_same_day) {
+          // Update auto-selected method if on standard/free
+          if (qualifiesForFreeShipping && freeMethod) {
+            setSelectedShippingMethod(freeMethod.id)
+          } else if (standardMethod) {
+            setSelectedShippingMethod(standardMethod.id)
+          }
+        }
+      }
+    }
+  }, [applicableShippingMethods, selectedShippingMethod, qualifiesForFreeShipping, finalAmount])
 
   // Pre-fill address from profile
   useState(() => {
@@ -125,7 +170,13 @@ export default function CheckoutPage() {
       message += `Our Active Discount: -${promoPercent}% (Rs. ${promoAmount.toLocaleString()})\n`
       message += `Cumulative Discount: -${Math.min(100, cumulativeDiscountPercent)}% (Rs. ${cumulativeDiscount.toLocaleString()})\n`
     }
-    message += `\n*Final Amount: Rs. ${finalAmount.toLocaleString()}*\n\n`
+    message += `\n*Final Amount: Rs. ${finalAmount.toLocaleString()}*\n`
+    
+    // Add shipping information
+    if (selectedMethod) {
+      message += `Shipping: ${selectedMethod.name} - Rs. ${shippingCost.toLocaleString()}\n`
+    }
+    message += `\n*Total with Shipping: Rs. ${totalWithShipping.toLocaleString()}*\n\n`
     
     message += "*Shipping Details:*\n"
     message += `Address: ${address}\n`
@@ -369,39 +420,145 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="space-y-3">
-                    <Label className="font-semibold">Select Shipping Method <span className="text-destructive">*</span></Label>
-                    <RadioGroup 
-                      value={selectedShippingMethod?.toString() || ""} 
-                      onValueChange={(value) => setSelectedShippingMethod(Number(value))}
-                    >
-                      {applicableShippingMethods.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">No shipping methods available for selected location</p>
-                      ) : (
-                        applicableShippingMethods.map((method: any) => (
-                          <div 
-                            key={method.id}
-                            className="flex items-center space-x-3 p-4 border-2 border-border bg-white rounded-2xl cursor-pointer hover:shadow-md hover:border-primary/50 transition-all duration-200 group"
-                          >
-                            <RadioGroupItem value={method.id.toString()} id={`shipping-${method.id}`} />
-                            <Label htmlFor={`shipping-${method.id}`} className="flex items-center gap-4 cursor-pointer flex-1">
-                              <div className="p-2 bg-blue-50 rounded-xl group-hover:shadow-sm transition-all">
-                                <Truck className="w-5 h-5 text-blue-600" />
+                    <Label className="font-semibold">Shipping Method <span className="text-destructive">*</span></Label>
+                    
+                    {/* Free Shipping Alert */}
+                    {!qualifiesForFreeShipping && amountToFreeShipping > 0 && (
+                      <Alert className="bg-blue-50 border-blue-200">
+                        <AlertDescription className="text-sm">
+                          💡 Add <span className="font-bold text-blue-600">Rs {amountToFreeShipping.toLocaleString()}</span> more to qualify for FREE shipping!
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    
+                    {qualifiesForFreeShipping && (
+                      <Alert className="bg-green-50 border-green-200">
+                        <AlertDescription className="text-sm flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span className="font-medium text-green-700">You qualify for FREE shipping!</span>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    
+                    {applicableShippingMethods.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No shipping methods available for selected location</p>
+                    ) : (
+                      <>
+                        {/* Auto-Selected Standard/Free Shipping (Read-only display) */}
+                        {applicableShippingMethods
+                          .filter((method: any) => !method.is_same_day)
+                          .map((method: any) => {
+                            const cost = getShippingCost(method)
+                            const isFree = cost === 0
+                            const canBeFree = method.is_free_shipping && method.min_order_amount
+                            const isAutoSelected = (qualifiesForFreeShipping && method.is_free_shipping) || 
+                                                   (!qualifiesForFreeShipping && !method.is_free_shipping)
+                            
+                            // Only show the auto-selected method
+                            if (!isAutoSelected) return null
+                            
+                            return (
+                              <div 
+                                key={method.id}
+                                className={`flex items-center space-x-3 p-4 border-2 bg-white rounded-2xl transition-all duration-200 ${
+                                  isFree ? 'border-green-300 bg-green-50/30' : 'border-primary/50 bg-primary/5'
+                                }`}
+                              >
+                                <div className={`p-2 rounded-xl transition-all ${
+                                  isFree ? 'bg-green-100' : 'bg-blue-50'
+                                }`}>
+                                  <Truck className={`w-5 h-5 ${
+                                    isFree ? 'text-green-600' : 'text-blue-600'
+                                  }`} />
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-semibold text-foreground">{method.name}</p>
+                                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-xs">Auto-Selected</Badge>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">{method.description}</p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    {isFree ? (
+                                      <span className="text-base font-bold text-green-600">FREE</span>
+                                    ) : (
+                                      <span className="text-base font-bold text-foreground">Rs {cost.toLocaleString()}</span>
+                                    )}
+                                    {canBeFree && !isFree && (
+                                      <span className="text-xs text-muted-foreground">(Free over Rs {method.min_order_amount.toLocaleString()})</span>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                              <div className="flex-1">
-                                <p className="font-semibold text-foreground">{method.name}</p>
-                                <p className="text-sm text-muted-foreground">{method.description}</p>
-                                <p className="text-sm font-medium mt-1">
-                                  {method.is_free_shipping && method.min_order_amount && finalAmount >= method.min_order_amount 
-                                    ? <span className="text-green-600">FREE</span>
-                                    : <span>Rs {Number(method.base_cost).toLocaleString()}</span>
-                                  }
-                                </p>
-                              </div>
-                            </Label>
-                          </div>
-                        ))
-                      )}
-                    </RadioGroup>
+                            )
+                          })}
+                        
+                        {/* Same-Day Delivery Options (Selectable) */}
+                        {applicableShippingMethods.filter((m: any) => m.is_same_day).length > 0 && (
+                          <>
+                            <div className="pt-2 flex items-center justify-between">
+                              <p className="text-sm font-semibold text-muted-foreground">Upgrade to express delivery:</p>
+                              {selectedMethod?.is_same_day && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const freeMethod = applicableShippingMethods.find((m: any) => 
+                                      m.is_free_shipping && !m.is_same_day && m.min_order_amount && finalAmount >= m.min_order_amount
+                                    )
+                                    const standardMethod = applicableShippingMethods.find((m: any) => 
+                                      !m.is_free_shipping && !m.is_same_day
+                                    )
+                                    if (qualifiesForFreeShipping && freeMethod) {
+                                      setSelectedShippingMethod(freeMethod.id)
+                                    } else if (standardMethod) {
+                                      setSelectedShippingMethod(standardMethod.id)
+                                    }
+                                  }}
+                                  className="text-xs text-primary hover:text-primary/80"
+                                >
+                                  Use Standard Shipping
+                                </Button>
+                              )}
+                            </div>
+                            <RadioGroup 
+                              value={selectedShippingMethod?.toString() || ""} 
+                              onValueChange={(value) => setSelectedShippingMethod(Number(value))}
+                            >
+                              {applicableShippingMethods
+                                .filter((method: any) => method.is_same_day)
+                                .map((method: any) => {
+                                  const cost = getShippingCost(method)
+                                  
+                                  return (
+                                    <div 
+                                      key={method.id}
+                                      className="flex items-center space-x-3 p-4 border-2 border-orange-300 hover:border-orange-400 bg-white rounded-2xl cursor-pointer hover:shadow-md transition-all duration-200 group"
+                                    >
+                                      <RadioGroupItem value={method.id.toString()} id={`shipping-${method.id}`} />
+                                      <Label htmlFor={`shipping-${method.id}`} className="flex items-center gap-4 cursor-pointer flex-1">
+                                        <div className="p-2 bg-orange-100 rounded-xl group-hover:shadow-sm transition-all">
+                                          <Truck className="w-5 h-5 text-orange-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2">
+                                            <p className="font-semibold text-foreground">{method.name}</p>
+                                            <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-300">Express</Badge>
+                                          </div>
+                                          <p className="text-sm text-muted-foreground">{method.description}</p>
+                                          <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-base font-bold text-foreground">Rs {cost.toLocaleString()}</span>
+                                          </div>
+                                        </div>
+                                      </Label>
+                                    </div>
+                                  )
+                                })}
+                            </RadioGroup>
+                          </>
+                        )}
+                      </>
+                    )}
                   </div>
 
                   {selectedMethod?.is_same_day && (

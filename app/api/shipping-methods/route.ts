@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { query } from "@/lib/db"
+import { sql } from "@/lib/db"
 import { getSession } from "@/lib/auth"
 
 // GET /api/shipping-methods - Get all shipping methods
@@ -8,16 +8,15 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const activeOnly = searchParams.get('activeOnly') === 'true'
     
-    let sql = `
-      SELECT * FROM shipping_methods 
-      ${activeOnly ? 'WHERE is_active = true' : ''}
-      ORDER BY sort_order ASC, id ASC
-    `
-    
-    const result = await query(sql)
+    let result
+    if (activeOnly) {
+      result = await sql`SELECT * FROM shipping_methods WHERE is_active = true ORDER BY sort_order ASC, id ASC`
+    } else {
+      result = await sql`SELECT * FROM shipping_methods ORDER BY sort_order ASC, id ASC`
+    }
     
     return NextResponse.json({ 
-      shippingMethods: result.rows 
+      shippingMethods: result 
     })
   } catch (error: any) {
     console.error("Error fetching shipping methods:", error)
@@ -60,28 +59,18 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const result = await query(
-      `INSERT INTO shipping_methods 
+    const result = await sql`
+      INSERT INTO shipping_methods 
         (name, description, base_cost, min_order_amount, max_order_amount, 
          is_free_shipping, location_type, is_same_day, is_active, sort_order)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       RETURNING *`,
-      [
-        name,
-        description || null,
-        base_cost || 0,
-        min_order_amount || null,
-        max_order_amount || null,
-        is_free_shipping || false,
-        location_type || 'all',
-        is_same_day || false,
-        is_active !== undefined ? is_active : true,
-        sort_order || 0
-      ]
-    )
+       VALUES (${name}, ${description || null}, ${base_cost || 0}, ${min_order_amount || null}, 
+               ${max_order_amount || null}, ${is_free_shipping || false}, ${location_type || 'all'},
+               ${is_same_day || false}, ${is_active !== undefined ? is_active : true}, ${sort_order || 0})
+       RETURNING *
+    `
 
     return NextResponse.json({ 
-      shippingMethod: result.rows[0] 
+      shippingMethod: result[0] 
     }, { status: 201 })
   } catch (error: any) {
     console.error("Error creating shipping method:", error)

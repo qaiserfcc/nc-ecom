@@ -11,11 +11,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Edit, Trash2, Plus, Loader2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { notify } from "@/lib/utils/notifications"
+import { useConfirm } from "@/components/ui/confirm-dialog"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export default function AdminBannersPage() {
   const { data, isLoading, mutate } = useSWR("/api/banners", fetcher)
+  const confirmDialog = useConfirm()
   const [deleteError, setDeleteError] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
@@ -29,11 +31,21 @@ export default function AdminBannersPage() {
   )
 
   const handleDelete = async (bannerId: number) => {
-    if (!confirm("Are you sure you want to delete this banner?")) return
+    const ok = await confirmDialog({
+      title: "Delete banner",
+      description: "This will remove the banner from the site.",
+      confirmText: "Delete",
+      variant: "destructive",
+    })
+
+    if (!ok) return
 
     try {
       setDeleteError("")
+      const loadingToastId = notify.loading("Waiting for delete confirmation...")
       const response = await fetch(`/api/banners/${bannerId}`, { method: "DELETE" })
+      notify.dismiss(loadingToastId)
+      
       if (!response.ok) {
         const errorData = await response.json()
         const message = errorData.error || "Failed to delete banner"

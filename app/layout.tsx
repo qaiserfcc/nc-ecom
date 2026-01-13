@@ -10,6 +10,7 @@ import { ApiFetchInterceptor } from "@/lib/api-fetch-interceptor"
 import { MetaPixel } from "@/components/analytics/meta-pixel"
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider"
 import { DesignThemeProvider } from "@/lib/contexts/design-theme-context"
+import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -106,13 +107,15 @@ export default function RootLayout({
       <body className={`font-sans antialiased`}>
         <DesignThemeProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-            <AnalyticsProvider>
-              <SocketProvider>
-                <ApiFetchInterceptor />
-                {children}
-                <Toaster richColors position="top-right" />
-              </SocketProvider>
-            </AnalyticsProvider>
+            <ConfirmDialogProvider>
+              <AnalyticsProvider>
+                <SocketProvider>
+                  <ApiFetchInterceptor />
+                  {children}
+                  <Toaster richColors position="top-right" />
+                </SocketProvider>
+              </AnalyticsProvider>
+            </ConfirmDialogProvider>
           </ThemeProvider>
         </DesignThemeProvider>
         <Analytics />

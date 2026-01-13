@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Search, Loader2, Edit, Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react"
 import { notify } from "@/lib/utils/notifications"
+import { useConfirm } from "@/components/ui/confirm-dialog"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -17,6 +18,7 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
+  const confirmDialog = useConfirm()
   
   const { data, isLoading, mutate } = useSWR(`/api/users?search=${search}`, fetcher)
 
@@ -29,10 +31,20 @@ export default function AdminUsersPage() {
   )
 
   const handleDelete = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) return
+    const ok = await confirmDialog({
+      title: "Delete user",
+      description: "This action cannot be undone.",
+      confirmText: "Delete",
+      variant: "destructive",
+    })
+
+    if (!ok) return
 
     try {
+      const loadingToastId = notify.loading("Waiting for delete confirmation...")
       const response = await fetch(`/api/users/${userId}`, { method: "DELETE" })
+      notify.dismiss(loadingToastId)
+      
       if (!response.ok) {
         const errorData = await response.json()
         notify.error(errorData.error || "Failed to delete user")

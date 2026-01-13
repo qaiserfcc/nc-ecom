@@ -25,6 +25,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Search, Filter, Heart, ShoppingCart, Loader2, X, ChevronRight, ChevronDown } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
+import { useConfirm } from "@/components/ui/confirm-dialog"
 import { ProductCardSkeleton } from "@/components/product-card-skeleton"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -34,6 +35,7 @@ function ShopContent() {
   const searchParams = useSearchParams()
   const { isAuthenticated } = useAuth()
   const { cache } = useSWRConfig()
+  const confirmDialog = useConfirm()
 
   // Initialize performance monitoring and service worker
   const performanceMonitor = usePerformanceMonitoring()
@@ -315,12 +317,28 @@ function ShopContent() {
       router.push("/signin")
       return
     }
+    
+    const ok = await confirmDialog({
+      title: "Add to cart",
+      description: "Add this item to your shopping cart?",
+      confirmText: "Add",
+      variant: "default",
+    })
+    
+    if (!ok) return
+
     try {
-      await fetch("/api/cart", {
+      const loadingToastId = notify.loading("Adding to cart...")
+      const response = await fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ product_id: productId, quantity: 1 }),
       })
+      notify.dismiss(loadingToastId)
+      
+      if (!response.ok) {
+        throw new Error("Failed to add to cart")
+      }
       notify.success("Added to cart")
     } catch (error) {
       notify.error("Failed to add to cart")
@@ -333,12 +351,28 @@ function ShopContent() {
       router.push("/signin")
       return
     }
+    
+    const ok = await confirmDialog({
+      title: "Add to wishlist",
+      description: "Save this item to your wishlist?",
+      confirmText: "Add",
+      variant: "default",
+    })
+    
+    if (!ok) return
+
     try {
-      await fetch("/api/wishlist", {
+      const loadingToastId = notify.loading("Adding to wishlist...")
+      const response = await fetch("/api/wishlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ product_id: productId }),
       })
+      notify.dismiss(loadingToastId)
+      
+      if (!response.ok) {
+        throw new Error("Failed to add to wishlist")
+      }
       notify.success("Added to wishlist")
     } catch (error) {
       notify.error("Failed to add to wishlist")

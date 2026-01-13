@@ -22,16 +22,31 @@ export function MetaPixel() {
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    // Fetch Meta Pixel configuration
+    // First try to fetch Meta Pixel configuration from API
     fetch("/api/admin/meta-pixel")
       .then((res) => res.json())
       .then((data) => {
         if (data.is_active && data.pixel_id) {
           setConfig(data)
+        } else {
+          // Fallback to hardcoded pixel ID if API config is not active
+          setConfig({
+            pixel_id: "400049882525730",
+            is_active: true,
+            enable_automatic_events: true,
+            enable_advanced_matching: false,
+          })
         }
       })
       .catch((error) => {
-        console.error("Failed to load Meta Pixel config:", error)
+        console.error("Failed to load Meta Pixel config, using default:", error)
+        // Use default pixel ID on error
+        setConfig({
+          pixel_id: "400049882525730",
+          is_active: true,
+          enable_automatic_events: true,
+          enable_advanced_matching: false,
+        })
       })
   }, [])
 

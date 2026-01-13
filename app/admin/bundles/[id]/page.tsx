@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { useConfirm } from "@/components/ui/confirm-dialog"
 
 interface BundleItem {
   id: number
@@ -34,6 +35,7 @@ interface Bundle {
 export default function EditBundlePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { id } = use(params)
+  const confirmDialog = useConfirm()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -145,7 +147,14 @@ export default function EditBundlePage({ params }: { params: Promise<{ id: strin
   }
 
   const handleDeleteItem = async (itemId: number) => {
-    if (!confirm("Remove this product from the bundle?")) return
+    const ok = await confirmDialog({
+      title: "Remove product",
+      description: "This will remove the product from the bundle.",
+      confirmText: "Remove",
+      variant: "destructive",
+    })
+
+    if (!ok) return
 
     try {
       const response = await fetch(`/api/bundles/${id}/items/${itemId}`, {
