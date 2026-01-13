@@ -5,6 +5,13 @@ import { getSession } from "@/lib/auth"
 // POST track analytics event
 export async function POST(request: Request) {
   try {
+    // Domain gating: only allow tracking on www.namecheap.to
+    const hostHeader = request.headers.get("host") || ""
+    const host = hostHeader.split(":")[0]
+    if (host !== "www.namecheap.to") {
+      return NextResponse.json({ success: false, message: "Analytics disabled on this domain" }, { status: 204 })
+    }
+
     const body = await request.json()
     const {
       event_name,

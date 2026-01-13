@@ -16,7 +16,14 @@ interface AnalyticsContextType {
 const AnalyticsContext = createContext<AnalyticsContextType | undefined>(undefined)
 
 export function AnalyticsProvider({ children }: { children: ReactNode }) {
+  const isAllowedDomain = () => {
+    if (typeof window === "undefined") return false
+    const host = window.location.hostname
+    return host === "www.namecheap.to"
+  }
+
   const trackPageView = useCallback((url: string, title: string) => {
+    if (!isAllowedDomain()) return
     // Track in our database
     fetch("/api/analytics/track", {
       method: "POST",
@@ -36,6 +43,7 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const trackProductView = useCallback((productId: number, productName: string, price: number) => {
+    if (!isAllowedDomain()) return
     // Track in database
     fetch("/api/analytics/track", {
       method: "POST",
@@ -71,6 +79,7 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
 
   const trackAddToCart = useCallback(
     (productId: number, productName: string, price: number, quantity: number) => {
+      if (!isAllowedDomain()) return
       const value = price * quantity
 
       // Track in database
@@ -109,6 +118,7 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
   )
 
   const trackAddToWishlist = useCallback((productId: number, productName: string) => {
+    if (!isAllowedDomain()) return
     // Track in database
     fetch("/api/analytics/track", {
       method: "POST",
@@ -138,6 +148,7 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const trackPurchase = useCallback((orderId: number, value: number, items: any[]) => {
+    if (!isAllowedDomain()) return
     // Track in database
     fetch("/api/analytics/track", {
       method: "POST",
@@ -171,6 +182,7 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const trackSearch = useCallback((query: string) => {
+    if (!isAllowedDomain()) return
     // Track in database
     fetch("/api/analytics/track", {
       method: "POST",
@@ -194,6 +206,7 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const trackCustomEvent = useCallback((eventName: string, data?: any) => {
+    if (!isAllowedDomain()) return
     fetch("/api/analytics/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

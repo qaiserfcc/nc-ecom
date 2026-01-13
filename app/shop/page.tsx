@@ -34,7 +34,7 @@ function ShopContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { isAuthenticated } = useAuth()
-  const { cache } = useSWRConfig()
+  const { cache, mutate } = useSWRConfig()
   const confirmDialog = useConfirm()
 
   // Initialize performance monitoring and service worker
@@ -340,6 +340,8 @@ function ShopContent() {
         throw new Error("Failed to add to cart")
       }
       notify.success("Added to cart")
+      // Revalidate cart count in header
+      mutate("/api/cart")
     } catch (error) {
       notify.error("Failed to add to cart")
     }
@@ -374,6 +376,8 @@ function ShopContent() {
         throw new Error("Failed to add to wishlist")
       }
       notify.success("Added to wishlist")
+      // Revalidate wishlist count in header
+      mutate("/api/wishlist")
     } catch (error) {
       notify.error("Failed to add to wishlist")
     }

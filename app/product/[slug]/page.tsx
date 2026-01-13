@@ -4,7 +4,7 @@ import { useState, use } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import useSWR from "swr"
+import useSWR, { useSWRConfig } from "swr"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -30,6 +30,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
   const { data, isLoading, error } = useSWR(`/api/products/${slug}`, fetcher)
   const { data: discountData } = useSWR("/api/discounts/active", fetcher)
+  const { mutate } = useSWRConfig()
 
   const product = data?.product
   const activeDiscount = discountData?.discount
@@ -71,6 +72,8 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
       }
       
       notify.success("Added to cart!", `${quantity} item(s) added - view your cart`)
+      // Revalidate cart count
+      mutate("/api/cart")
       setTimeout(() => router.push("/cart"), 1500)
     } catch (error) {
       console.error("Failed to add to cart:", error)
@@ -112,6 +115,8 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
       }
       
       notify.success("Added to wishlist!", "View your wishlist anytime")
+      // Revalidate wishlist count
+      mutate("/api/wishlist")
     } catch (error) {
       notify.dismiss(toastId)
       notify.error("Failed to add to wishlist", error instanceof Error ? error.message : "Please try again")

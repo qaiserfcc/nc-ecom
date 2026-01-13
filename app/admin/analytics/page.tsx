@@ -1,10 +1,12 @@
 "use client"
 
 import useSWR from "swr"
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Loader2, Eye, TrendingUp, Users, ShoppingCart, DollarSign } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -29,6 +31,10 @@ export default function AdminAnalyticsPage() {
       <div>
         <h1 className="text-2xl md:text-3xl font-bold">Analytics</h1>
         <p className="text-muted-foreground">Website performance and insights</p>
+        <div className="mt-3 flex items-center gap-3">
+          <Badge variant="outline">Domain: www.namecheap.to</Badge>
+          <ResetAnalyticsButton />
+        </div>
       </div>
 
       {/* Overview Stats */}
@@ -200,6 +206,35 @@ export default function AdminAnalyticsPage() {
           </CardContent>
         </Card>
       </div>
+    </div>
+  )
+}
+
+function ResetAnalyticsButton() {
+  const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState<string | null>(null)
+
+  const handleReset = async () => {
+    setLoading(true)
+    setStatus(null)
+    try {
+      const res = await fetch("/api/analytics/reset", { method: "POST" })
+      if (!res.ok) throw new Error("Failed to reset analytics")
+      setStatus("Reset complete. Tracking from today.")
+    } catch (e) {
+      setStatus("Reset failed")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button variant="outline" size="sm" onClick={handleReset} disabled={loading}>
+        {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+        Reset Analytics
+      </Button>
+      {status && <span className="text-xs text-muted-foreground">{status}</span>}
     </div>
   )
 }

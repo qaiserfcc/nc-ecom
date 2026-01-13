@@ -20,8 +20,13 @@ declare global {
 export function MetaPixel() {
   const [config, setConfig] = useState<MetaPixelConfig | null>(null)
   const [loaded, setLoaded] = useState(false)
+  const isAllowedDomain = () => {
+    if (typeof window === "undefined") return false
+    return window.location.hostname === "www.namecheap.to"
+  }
 
   useEffect(() => {
+    if (!isAllowedDomain()) return
     // First try to fetch Meta Pixel configuration from API
     fetch("/api/admin/meta-pixel")
       .then((res) => res.json())
@@ -52,6 +57,7 @@ export function MetaPixel() {
 
   useEffect(() => {
     if (!config || !loaded) return
+    if (!isAllowedDomain()) return
 
     // Initialize Meta Pixel
     if (typeof window !== "undefined" && window.fbq) {
@@ -64,7 +70,7 @@ export function MetaPixel() {
     }
   }, [config, loaded])
 
-  if (!config || !config.is_active) {
+  if (!isAllowedDomain() || !config || !config.is_active) {
     return null
   }
 
@@ -113,7 +119,7 @@ export function trackMetaPixelEvent(
     [key: string]: any
   }
 ) {
-  if (typeof window !== "undefined" && window.fbq) {
+  if (typeof window !== "undefined" && window.location.hostname === "www.namecheap.to" && window.fbq) {
     window.fbq("track", eventName, data)
   }
 }
@@ -132,6 +138,7 @@ export async function trackConversionEvent(
   }
 ) {
   try {
+    if (typeof window === "undefined" || window.location.hostname !== "www.namecheap.to") return
     await fetch("/api/analytics/conversion", {
       method: "POST",
       headers: {

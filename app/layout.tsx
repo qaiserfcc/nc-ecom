@@ -9,6 +9,7 @@ import { SocketProvider } from "@/lib/socket-client"
 import { ApiFetchInterceptor } from "@/lib/api-fetch-interceptor"
 import { MetaPixel } from "@/components/analytics/meta-pixel"
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider"
+import { PageViewTracker } from "@/components/analytics/page-view-tracker"
 import { DesignThemeProvider } from "@/lib/contexts/design-theme-context"
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog"
 import "./globals.css"
@@ -111,6 +112,7 @@ export default function RootLayout({
               <AnalyticsProvider>
                 <SocketProvider>
                   <ApiFetchInterceptor />
+                  <PageViewTracker />
                   {children}
                   <Toaster richColors position="top-right" />
                 </SocketProvider>

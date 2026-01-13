@@ -12,6 +12,13 @@ function hashValue(value: string | null | undefined): string | null {
 // POST track conversion event for Meta Conversion API
 export async function POST(request: Request) {
   try {
+    // Domain gating: only allow conversion tracking on www.namecheap.to
+    const hostHeader = request.headers.get("host") || ""
+    const host = hostHeader.split(":")[0]
+    if (host !== "www.namecheap.to") {
+      return NextResponse.json({ success: false, message: "Conversion tracking disabled on this domain" }, { status: 204 })
+    }
+
     const body = await request.json()
     const {
       event_name, // ViewContent, AddToCart, AddToWishlist, InitiateCheckout, Purchase, etc.
