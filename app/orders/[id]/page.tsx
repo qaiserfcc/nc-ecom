@@ -168,6 +168,13 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     const lineOriginal = baseOriginal * item.quantity
                     const lineSelling = baseSelling * item.quantity
                     const lineDiscountPercent = baseOriginal > 0 ? Math.round(((baseOriginal - baseSelling) / baseOriginal) * 100) : 0
+                    // Derive order-level promo rate to mirror cart per-item discounted price
+                    const orderSellingTotal = Number(order.subtotal || 0)
+                    const orderPromoDiscount = Number(order.discount_applied || 0)
+                    const promoRate = orderSellingTotal > 0 ? orderPromoDiscount / orderSellingTotal : 0
+                    const promoPercentDisplay = promoRate > 0 ? Math.round(promoRate * 100) : 0
+                    const discountedUnit = baseSelling * (1 - promoRate)
+                    const lineDiscounted = discountedUnit * item.quantity
                     return (
                       <div key={item.id} className="flex gap-4">
                         <div className="relative w-20 h-20 rounded overflow-hidden bg-muted shrink-0">
@@ -186,14 +193,25 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         <div className="flex-1">
                           <h3 className="font-medium">{item.product_name}</h3>
                           <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
-                          <div className="flex items-center gap-2">
-                            {lineDiscountPercent > 0 && (
-                              <p className="text-sm text-muted-foreground line-through">Rs. {lineOriginal.toLocaleString()}</p>
+                          <div className="mt-2 space-y-1 text-sm">
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Official Price</span>
+                              <span className={lineDiscountPercent > 0 ? "text-muted-foreground line-through" : "text-muted-foreground"}>Rs. {lineOriginal.toLocaleString()}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Selling Price</span>
+                              <span>Rs. {lineSelling.toLocaleString()}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Our Discounted Price</span>
+                              <span className="font-medium text-primary">Rs. {lineDiscounted.toLocaleString()}</span>
+                            </div>
+                            {promoPercentDisplay > 0 && (
+                              <p className="text-[11px] text-green-600">- {promoPercentDisplay}% applied</p>
                             )}
-                            <p className="font-medium text-primary">Rs. {lineSelling.toLocaleString()}</p>
                           </div>
                         </div>
-                        <p className="font-medium">Rs. {lineSelling.toLocaleString()}</p>
+                        <p className="font-medium">Rs. {lineDiscounted.toLocaleString()}</p>
                       </div>
                     )
                   })}
@@ -261,6 +279,22 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                             </>
                           )}
                         </div>
+                        {/* Savings Breakdown section to mirror cart page */}
+                        <div className="bg-white rounded-2xl p-3 border border-gray-100">
+                          <p className="text-sm font-medium mb-2">Savings Breakdown</p>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-muted-foreground">Official Discount</span>
+                            <span className="text-green-600 font-semibold">{officialDiscountPercent}%</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs mt-1">
+                            <span className="text-muted-foreground">Our Active Discount</span>
+                            <span className="text-green-600 font-semibold">{promoPercent}%</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs mt-1">
+                            <span className="text-muted-foreground">Cumulative Discount</span>
+                            <span className="text-primary font-semibold">{cumulativeDiscountPercent}%</span>
+                          </div>
+                        </div>
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-muted-foreground">Shipping</span>
                           <span className={Number(order.shipping_cost || 0) === 0 ? "text-green-600 font-medium" : "font-medium"}>
@@ -270,7 +304,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         <Separator />
                         <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl p-4 border border-primary/20">
                           <div className="flex justify-between items-center">
-                            <span className="text-lg font-bold">Final Paid</span>
+                            <span className="text-lg font-bold">Final Payable</span>
                             <span className="text-2xl font-bold text-primary">Rs. {Number(order.total_amount || 0).toLocaleString()}</span>
                           </div>
                         </div>
