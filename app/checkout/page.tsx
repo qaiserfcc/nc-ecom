@@ -33,6 +33,9 @@ export default function CheckoutPage() {
 
   const [paymentMethod, setPaymentMethod] = useState("cash_on_delivery")
   const [address, setAddress] = useState("")
+  const [city, setCity] = useState("")
+  const [postalCode, setPostalCode] = useState("")
+  const [country, setCountry] = useState("")
   const [phone, setPhone] = useState("")
   const [notes, setNotes] = useState("")
   const [loading, setLoading] = useState(false)
@@ -129,17 +132,26 @@ export default function CheckoutPage() {
   }, [applicableShippingMethods, selectedShippingMethod, qualifiesForFreeShipping, finalAmount])
 
   // Pre-fill address from profile
-  useState(() => {
+  useEffect(() => {
     if (profileData?.user) {
       const p = profileData.user
       if (p.address && !address) {
-        setAddress(`${p.address}, ${p.city || ""} ${p.postal_code || ""}, ${p.country || ""}`.trim())
+        setAddress(p.address)
+      }
+      if (p.city && !city) {
+        setCity(p.city)
+      }
+      if (p.postal_code && !postalCode) {
+        setPostalCode(p.postal_code)
+      }
+      if (p.country && !country) {
+        setCountry(p.country)
       }
       if (p.phone && !phone) {
         setPhone(p.phone)
       }
     }
-  })
+  }, [profileData, address, city, postalCode, country, phone])
 
   const generateWhatsAppMessage = () => {
     let message = "🛒 *Order Summary*\n\n"
@@ -179,7 +191,7 @@ export default function CheckoutPage() {
     message += `\n*Total with Shipping: Rs. ${totalWithShipping.toLocaleString()}*\n\n`
     
     message += "*Shipping Details:*\n"
-    message += `Address: ${address}\n`
+    message += `Address: ${address}${city ? `, ${city}` : ""}${postalCode ? ` ${postalCode}` : ""}${country ? `, ${country}` : ""}\n`
     if (phone) {
       message += `Phone: ${phone}\n`
     }
@@ -193,8 +205,8 @@ export default function CheckoutPage() {
   }
 
   const handlePlaceOrder = async () => {
-    if (!address.trim()) {
-      notify.error("Missing information", "Please enter your shipping address")
+    if (!address.trim() || !city.trim() || !postalCode.trim() || !country.trim()) {
+      notify.error("Missing information", "Please enter your complete shipping address (address, city, postal code, and country)")
       return
     }
 
@@ -227,7 +239,7 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          shipping_address: `${address}${phone ? ` | Phone: ${phone}` : ""}${notes ? ` | Notes: ${notes}` : ""}`,
+          shipping_address: `${address}, ${city} ${postalCode}, ${country}${phone ? ` | Phone: ${phone}` : ""}${notes ? ` | Notes: ${notes}` : ""}`,
           payment_method: paymentMethod,
           shipping_method_id: selectedShippingMethod,
           shipping_cost: shippingCost,
@@ -371,16 +383,47 @@ export default function CheckoutPage() {
                       className="focus:ring-2 focus:ring-primary/50 transition-ring"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="address" className="font-semibold">Shipping Address <span className="text-destructive">*</span></Label>
-                    <Textarea
-                      id="address"
-                      placeholder="Enter your complete address with city and postal code"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      rows={3}
-                      className="focus:ring-2 focus:ring-primary/50 transition-ring resize-none"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="address" className="font-semibold">Street Address <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="address"
+                        placeholder="Enter your street address"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        className="focus:ring-2 focus:ring-primary/50 transition-ring"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="city" className="font-semibold">City <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="city"
+                        placeholder="Enter your city"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        className="focus:ring-2 focus:ring-primary/50 transition-ring"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="postalCode" className="font-semibold">Postal Code <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="postalCode"
+                        placeholder="Enter postal code"
+                        value={postalCode}
+                        onChange={(e) => setPostalCode(e.target.value)}
+                        className="focus:ring-2 focus:ring-primary/50 transition-ring"
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="country" className="font-semibold">Country <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="country"
+                        placeholder="Enter your country"
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                        className="focus:ring-2 focus:ring-primary/50 transition-ring"
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="notes" className="font-semibold">Order Notes (Optional)</Label>

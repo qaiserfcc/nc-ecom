@@ -146,17 +146,7 @@ export async function GET() {
     `
 
     // --- Geographic Distribution (if available) ---
-    const topCities = await sql`
-      SELECT 
-        shipping_city as city,
-        COUNT(*) as orders,
-        SUM(total_amount) as revenue
-      FROM orders
-      WHERE created_at >= CURRENT_DATE - INTERVAL '30 days' AND status != 'cancelled'
-      GROUP BY shipping_city
-      ORDER BY orders DESC
-      LIMIT 10
-    `
+      const topCities: any[] = []
 
     // --- Time of Day Analysis ---
     const timeOfDayMetrics = await sql`
