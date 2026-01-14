@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import useSWR from "swr"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -29,7 +29,7 @@ export default function MetaPixelConfigPage() {
   })
 
   // Update form data when API data loads
-  useState(() => {
+  useEffect(() => {
     if (data) {
       setFormData({
         pixel_id: data.pixel_id || "",
@@ -40,7 +40,7 @@ export default function MetaPixelConfigPage() {
         enable_advanced_matching: data.enable_advanced_matching || false,
       })
     }
-  })
+  }, [data])
 
   const handleSave = async () => {
     if (!formData.pixel_id) {
