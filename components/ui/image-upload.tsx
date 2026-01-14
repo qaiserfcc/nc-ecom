@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react"
+import Image from "next/image"
 import { Button } from "./button"
 import { Input } from "./input"
 import { Label } from "./label"

@@ -160,7 +160,7 @@ export default function BundlesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedBundles.map((bundle) => (
+                  {currentBundles.map((bundle) => (
                     <TableRow key={bundle.id}>
                       <TableCell className="font-medium">{bundle.name}</TableCell>
                       <TableCell>Rs. {bundle.bundle_price.toLocaleString()}</TableCell>

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { notify } from "@/lib/utils/notifications"
 
 interface Brand {
