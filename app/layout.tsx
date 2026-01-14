@@ -26,6 +26,9 @@ export const metadata: Metadata = {
   authors: [{ name: "Namecheap Team" }],
   generator: "v0.app",
   manifest: "/manifest.json",
+  other: {
+    "facebook-domain-verification": "4vzvc0ddl1litp4blutl3qf0mf2w4n",
+  },
   openGraph: {
     title: "How Namecheap Brings You Extra Value",
     description:
