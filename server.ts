@@ -32,8 +32,8 @@ async function main() {
   // Initialize Socket.IO server
   initSocketServer(server)
 
-  // Initialize database notification listener (disabled for serverless Neon compatibility)
-  // initDatabaseListener().catch(console.error)
+  // Initialize database notification listener
+  initDatabaseListener().catch(console.error)
 
   server.listen(port, () => {
     console.log(`> Ready on http://${hostname}:${port}`)

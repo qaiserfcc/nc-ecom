@@ -278,7 +278,9 @@ export default function ProductPageClient({
             <div className="space-y-6">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">{product.category_name}</p>
-                <h1 className="text-2xl md:text-3xl font-bold break-words">{product.name}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold break-words line-clamp-2" title={product.name}>
+                  {product.name}
+                </h1>
               </div>
 
               <div className="rounded-lg border border-border/60 bg-muted/30 p-4 space-y-2">

@@ -747,7 +747,7 @@ function ShopContent() {
                                       alt={product.name}
                                       width={300}
                                       height={300}
-                                      className="group-hover:scale-125 group-hover:rotate-2 transition-transform duration-500 ease-out w-full h-full object-cover"
+                                      className="group-hover:scale-125 group-hover:rotate-2 transition-transform duration-500 ease-out w-full h-full object-contain"
                                       loading="lazy"
                                       onLoad={() => performanceMonitor.recordImageLoad(Date.now())}
                                       onError={() => {
