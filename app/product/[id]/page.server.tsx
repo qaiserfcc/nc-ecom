@@ -13,7 +13,7 @@ export async function generateStaticParams() {
     })
 
     return popularProducts.map((product: any) => ({
-      slug: product.slug,
+      id: product.id.toString(),
     }))
   } catch (error) {
     console.error('Error generating static params:', error)
@@ -22,9 +22,10 @@ export async function generateStaticParams() {
 }
 
 // Generate metadata for SEO
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   try {
-    const product = await cachedQueries.getProductBySlug(params.slug)
+    const { id } = await params
+    const product = await cachedQueries.getProductById(parseInt(id))
 
     if (!product) {
       return {
@@ -43,7 +44,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
         title: product.name,
         description: product.description?.substring(0, 160),
         images: primaryImage ? [primaryImage.image_url] : [],
-        type: 'product',
+        type: 'website',
       },
       twitter: {
         card: 'summary_large_image',
@@ -71,15 +72,17 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export const revalidate = 3600
 
 interface ProductPageProps {
-  params: {
-    slug: string
-  }
+  params: Promise<{
+    id: string
+  }>
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
+  const { id } = await params
+
   try {
     // Fetch product data on server
-    const product = await cachedQueries.getProductBySlug(params.slug)
+    const product = await cachedQueries.getProductById(parseInt(id))
 
     if (!product) {
       notFound()
@@ -111,7 +114,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         }}
         initialDiscount={activeDiscount?.[0] || null}
         initialRelatedProducts={relatedProducts}
-        slug={params.slug}
+        slug={product.slug}
       />
     )
   } catch (error) {

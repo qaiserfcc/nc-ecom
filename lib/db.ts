@@ -1,4 +1,4 @@
-import { neon, Pool } from "@neondatabase/serverless"
+import { neon } from "@neondatabase/serverless"
 import ws from "ws"
 import { redisCache, cacheKeys } from "./redis-cache"
 
@@ -7,44 +7,8 @@ if (typeof WebSocket === 'undefined') {
   (global as any).WebSocket = ws
 }
 
-// Connection pooling configuration
-const POOL_CONFIG = {
-  min: 2,
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-}
-
-// Create connection pool for better performance
-let _pool: Pool | null = null
+// Create serverless SQL function for Neon
 let _sql: any | null = null
-
-function getPool(): Pool {
-  if (_pool) return _pool
-
-  const connectionString = process.env.DATABASE_URL
-  if (!connectionString) {
-    throw new Error(
-      "DATABASE_URL is not set. Ensure .env.local contains DATABASE_URL and you start the server via `npm run dev` or `npm start` (which load env)."
-    )
-  }
-
-  _pool = new Pool({
-    connectionString,
-    ...POOL_CONFIG,
-  })
-
-  // Handle pool events
-  _pool.on('connect', (client) => {
-    console.log('✅ Database client connected')
-  })
-
-  _pool.on('error', (err, client) => {
-    console.error('❌ Database pool error:', err.message)
-  })
-
-  return _pool
-}
 
 function getSql() {
   if (_sql) return _sql
@@ -58,6 +22,28 @@ function getSql() {
   return _sql
 }
 
+// Helper to safely construct SQL queries from text and params
+// Neon's sql function expects template literals, so we use dynamic query building
+async function querySql<T = any>(queryText: string, params: any[]): Promise<T[]> {
+  const sql = getSql()
+  
+  // For Neon serverless with parameters, we need to manually replace placeholders
+  // Convert PostgreSQL $1, $2 style to actual values in the template
+  let processedQuery = queryText
+  params.forEach((param, index) => {
+    const placeholder = `$${index + 1}`
+    // Escape and quote string values, keep numbers as-is
+    const escapedValue = typeof param === 'string' 
+      ? `'${param.replace(/'/g, "''")}'` 
+      : param
+    processedQuery = processedQuery.replace(placeholder, escapedValue)
+  })
+  
+  // Now execute with the processed query using sql tagged template
+  const result = await sql`${sql.unsafe(processedQuery)}`
+  return result
+}
+
 // Enhanced query execution with caching
 export async function executeQuery<T = any>(
   queryText: string,
@@ -66,10 +52,9 @@ export async function executeQuery<T = any>(
     cache?: boolean
     cacheKey?: string
     cacheTtl?: number
-    usePool?: boolean
   } = {}
 ): Promise<T[]> {
-  const { cache = false, cacheKey, cacheTtl, usePool = false } = options
+  const { cache = false, cacheKey, cacheTtl } = options
 
   // Try cache first if enabled
   if (cache && cacheKey) {
@@ -81,38 +66,11 @@ export async function executeQuery<T = any>(
   }
 
   try {
-    let result: T[]
-
-    if (usePool) {
-      // Use connection pool for better performance
-      const client = await getPool().connect()
-      try {
-        const queryResult = await client.query(queryText, params)
-        result = queryResult.rows
-      } finally {
-        client.release()
-      }
-    } else {
-      // Use serverless neon for simple queries
-      const response = await fetch(`${process.env.DATABASE_URL}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Neon-Connection-String": process.env.DATABASE_URL!,
-        },
-        body: JSON.stringify({
-          query: queryText,
-          params: params,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`Query failed: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      result = data.rows || data
-    }
+    console.log(`[executeQuery] Running query with ${params.length} params`)
+    
+    // Use Neon serverless query function
+    const result = await querySql<T>(queryText, params)
+    console.log(`[executeQuery] Query returned ${result?.length || 0} rows`)
 
     // Cache result if enabled
     if (cache && cacheKey && result) {
@@ -122,7 +80,7 @@ export async function executeQuery<T = any>(
 
     return result
   } catch (error) {
-    console.error('Database query error:', error)
+    console.error('❌ Database query error:', error)
     throw error
   }
 }
@@ -131,20 +89,26 @@ export async function executeQuery<T = any>(
 export const cachedQueries = {
   // Product queries
   async getProduct(id: number): Promise<any> {
-    return executeQuery(
-      'SELECT * FROM products WHERE id = $1 AND is_active = true',
-      [id],
-      {
-        cache: true,
-        cacheKey: cacheKeys.product(id),
-        cacheTtl: 5 * 60 * 1000, // 5 minutes
-      }
-    )
+    try {
+      const result = await executeQuery(
+        'SELECT * FROM products WHERE id = $1',
+        [id],
+        {
+          cache: true,
+          cacheKey: cacheKeys.product(id),
+          cacheTtl: 5 * 60 * 1000, // 5 minutes
+        }
+      )
+      return result?.[0] || null
+    } catch (error) {
+      console.error('Error in getProduct:', error)
+      return null
+    }
   },
 
   async getProducts(filters: any = {}): Promise<any[]> {
     const { category, brand, limit = 20, offset = 0, search } = filters
-    let query = 'SELECT * FROM products WHERE is_active = true'
+    let query = 'SELECT * FROM products WHERE 1=1'
     const params: any[] = []
     let paramIndex = 1
 
@@ -171,65 +135,83 @@ export const cachedQueries = {
 
     const cacheKey = cacheKeys.products(filters)
 
-    return executeQuery(query, params, {
-      cache: true,
-      cacheKey,
-      cacheTtl: 10 * 60 * 1000, // 10 minutes
-    })
+    try {
+      const result = await executeQuery(query, params, {
+        cache: true,
+        cacheKey,
+        cacheTtl: 10 * 60 * 1000, // 10 minutes
+      })
+      return result || []
+    } catch (error) {
+      console.error('Error in getProducts:', error)
+      return []
+    }
   },
 
   // Category queries
   async getCategories(): Promise<any[]> {
-    return executeQuery(
-      'SELECT * FROM categories WHERE is_active = true ORDER BY name',
-      [],
-      {
-        cache: true,
-        cacheKey: cacheKeys.categories(),
-        cacheTtl: 30 * 60 * 1000, // 30 minutes
-      }
-    )
+    try {
+      const result = await executeQuery(
+        'SELECT * FROM categories ORDER BY name',
+        [],
+        {
+          cache: true,
+          cacheKey: cacheKeys.categories(),
+          cacheTtl: 30 * 60 * 1000, // 30 minutes
+        }
+      )
+      return result || []
+    } catch (error) {
+      console.error('Error in getCategories:', error)
+      return []
+    }
   },
 
   // User queries
   async getUser(id: string): Promise<any> {
-    return executeQuery(
-      'SELECT id, email, name, role, created_at FROM users WHERE id = $1',
-      [id],
-      {
-        cache: true,
-        cacheKey: cacheKeys.user(id),
-        cacheTtl: 15 * 60 * 1000, // 15 minutes
-      }
-    )
+    try {
+      const result = await executeQuery(
+        'SELECT id, email, name, role, created_at FROM users WHERE id = $1',
+        [id],
+        {
+          cache: true,
+          cacheKey: cacheKeys.user(id),
+          cacheTtl: 15 * 60 * 1000, // 15 minutes
+        }
+      )
+      return result?.[0] || null
+    } catch (error) {
+      console.error('Error in getUser:', error)
+      return null
+    }
   },
 
   // Get product by slug
-  async getProductBySlug(slug: string): Promise<any> {
+  async getProductById(id: number): Promise<any> {
+    // First, try simple query without complex subqueries
     const query = `
       SELECT p.*, c.name as category_name, c.slug as category_slug,
-             b.name as brand_name, b.slug as brand_slug, b.logo_url as brand_logo,
-             COALESCE(
-               (SELECT json_agg(json_build_object('id', pi.id, 'image_url', pi.image_url, 'is_primary', pi.is_primary))
-                FROM product_images pi WHERE pi.product_id = p.id), '[]'
-             ) as images,
-             COALESCE(
-               (SELECT json_agg(json_build_object('id', pv.id, 'variant_name', pv.variant_name, 'variant_value', pv.variant_value, 'sku', pv.sku, 'price_modifier', pv.price_modifier, 'stock_quantity', pv.stock_quantity))
-                FROM product_variants pv WHERE pv.product_id = p.id), '[]'
-             ) as variants
+             b.name as brand_name, b.slug as brand_slug, b.logo_url as brand_logo
       FROM products p
-      JOIN categories c ON p.category_id = c.id
-      JOIN brand_partnerships b ON p.brand_id = b.id
-      WHERE p.slug = $1 AND p.is_active = true
+      LEFT JOIN categories c ON p.category_id = c.id
+      LEFT JOIN brand_partnerships b ON p.brand_id = b.id
+      WHERE p.id = $1
     `
 
-    const result = await executeQuery(query, [slug], {
-      cache: true,
-      cacheKey: cacheKeys.product(slug),
-      cacheTtl: 5 * 60 * 1000, // 5 minutes
-    })
+    try {
+      console.log(`[getProductById] Fetching product ID: ${id}`)
+      const result = await executeQuery(query, [id], {
+        cache: true,
+        cacheKey: cacheKeys.product(id),
+        cacheTtl: 5 * 60 * 1000, // 5 minutes
+      })
 
-    return result[0] || null
+      console.log(`[getProductById] Query result for ID ${id}:`, result)
+      return result?.[0] || null
+    } catch (error) {
+      console.error(`[getProductById] Error fetching product ${id}:`, error)
+      return null
+    }
   },
 
   // Get active discounts
@@ -242,11 +224,17 @@ export const cachedQueries = {
       ORDER BY created_at DESC
     `
 
-    return executeQuery(query, [], {
-      cache: true,
-      cacheKey: 'active-discounts',
-      cacheTtl: 10 * 60 * 1000, // 10 minutes
-    })
+    try {
+      const result = await executeQuery(query, [], {
+        cache: true,
+        cacheKey: 'active-discounts',
+        cacheTtl: 10 * 60 * 1000, // 10 minutes
+      })
+      return result || []
+    } catch (error) {
+      console.error('Error in getActiveDiscounts:', error)
+      return []
+    }
   },
 }
 
@@ -316,12 +304,8 @@ export async function healthCheck(): Promise<{
 // Graceful shutdown
 export async function closeConnections(): Promise<void> {
   try {
-    if (_pool) {
-      await _pool.end()
-      _pool = null
-      console.log('✅ Database pool closed')
-    }
-
+    // Neon serverless doesn't maintain persistent connections, so no pool to close
+    // Just disconnect Redis if needed
     await redisCache.disconnect()
   } catch (error) {
     console.error('Error closing connections:', error)

@@ -74,7 +74,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     //     description: `${data.productName} price changed from Rs ${data.oldPrice} to Rs ${data.newPrice}`,
     //     action: data.productSlug ? {
     //       label: 'View Product',
-    //       onClick: () => window.location.href = `/product/${data.productSlug}`,
+    //       onClick: () => window.location.href = `/product/${data.productId}`,
     //     } : undefined,
     //   })
     // })

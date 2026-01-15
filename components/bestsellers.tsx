@@ -217,22 +217,23 @@ export default function Bestsellers() {
             return (
               <Card
                 key={product.id}
-                className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-border/70 group"
+                className="overflow-hidden hover:shadow-2xl transition-all duration-500 bg-white/95 backdrop-blur-md border-border/50 group h-full flex flex-col hover:-translate-y-2"
               >
-                <CardContent className="p-0">
-                  <Link href={`/product/${product.slug}`}>
-                    <div className="relative overflow-hidden bg-gradient-to-br from-secondary/20 via-white to-primary/10 h-40 sm:h-48">
+                <CardContent className="p-0 flex-1 flex flex-col">
+                  <Link href={`/product/${product.id}`}>
+                    <div className="relative overflow-hidden bg-gradient-to-br from-secondary/30 via-white/50 to-primary/20 sm:min-h-52 lg:min-h-64 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-grid-small opacity-5" />
                       <Image
                         src={product.image_url || "/placeholder.svg"}
                         alt={product.name}
                         fill
-                        className="object-contain"
+                        className="object-contain group-hover:scale-125 group-hover:rotate-1 transition-transform duration-500 ease-out"
                         loading="lazy"
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       {discount && (
-                        <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
+                        <Badge className="absolute top-3 right-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold shadow-lg animate-pulse">
                           {discount.discount_type === "percentage"
                             ? `${discount.discount_value}% OFF`
                             : `Rs. ${discount.discount_value} OFF`}
@@ -240,9 +241,9 @@ export default function Bestsellers() {
                       )}
                     </div>
                   </Link>
-                  <div className="p-3 sm:p-4 space-y-2">
-                    <Link href={`/product/${product.slug}`}>
-                      <h3 className="font-semibold text-sm sm:text-base line-clamp-2 text-foreground hover:text-primary">
+                  <div className="p-3 sm:p-4 space-y-3 flex-1 flex flex-col">
+                    <Link href={`/product/${product.id}`}>
+                      <h3 className="font-semibold text-sm sm:text-base line-clamp-2 text-foreground hover:text-primary transition-colors">
                         {product.name}
                       </h3>
                     </Link>
@@ -260,10 +261,10 @@ export default function Bestsellers() {
                         <span>{formatPrice(discountedPrice)}</span>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 mt-auto">
                       <Button
                         size="sm"
-                        className="flex-1 h-9 text-xs sm:text-sm"
+                        className="flex-1 h-9 text-xs sm:text-sm bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:from-primary/90 hover:to-accent/90 transition-all duration-300 transform hover:scale-105"
                         disabled={pendingId === product.id || product.stock_quantity === 0}
                         onClick={() => handleAdd(product.id)}
                       >
@@ -277,11 +278,11 @@ export default function Bestsellers() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="flex-1 h-9 bg-transparent"
+                        className="flex-1 h-9 bg-white hover:bg-primary/10 border-primary/30 hover:border-primary/50 transition-all duration-300 transform hover:scale-105"
                         disabled={pendingId === product.id}
                         onClick={() => handleWishlist(product.id)}
                       >
-                        <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <Heart className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
                       </Button>
                     </div>
                   </div>

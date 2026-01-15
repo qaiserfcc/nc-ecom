@@ -201,7 +201,7 @@ export default function CartPage() {
                               />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <Link href={`/product/${item.slug}`} className="hover:text-primary transition">
+                              <Link href={`/product/${item.id}`} className="hover:text-primary transition">
                                 <h3 className="font-semibold line-clamp-2 text-base break-words">{item.name}</h3>
                               </Link>
                               {item.variant_name && (

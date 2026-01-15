@@ -659,7 +659,7 @@ export default function UnifiedAdminDashboard() {
                       return (
                         <TableRow key={product.id}>
                           <TableCell className="font-medium">
-                            <Link href={`/product/${product.slug}`} className="text-primary hover:underline">
+                            <Link href={`/product/${product.id}`} className="text-primary hover:underline">
                               {product.name}
                             </Link>
                           </TableCell>

@@ -161,7 +161,7 @@ function ProductCard({
   const originalUrl = primaryImage?.original_url || imageUrl
 
   return (
-    <Link key={product.id} href={`/product/${product.slug}`}>
+    <Link key={product.id} href={`/product/${product.id}`}>
       <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
         <div className="relative aspect-square overflow-hidden bg-muted flex-shrink-0">
           {!productImages[product.id] ? (

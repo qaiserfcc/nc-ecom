@@ -161,53 +161,50 @@ export default function NewArrivals() {
   const displayedProducts = products.slice(0, ITEMS_PER_PAGE)
 
   return (
-    <section className="py-8 sm:py-12 md:py-16 bg-[#fcfdfd]">
+    <section className="py-8 sm:py-12 md:py-16 overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">New Arrivals</h2>
-            <p className="text-gray-600 text-sm mt-2">Fresh products just added to our collection</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">New Arrivals</h2>
+            <p className="text-muted-foreground text-sm mt-2">
+              Discover the latest and greatest products just added to our collection
+            </p>
           </div>
           <Link href="/shop?new=true">
-            <Button variant="outline" className="hidden sm:flex items-center gap-2 bg-transparent">
+            <Button variant="outline" className="hidden sm:flex items-center gap-2 bg-white/50 hover:bg-white/80 border-primary/30 hover:border-primary/50 transition-all duration-300 hover:shadow-lg">
               View All <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {displayedProducts.map((product, index) => {
-            const delayClass = index < 8 ? `animation-delay-${(index + 1) * 100}` : '';
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 animate-fade-in">
+          {displayedProducts.map((product) => {
             const officialPrice = product.original_price || product.current_price
             const sellingPrice = product.current_price
             const discountedPrice = calculateDiscountedPrice(sellingPrice)
             return (
               <Card
                 key={product.id}
-                className={`overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-border/70 group animate-fade-in ${delayClass}`}
+                className="overflow-hidden hover:shadow-2xl transition-all duration-500 bg-white/95 backdrop-blur-md border-border/50 group h-full flex flex-col hover:-translate-y-2"
               >
-                <CardContent className="p-0">
-                  <Link href={`/product/${product.slug}`}>
-                    <div className="relative overflow-hidden bg-gradient-to-br from-secondary/25 via-white to-primary/15 h-40 sm:h-48">
+                <CardContent className="p-0 flex-1 flex flex-col">
+                  <Link href={`/product/${product.id}`}>
+                    <div className="relative overflow-hidden bg-gradient-to-br from-secondary/30 via-white/50 to-primary/20 sm:min-h-52 lg:min-h-64 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-grid-small opacity-5" />
                       <Image
                         src={product.image_url || "/placeholder.svg"}
                         alt={product.name}
                         fill
-                        className="object-contain"
+                        className="object-contain group-hover:scale-125 group-hover:-rotate-1 transition-transform duration-500 ease-out"
+                        loading="lazy"
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
-                      {discount && (
-                        <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
-                          {discount.discount_type === "percentage"
-                            ? `${discount.discount_value}% OFF`
-                            : `Rs. ${discount.discount_value} OFF`}
-                        </Badge>
-                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <Badge className="absolute top-3 left-3 bg-gradient-to-r from-accent to-primary text-white font-semibold shadow-lg animate-pulse">New</Badge>
                     </div>
                   </Link>
-                  <div className="p-3 sm:p-4 space-y-2">
-                    <Link href={`/product/${product.slug}`}>
+                  <div className="p-3 sm:p-4 space-y-3 flex-1 flex flex-col">
+                    <Link href={`/product/${product.id}`}>
                       <h3 className="font-semibold text-sm sm:text-base line-clamp-2 text-foreground hover:text-primary transition-colors">
                         {product.name}
                       </h3>
@@ -226,10 +223,10 @@ export default function NewArrivals() {
                         <span>{formatPrice(discountedPrice)}</span>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 mt-auto">
                       <Button
                         size="sm"
-                        className="flex-1 h-9 text-xs sm:text-sm transition-transform hover:scale-105"
+                        className="flex-1 h-9 text-xs sm:text-sm bg-gradient-to-r from-accent to-primary hover:shadow-lg hover:from-accent/90 hover:to-primary/90 transition-all duration-300 transform hover:scale-105"
                         disabled={pendingId === product.id}
                         onClick={() => handleAdd(product.id)}
                       >
@@ -238,16 +235,16 @@ export default function NewArrivals() {
                         ) : (
                           <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         )}
-                        Add
+                        Add to Cart
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        className="flex-1 h-9 bg-transparent transition-transform hover:scale-105"
+                        className="flex-1 h-9 bg-white hover:bg-accent/10 border-accent/30 hover:border-accent/50 transition-all duration-300 transform hover:scale-105"
                         disabled={pendingId === product.id}
                         onClick={() => handleWishlist(product.id)}
                       >
-                        <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <Heart className="w-3 h-3 sm:w-4 sm:h-4 text-accent" />
                       </Button>
                     </div>
                   </div>

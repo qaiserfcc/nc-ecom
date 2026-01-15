@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 
 interface OptimizedImageProps {
@@ -63,15 +63,13 @@ export function OptimizedImage({
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [isInView, setIsInView] = useState(!initialLoading || initialLoading === 'eager')
-  const [currentSrc, setCurrentSrc] = useState<string>(src)
-  const [imageFormats, setImageFormats] = useState<ImageFormat[]>([])
   const imgRef = useRef<HTMLDivElement>(null)
   const observerRef = useRef<IntersectionObserver | null>(null)
 
   // Calculate aspect ratio if not provided
   const calculatedAspectRatio = aspectRatio || (height / width)
 
-  // Generate CDN URLs with format conversion
+  // Generate CDN URLs with format conversion - memoized to prevent re-renders
   const generateImageUrls = useCallback((baseSrc: string): ImageFormat[] => {
     const urls: ImageFormat[] = []
     const baseUrl = cdnBaseUrl ? `${cdnBaseUrl}${baseSrc}` : baseSrc
@@ -103,6 +101,10 @@ export function OptimizedImage({
 
     return urls
   }, [cdnBaseUrl, responsive, breakpoints, calculatedAspectRatio, formats, quality, width, height])
+
+  // Generate image formats once on mount and when src changes
+  const imageFormats = useMemo(() => generateImageUrls(src), [src, generateImageUrls])
+  const currentSrc = useMemo(() => imageFormats[0]?.src || src, [imageFormats, src])
 
   // Intersection Observer for lazy loading
   useEffect(() => {
@@ -138,15 +140,6 @@ export function OptimizedImage({
       }
     }
   }, [initialLoading, priority, lazyOffset])
-
-  // Generate image formats when src changes
-  useEffect(() => {
-    if (src) {
-      const formats = generateImageUrls(src)
-      setImageFormats(formats)
-      setCurrentSrc(formats[0]?.src || src)
-    }
-  }, [src, generateImageUrls])
 
   // Generate blur placeholder
   const generateBlurPlaceholder = useCallback(() => {

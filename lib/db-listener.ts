@@ -34,7 +34,13 @@ export async function initDatabaseListener() {
   ]
 
   try {
-    await client.connect()
+    // Add timeout for connection (Neon serverless may have issues)
+    const connectPromise = client.connect()
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Database listener connection timeout')), 5000)
+    )
+
+    await Promise.race([connectPromise, timeoutPromise])
 
     for (const channel of channels) {
       await client.query(`LISTEN ${channel}`)
@@ -53,7 +59,8 @@ export async function initDatabaseListener() {
     listenerInitialized = true
     console.log('✅ Database notification listener initialized')
   } catch (error) {
-    console.error('Failed to initialize database listener:', error)
+    console.error('⚠️ Failed to initialize database listener (this is optional):', error)
+    // Don't throw - listener is optional, server should continue
   }
 }
 

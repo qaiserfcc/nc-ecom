@@ -681,7 +681,7 @@ function ShopContent() {
                     ) : type === "bundles" ? (
                       // Render Bundles
                       allItems.map((bundle: any) => (
-                        <Link key={bundle.id} href={`/product/bundle-${bundle.id}`}>
+                        <Link key={bundle.id} href={`/product/${bundle.product_id || bundle.id}`}>
                           <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 h-full rounded-[24px] border-0">
                             <div className="relative aspect-square overflow-hidden bg-[#e0e5ce] p-4">
                               <div className="relative w-full h-full rounded-2xl overflow-hidden">
@@ -737,16 +737,17 @@ function ShopContent() {
                           const discountedPrice = calculateDiscountedPrice(sellingPrice)
                           
                           return (
-                            <Link key={product.id} href={`/product/${product.slug}`}>
-                              <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 h-full rounded-[24px] border-0 bg-white">
-                                <div className="relative aspect-square overflow-hidden bg-[var(--color-product-bg,#e0e5ce)] p-4">
+                            <Link key={product.id} href={`/product/${product.id}`}>
+                              <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 h-full rounded-[24px] border-0 bg-white/95 hover:-translate-y-3 flex flex-col backdrop-blur-sm">
+                                <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-secondary/30 via-white/50 to-primary/20 p-4 flex items-center justify-center">
+                                  <div className="absolute inset-0 bg-grid-small opacity-5" />
                                   <div className="relative w-full h-full rounded-2xl overflow-hidden">
                                     <OptimizedImage
                                       src={imageUrl}
                                       alt={product.name}
                                       width={300}
                                       height={300}
-                                      className="group-hover:scale-110 transition-transform duration-300 w-full h-full object-cover"
+                                      className="group-hover:scale-125 group-hover:rotate-2 transition-transform duration-500 ease-out w-full h-full object-cover"
                                       loading="lazy"
                                       onLoad={() => performanceMonitor.recordImageLoad(Date.now())}
                                       onError={() => {
@@ -754,19 +755,19 @@ function ShopContent() {
                                       }}
                                     />
                                     {/* Hover Overlay */}
-                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
-                                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2">
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex items-center justify-center">
+                                      <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 flex gap-3 scale-75 group-hover:scale-100">
                                         <Button
                                           size="sm"
                                           variant="secondary"
-                                          className="h-10 w-10 rounded-full bg-white hover:bg-white/90 shadow-lg"
+                                          className="h-10 w-10 rounded-full bg-white hover:bg-primary/10 hover:text-primary shadow-lg transition-all duration-300 transform hover:scale-110"
                                           onClick={(e) => handleAddToWishlist(product.id, e)}
                                         >
                                           <Heart className="w-5 h-5 text-primary" />
                                         </Button>
                                         <Button
                                           size="sm"
-                                          className="h-10 px-6 rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg font-semibold"
+                                          className="h-10 px-6 rounded-full bg-gradient-to-r from-primary to-accent hover:shadow-xl text-white shadow-lg font-semibold transition-all duration-300 transform hover:scale-110"
                                           onClick={(e) => handleAddToCart(product.id, e)}
                                         >
                                           <ShoppingCart className="w-4 h-4 mr-2" />
@@ -776,10 +777,10 @@ function ShopContent() {
                                     </div>
                                   </div>
                                   {product.is_new_arrival && (
-                                    <Badge className="absolute top-6 left-6 bg-accent text-white rounded-full px-3 py-1 shadow-md">New</Badge>
+                                    <Badge className="absolute top-6 left-6 bg-gradient-to-r from-accent to-primary text-white rounded-full px-3 py-1 shadow-md font-semibold animate-pulse\">New</Badge>
                                   )}
                                   {activeDiscount && (
-                                    <Badge variant="destructive" className="absolute top-6 right-6 rounded-full px-3 py-1 shadow-md">
+                                    <Badge variant="destructive" className="absolute top-6 right-6 rounded-full px-3 py-1 shadow-md font-semibold\">
                                       {activeDiscount.discount_type === "percentage"
                                         ? `${activeDiscount.discount_value}% OFF`
                                         : `Rs. ${activeDiscount.discount_value} OFF`}

@@ -14,7 +14,6 @@ class RedisCacheService {
     const redisUrl = process.env.REDIS_URL || process.env.REDIS_URL_LOCAL || 'redis://localhost:6379'
 
     this.redis = new Redis(redisUrl, {
-      retryDelayOnFailover: 100,
       maxRetriesPerRequest: 3,
       lazyConnect: true,
       reconnectOnError: (err) => {
@@ -219,7 +218,7 @@ export { RedisCacheService }
 
 // Cache key generators for common patterns
 export const cacheKeys = {
-  product: (id: number) => `product:${id}`,
+  product: (id: number | string) => `product:${id}`,
   products: (filters: Record<string, any>) => `products:${JSON.stringify(filters)}`,
   category: (id: number) => `category:${id}`,
   categories: () => 'categories',
