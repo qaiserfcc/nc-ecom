@@ -34,6 +34,7 @@ const SQL_FILES = [
   "01-create-schema.sql",
   "02-seed-data.sql",
   "03-add-password-hash.sql",
+  "05-add-social-content-formats.sql",
 ];
 
 /**
