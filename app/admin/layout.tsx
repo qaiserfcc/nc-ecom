@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useEffect } from "react"
 
 import { useRouter, usePathname } from "next/navigation"
 import NextImage from "next/image"
@@ -49,6 +50,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const { user, isLoading, isAdmin, signOut } = useAuth()
 
+  // Handle redirect in useEffect instead of during render
+  useEffect(() => {
+    if (!isLoading && (!user || !isAdmin)) {
+      router.push("/signin")
+    }
+  }, [isLoading, user, isAdmin, router])
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -58,7 +66,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   if (!user || !isAdmin) {
-    router.push("/signin")
     return null
   }
 

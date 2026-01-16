@@ -3,6 +3,7 @@ import { executeQuery } from '@/lib/db';
 import { generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
+import { StorageProvider } from '@/lib/storage-utils';
 
 // Format-specific content schema
 const formatContentSchema = z.object({
@@ -29,22 +30,41 @@ const formatContentSchema = z.object({
 
 type FormatContent = z.infer<typeof formatContentSchema>;
 
-// Generate media (placeholder - integrate with image generation service)
-async function generateMediaForProduct(productName: string, format: 'image' | 'video'): Promise<{ mediaUrl: string; mediaType: string }> {
-  // Placeholder for actual image/video generation
-  // TODO: Integrate with:
-  // - Stable Diffusion API for images
-  // - D-ID or similar for video generation
-  // - Or use Unsplash/Pexels API for stock images
-  
-  const placeholderImages: Record<string, string> = {
-    'image': 'https://via.placeholder.com/1200x630?text=' + encodeURIComponent(productName),
-    'video': 'https://via.placeholder.com/1280x720?text=Video+Content',
-  };
+// Generate media using product images when available, otherwise fallback to related images
+async function generateMediaForProduct(
+  productName: string,
+  format: 'image' | 'video',
+  productImageUrl?: string,
+  productImages?: any[]
+): Promise<{ mediaUrl: string; mediaType: string; blobUrl?: string }> {
+  // Prefer product image if available
+  if (productImageUrl) {
+    return {
+      mediaUrl: productImageUrl,
+      mediaType: 'image',
+    };
+  }
 
+  // Use first product image from product_images table
+  if (productImages && productImages.length > 0) {
+    return {
+      mediaUrl: productImages[0].image_url,
+      mediaType: 'image',
+    };
+  }
+
+  // Fallback to Unsplash images if no product image available
+  if (format === 'image') {
+    return {
+      mediaUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=600&fit=crop&q=80',
+      mediaType: 'image',
+    };
+  }
+
+  // For videos, use a video thumbnail
   return {
-    mediaUrl: placeholderImages[format],
-    mediaType: format,
+    mediaUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&h=675&fit=crop&q=80',
+    mediaType: 'video',
   };
 }
 
@@ -53,7 +73,8 @@ async function generateFormatContent(
   productName: string,
   productDescription: string,
   platform: 'facebook' | 'instagram',
-  contentType: 'promotional' | 'educational' | 'entertainment'
+  contentType: 'promotional' | 'educational' | 'entertainment',
+  promoOffer: string = '',
 ): Promise<FormatContent> {
   const modelName = process.env.OPENAI_MODEL || process.env.VERCEL_AI_MODEL || 'gpt-4o-mini';
   const model = openai(modelName);
@@ -71,7 +92,14 @@ async function generateFormatContent(
     },
   };
 
-  const prompt = `You are a professional social media content creator specializing in ${platform} marketing.
+  const promoContext = promoOffer ? `\n\nInclude this special offer in the content: "${promoOffer}"` : '';
+
+  const prompt = `You are a professional social media content creator specializing in ${platform} marketing for Namecheap (website: www.namecheap.to).
+
+CRITICAL REQUIREMENTS:
+- ALWAYS include a focus on keeping audience engaged with Namecheap brand and website www.namecheap.to
+- Direct audience to visit www.namecheap.to for more information and to make purchases
+- Maintain professional brand voice while being engaging and approachable${promoContext}
 
 Create engaging ${contentType} content for this product:
 Product Name: ${productName}
@@ -85,18 +113,19 @@ Generate THREE different formats for ${platform}:
 
 For each format, provide:
 - title: A catchy headline (max 100 chars, optional for story/post)
-- content: The main content specific to that format
-- hashtags: Relevant hashtags array (5-10 for posts, 2-3 for stories/reels)
-- cta: Call to action text
+- content: The main content specific to that format (MUST include website mention and CTA to www.namecheap.to)
+- hashtags: Relevant hashtags array (5-10 for posts, 2-3 for stories/reels, include #Namecheap)
+- cta: Clear call-to-action directing to www.namecheap.to
 - videoDescription (reel only): Brief description of video visuals
 
 Requirements:
 - Make content platform and format appropriate
-- Include clear CTAs
-- Use relevant, trending hashtags
+- Include clear CTAs pointing to www.namecheap.to
+- Use relevant, trending hashtags with #Namecheap
 - Keep tone professional yet friendly
 - Focus on benefits and value proposition
 - Make content shareable and engaging
+- Always emphasize Namecheap brand and website in context
 
 Return a JSON object with three keys: post, story, reel - each containing the content for that format.`;
 
@@ -118,7 +147,7 @@ Return a JSON object with three keys: post, story, reel - each containing the co
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { productId, action, contentType } = body;
+    const { productId, action, contentType, promoOffer = '' } = body;
 
     if (!productId) {
       return NextResponse.json(
@@ -127,9 +156,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get product details
+    // Get product details including images
     const productResult = await executeQuery(
-      'SELECT id, name, description FROM products WHERE id = $1',
+      `SELECT id, name, description, image_url,
+       (SELECT json_agg(json_build_object('image_url', image_url))
+        FROM product_images WHERE product_id = $1) as images
+       FROM products WHERE id = $1`,
       [productId]
     );
 
@@ -144,12 +176,12 @@ export async function POST(request: NextRequest) {
 
     if (action === 'generate') {
       // Generate content and media for both platforms
-      const facebookContent = await generateFormatContent(product.name, product.description, 'facebook', contentType || 'promotional');
-      const instagramContent = await generateFormatContent(product.name, product.description, 'instagram', contentType || 'promotional');
+      const facebookContent = await generateFormatContent(product.name, product.description, 'facebook', contentType || 'promotional', promoOffer);
+      const instagramContent = await generateFormatContent(product.name, product.description, 'instagram', contentType || 'promotional', promoOffer);
 
-      // Generate media
-      const imageMedia = await generateMediaForProduct(product.name, 'image');
-      const videoMedia = await generateMediaForProduct(product.name, 'video');
+      // Generate media using product images
+      const imageMedia = await generateMediaForProduct(product.name, 'image', product.image_url, product.images);
+      const videoMedia = await generateMediaForProduct(product.name, 'video', product.image_url, product.images);
 
       // Insert main social content record
       const contentResult = await executeQuery(
@@ -193,8 +225,8 @@ export async function POST(request: NextRequest) {
       for (const fmt of formats) {
         await executeQuery(
           `INSERT INTO social_content_formats 
-          (social_content_id, platform, format, title, content, hashtags, cta, media_url, media_type, status)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+          (social_content_id, platform, format, title, content, hashtags, cta, media_url, media_type, status, promo_offer, include_website, blob_media_url, blob_media_type)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
           [
             socialContentId,
             fmt.platform,
@@ -206,17 +238,23 @@ export async function POST(request: NextRequest) {
             fmt.format === 'reel' ? videoMedia.mediaUrl : imageMedia.mediaUrl,
             fmt.format === 'reel' ? 'video' : 'image',
             'draft',
+            promoOffer || null,
+            true,
+            fmt.format === 'reel' ? videoMedia.mediaUrl : imageMedia.mediaUrl,
+            fmt.format === 'reel' ? 'video' : 'image',
           ]
         );
       }
 
+      // Fetch the formats we just inserted to include media data in response
+      const insertedFormats = await executeQuery(
+        'SELECT * FROM social_content_formats WHERE social_content_id = $1 ORDER BY platform, format',
+        [socialContentId]
+      );
+
       return NextResponse.json({
         ...contentResult[0],
-        formats: formats.map(f => ({
-          platform: f.platform,
-          format: f.format,
-          content: f.content,
-        })),
+        formats: insertedFormats,
       });
     }
 
@@ -264,7 +302,7 @@ export async function GET(request: NextRequest) {
       [limit, offset]
     );
 
-    const countResult = await executeQuery('SELECT COUNT(*) as count FROM social_content');
+    const countResult = await executeQuery('SELECT COUNT(*) as count FROM social_content', []);
     const total = countResult[0]?.count || 0;
 
     return NextResponse.json({

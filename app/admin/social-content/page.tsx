@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import useSWR from "swr"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +35,8 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Search,
+  X,
 } from "lucide-react"
 import { ContentPreviewDialog } from "@/components/social-content-preview"
 import { notify } from "@/lib/utils/notifications"
@@ -49,15 +52,30 @@ export default function AdminSocialContentPage() {
   const [generating, setGenerating] = useState(false)
   const [saving, setSaving] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<string>("")
+  const [selectedProductName, setSelectedProductName] = useState<string>("")
+  const [productSearch, setProductSearch] = useState<string>("")
   const [platform, setPlatform] = useState<"facebook" | "instagram" | "both">("both")
   const [contentType, setContentType] = useState<"promotional" | "educational" | "entertainment">("promotional")
   const [scheduleFor, setScheduleFor] = useState<string>("")
+  const [promoOffer, setPromoOffer] = useState<string>("")
 
   const { data: contentData, isLoading: contentLoading, mutate: mutateContent } = useSWR(
     "/api/social-content?limit=50",
     fetcher
   )
-  const { data: productsData } = useSWR("/api/products?limit=100", fetcher)
+  const { data: productsData } = useSWR("/api/products/minimal?limit=10000", fetcher)
+
+  // Filter products based on search
+  const filteredProducts = useMemo(() => {
+    if (!productsData?.products) return []
+    if (!productSearch) return productsData.products
+    
+    const search = productSearch.toLowerCase()
+    return productsData.products.filter((product: any) =>
+      product.name.toLowerCase().includes(search) ||
+      product.id.toString().includes(search)
+    )
+  }, [productsData?.products, productSearch])
   const { data: accountsData } = useSWR("/api/social-accounts", fetcher)
 
   const handleGenerateContent = async () => {
@@ -76,7 +94,8 @@ export default function AdminSocialContentPage() {
           action: "generate",
           contentType,
           scheduleFor: scheduleFor || null,
-          userId: 1, // Replace with actual user ID
+          promoOffer: promoOffer || null,
+          userId: 1,
         }),
       })
 
@@ -94,13 +113,27 @@ export default function AdminSocialContentPage() {
       // Reset form
       setDialogOpen(false)
       setSelectedProduct("")
+      setSelectedProductName("")
+      setProductSearch("")
       setScheduleFor("")
-      setSelectedProduct("")
+      setPromoOffer("")
     } catch (error) {
       notify.error("Failed to generate content")
     } finally {
       setGenerating(false)
     }
+  }
+
+  const handleSelectProduct = (productId: string, productName: string) => {
+    setSelectedProduct(productId)
+    setSelectedProductName(productName)
+    setProductSearch("")
+  }
+
+  const handleClearProduct = () => {
+    setSelectedProduct("")
+    setSelectedProductName("")
+    setProductSearch("")
   }
 
   const handleDeleteContent = async (id: number) => {
@@ -151,7 +184,7 @@ export default function AdminSocialContentPage() {
         <h1 className="text-3xl font-bold">Social Media Management</h1>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button className="gap-2 bg-purple-600 hover:bg-purple-700">
               <Wand2 className="w-4 h-4" />
               Generate AI Content
             </Button>
@@ -159,53 +192,111 @@ export default function AdminSocialContentPage() {
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Generate Social Media Content</DialogTitle>
+              <DialogDescription>
+                Select a product and choose your content preferences to generate AI-powered social media content
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="product-select">Select Product</Label>
-                <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-                  <SelectTrigger id="product-select">
-                    <SelectValue placeholder="Choose a product..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {productsData?.products?.map((product: any) => (
-                      <SelectItem key={product.id} value={product.id.toString()}>
-                        {product.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {/* Product Selection with Search */}
+              <div className="space-y-2">
+                <Label htmlFor="product-search">Select Product</Label>
+                {selectedProduct ? (
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                    <span className="font-medium text-sm">{selectedProductName}</span>
+                    <button
+                      onClick={handleClearProduct}
+                      className="p-1 hover:bg-gray-200 rounded"
+                      title="Clear product selection"
+                      aria-label="Clear product selection"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                    <Input
+                      id="product-search"
+                      placeholder="Search products by name or ID..."
+                      value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                )}
+                
+                {!selectedProduct && productSearch && (
+                  <ScrollArea className="h-64 border rounded-lg">
+                    <div className="p-3 space-y-1">
+                      {filteredProducts.length > 0 ? (
+                        filteredProducts.map((product: any) => (
+                          <button
+                            key={product.id}
+                            onClick={() => handleSelectProduct(product.id.toString(), product.name)}
+                            className="w-full text-left p-2 hover:bg-purple-100 rounded-lg transition-colors text-sm"
+                          >
+                            <div className="font-medium">{product.name}</div>
+                            <div className="text-xs text-gray-500">ID: {product.id}</div>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="text-sm text-gray-500 py-4 text-center">
+                          No products found
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                )}
               </div>
 
-              <div>
+              {/* Platform Selection */}
+              <div className="space-y-2">
                 <Label htmlFor="platform-select">Platform</Label>
                 <Select value={platform} onValueChange={(v) => setPlatform(v as any)}>
                   <SelectTrigger id="platform-select">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="facebook">Facebook</SelectItem>
-                    <SelectItem value="instagram">Instagram</SelectItem>
-                    <SelectItem value="both">Both Platforms</SelectItem>
+                    <SelectItem value="facebook">
+                      <div className="flex items-center gap-2">
+                        <Facebook className="w-4 h-4" />
+                        Facebook
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="instagram">
+                      <div className="flex items-center gap-2">
+                        <Instagram className="w-4 h-4" />
+                        Instagram
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="both">
+                      <div className="flex items-center gap-2">
+                        <Facebook className="w-3 h-3" />
+                        <Instagram className="w-3 h-3" />
+                        Both Platforms
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div>
+              {/* Content Type Selection */}
+              <div className="space-y-2">
                 <Label htmlFor="content-type-select">Content Type</Label>
                 <Select value={contentType} onValueChange={(v) => setContentType(v as any)}>
                   <SelectTrigger id="content-type-select">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="promotional">Promotional</SelectItem>
-                    <SelectItem value="educational">Educational</SelectItem>
-                    <SelectItem value="entertainment">Entertainment</SelectItem>
+                    <SelectItem value="promotional">📢 Promotional</SelectItem>
+                    <SelectItem value="educational">📚 Educational</SelectItem>
+                    <SelectItem value="entertainment">🎬 Entertainment</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div>
+              {/* Schedule (Optional) */}
+              <div className="space-y-2">
                 <Label htmlFor="schedule-date">Schedule For (Optional)</Label>
                 <Input
                   id="schedule-date"
@@ -215,14 +306,33 @@ export default function AdminSocialContentPage() {
                 />
               </div>
 
-              <Button onClick={handleGenerateContent} disabled={generating} className="w-full">
+              {/* Promo Offer (Optional) */}
+              <div className="space-y-2">
+                <Label htmlFor="promo-offer">Promo Offer (Optional)</Label>
+                <Input
+                  id="promo-offer"
+                  placeholder="e.g., 20% OFF or Free Shipping"
+                  value={promoOffer}
+                  onChange={(e) => setPromoOffer(e.target.value)}
+                />
+              </div>
+
+              {/* Generate Button */}
+              <Button 
+                onClick={handleGenerateContent} 
+                disabled={generating || !selectedProduct} 
+                className="w-full bg-purple-600 hover:bg-purple-700"
+              >
                 {generating ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     Generating...
                   </>
                 ) : (
-                  "Generate Content"
+                  <>
+                    <Wand2 className="w-4 h-4 mr-2" />
+                    Generate Content
+                  </>
                 )}
               </Button>
             </div>

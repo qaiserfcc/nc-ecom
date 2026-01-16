@@ -30,14 +30,30 @@ async function querySql<T = any>(queryText: string, params: any[]): Promise<T[]>
   // For Neon serverless with parameters, we need to manually replace placeholders
   // Convert PostgreSQL $1, $2 style to actual values in the template
   let processedQuery = queryText
-  params.forEach((param, index) => {
-    const placeholder = `$${index + 1}`
+  
+  // Replace placeholders in reverse order to avoid issues with overlapping replacements
+  for (let i = params.length; i >= 1; i--) {
+    const placeholder = `$${i}`
+    const param = params[i - 1]
+    
     // Escape and quote string values, keep numbers as-is
-    const escapedValue = typeof param === 'string' 
-      ? `'${param.replace(/'/g, "''")}'` 
-      : param
-    processedQuery = processedQuery.replace(placeholder, escapedValue)
-  })
+    let escapedValue: string
+    if (param === null || param === undefined) {
+      escapedValue = 'NULL'
+    } else if (typeof param === 'string') {
+      escapedValue = `'${param.replace(/'/g, "''")}'`
+    } else if (typeof param === 'boolean') {
+      escapedValue = param ? 'true' : 'false'
+    } else if (typeof param === 'object') {
+      // For arrays and objects, convert to JSON string
+      escapedValue = `'${JSON.stringify(param).replace(/'/g, "''")}'`
+    } else {
+      escapedValue = String(param)
+    }
+    
+    // Replace all occurrences of this placeholder
+    processedQuery = processedQuery.replaceAll(placeholder, escapedValue)
+  }
   
   // Now execute with the processed query using sql tagged template
   const result = await sql`${sql.unsafe(processedQuery)}`
