@@ -37,7 +37,32 @@ async function generateMediaForProduct(
   productImageUrl?: string,
   productImages?: any[]
 ): Promise<{ mediaUrl: string; mediaType: string; blobUrl?: string }> {
-  // Prefer product image if available
+  // For videos, use product image as thumbnail with 'video' type
+  if (format === 'video') {
+    // Try to use product image as video thumbnail
+    if (productImageUrl) {
+      return {
+        mediaUrl: productImageUrl,
+        mediaType: 'video',
+      };
+    }
+    
+    // Use first product image from product_images table as video thumbnail
+    if (productImages && productImages.length > 0) {
+      return {
+        mediaUrl: productImages[0].image_url,
+        mediaType: 'video',
+      };
+    }
+    
+    // Fallback to Unsplash image for video thumbnail
+    return {
+      mediaUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&h=675&fit=crop&q=80',
+      mediaType: 'video',
+    };
+  }
+
+  // For images, prefer product image if available
   if (productImageUrl) {
     return {
       mediaUrl: productImageUrl,
@@ -54,17 +79,9 @@ async function generateMediaForProduct(
   }
 
   // Fallback to Unsplash images if no product image available
-  if (format === 'image') {
-    return {
-      mediaUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=600&fit=crop&q=80',
-      mediaType: 'image',
-    };
-  }
-
-  // For videos, use a video thumbnail
   return {
-    mediaUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&h=675&fit=crop&q=80',
-    mediaType: 'video',
+    mediaUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=600&fit=crop&q=80',
+    mediaType: 'image',
   };
 }
 

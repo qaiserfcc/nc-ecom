@@ -63,19 +63,18 @@ export default function AdminSocialContentPage() {
     "/api/social-content?limit=50",
     fetcher
   )
-  const { data: productsData } = useSWR("/api/products/minimal?limit=10000", fetcher)
+  
+  // Fetch products with search query - use debounced search to avoid excessive API calls
+  const searchQuery = productSearch.trim() ? `&search=${encodeURIComponent(productSearch)}` : '';
+  const { data: productsData, isLoading: productsLoading } = useSWR(
+    productSearch.trim() ? `/api/products/minimal?limit=50${searchQuery}` : null,
+    fetcher
+  )
 
-  // Filter products based on search
+  // Use filtered products from API
   const filteredProducts = useMemo(() => {
-    if (!productsData?.products) return []
-    if (!productSearch) return productsData.products
-    
-    const search = productSearch.toLowerCase()
-    return productsData.products.filter((product: any) =>
-      product.name.toLowerCase().includes(search) ||
-      product.id.toString().includes(search)
-    )
-  }, [productsData?.products, productSearch])
+    return productsData?.products || []
+  }, [productsData?.products])
   const { data: accountsData } = useSWR("/api/social-accounts", fetcher)
 
   const handleGenerateContent = async () => {
@@ -178,8 +177,40 @@ export default function AdminSocialContentPage() {
     )
   }
 
+  // Check if there are active social accounts connected
+  const hasActiveAccounts = accountsData?.data?.some((account: any) => account.is_active) || false
+  const totalAccounts = accountsData?.data?.length || 0
+
   return (
     <div className="space-y-6">
+      {/* Social Account Connection Banner */}
+      {!hasActiveAccounts && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-orange-900 mb-1">
+                  No Social Accounts Connected
+                </h3>
+                <p className="text-sm text-orange-800 mb-3">
+                  Connect your Facebook and Instagram accounts to start posting AI-generated content to your social media.
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="border-orange-300 hover:bg-orange-100"
+                  onClick={() => setActiveTab("accounts")}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Connect Accounts
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Social Media Management</h1>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -228,7 +259,11 @@ export default function AdminSocialContentPage() {
                 {!selectedProduct && productSearch && (
                   <ScrollArea className="h-64 border rounded-lg">
                     <div className="p-3 space-y-1">
-                      {filteredProducts.length > 0 ? (
+                      {productsLoading ? (
+                        <div className="flex justify-center py-8">
+                          <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
+                        </div>
+                      ) : filteredProducts.length > 0 ? (
                         filteredProducts.map((product: any) => (
                           <button
                             key={product.id}
@@ -457,7 +492,33 @@ export default function AdminSocialContentPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-8">No connected accounts yet</p>
+                <div className="text-center py-12 space-y-4">
+                  <div className="flex justify-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Facebook className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                      <Instagram className="w-6 h-6 text-purple-600" />
+                    </div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">No Connected Accounts</h3>
+                  <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                    Connect your Facebook and Instagram accounts to enable automated social media posting. 
+                    You'll need to authenticate through Facebook's OAuth to connect your accounts.
+                  </p>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-lg mx-auto text-left">
+                    <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" />
+                      How to Connect Accounts
+                    </h4>
+                    <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
+                      <li>Ensure you have admin access to your Facebook Page</li>
+                      <li>For Instagram, make sure it's a Business or Creator account linked to Facebook</li>
+                      <li>Set up Facebook App credentials in your environment variables</li>
+                      <li>Use the social accounts API to add your account credentials</li>
+                    </ol>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>

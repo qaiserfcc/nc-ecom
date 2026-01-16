@@ -134,9 +134,29 @@ function FormatPreview({ format }: { format: FormatContent }) {
       <CardContent className="space-y-4">
         {/* Media Preview */}
         {format.media_url && (
-          <div className="border rounded-lg overflow-hidden bg-gray-100 h-48 flex items-center justify-center">
+          <div className="border rounded-lg overflow-hidden bg-gray-100 h-48 flex items-center justify-center relative">
             {format.media_type === 'video' ? (
-              <Video className="w-12 h-12 text-gray-400" />
+              <>
+                <img
+                  src={format.media_url}
+                  alt={format.format}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                    const parent = e.currentTarget.parentElement
+                    if (parent) {
+                      const icon = parent.querySelector('.video-icon-fallback')
+                      if (icon) icon.classList.remove('hidden')
+                    }
+                  }}
+                />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="bg-black bg-opacity-50 rounded-full p-3">
+                    <Video className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+                <Video className="w-12 h-12 text-gray-400 video-icon-fallback hidden" />
+              </>
             ) : (
               <img
                 src={format.media_url}
@@ -179,7 +199,7 @@ function FormatPreview({ format }: { format: FormatContent }) {
                 <div className="flex flex-wrap gap-2 mt-2">
                   {hashtags.map((tag, i) => (
                     <Badge key={i} variant="outline">
-                      {tag}
+                      #{tag.startsWith('#') ? tag.slice(1) : tag}
                     </Badge>
                   ))}
                 </div>
