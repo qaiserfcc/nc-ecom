@@ -8,47 +8,87 @@ import { executeQuery } from '@/lib/db';
  */
 
 async function postToFacebook(
-  accountId: string,
+  pageId: string,
   accessToken: string,
+  format: string,
   content: {
-    title: string;
+    title?: string;
     content: string;
-    imageUrl?: string;
-    link?: string;
+    mediaUrl?: string;
+    mediaType?: string;
+    hashtags?: string[];
+    cta?: string;
   }
 ): Promise<{ id: string; url: string }> {
   try {
-    // Using Facebook Graph API
-    const body = {
-      message: `${content.title}\n\n${content.content}`,
-      link: content.link,
-    };
+    let postResult;
 
-    if (content.imageUrl) {
-      body['picture'] = content.imageUrl;
-    }
+    if (format === 'reel' || (format === 'story' && content.mediaType === 'video')) {
+      // Post video (Reel or Video Story)
+      const videoResponse = await fetch(
+        `https://graph.facebook.com/v18.0/${pageId}/videos`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            file_url: content.mediaUrl,
+            description: `${content.title || ''}\n\n${content.content}\n\n${content.hashtags?.join(' ') || ''}`,
+            access_token: accessToken,
+          }),
+        }
+      );
 
-    const response = await fetch(`https://graph.facebook.com/v18.0/${accountId}/feed`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ...body,
+      if (!videoResponse.ok) {
+        const error = await videoResponse.json();
+        throw new Error(error.error?.message || 'Failed to post video to Facebook');
+      }
+
+      postResult = await videoResponse.json();
+      return {
+        id: postResult.id,
+        url: `https://facebook.com/${postResult.id}`,
+      };
+    } else {
+      // Post photo or text (Post or Image Story)
+      const message = [
+        content.title,
+        content.content,
+        content.hashtags?.join(' '),
+        content.cta,
+      ]
+        .filter(Boolean)
+        .join('\n\n');
+
+      const body: any = {
+        message,
         access_token: accessToken,
-      }),
-    });
+      };
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'Failed to post to Facebook');
+      if (content.mediaUrl && content.mediaType === 'image') {
+        body.url = content.mediaUrl;
+      }
+
+      const endpoint = content.mediaUrl
+        ? `https://graph.facebook.com/v18.0/${pageId}/photos`
+        : `https://graph.facebook.com/v18.0/${pageId}/feed`;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'Failed to post to Facebook');
+      }
+
+      postResult = await response.json();
+      return {
+        id: postResult.id,
+        url: `https://facebook.com/${postResult.id}`,
+      };
     }
-
-    const data = await response.json();
-    return {
-      id: data.id,
-      url: `https://facebook.com/${data.id}`,
-    };
   } catch (error) {
     console.error('Facebook posting error:', error);
     throw error;
@@ -155,118 +195,128 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Post to social media
+// POST - Post individual format to social media
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { contentId, action, platforms } = body;
+    const { contentId, formatId, platform, format } = body;
 
-    if (!contentId || !action) {
+    if (!contentId || !formatId || !platform || !format) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields: contentId, formatId, platform, format' },
         { status: 400 }
       );
     }
 
-    if (action === 'post') {
-      // Get the content
-      const contentResult = await executeQuery(
-        'SELECT * FROM social_content WHERE id = $1',
-        [contentId]
+    // Get the format content
+    const formatResult = await executeQuery(
+      'SELECT * FROM social_content_formats WHERE id = $1 AND social_content_id = $2',
+      [formatId, contentId]
+    );
+
+    if (!formatResult.rows || formatResult.rows.length === 0) {
+      return NextResponse.json(
+        { error: 'Format content not found' },
+        { status: 404 }
       );
-
-      if (!contentResult.length) {
-        return NextResponse.json(
-          { error: 'Content not found' },
-          { status: 404 }
-        );
-      }
-
-      const content = contentResult[0];
-
-      // Get active social accounts for the platforms
-      const accountsResult = await executeQuery(
-        `SELECT * FROM social_accounts 
-         WHERE platform = ANY($1) AND is_active = true`,
-        [platforms || [content.platform]]
-      );
-
-      if (!accountsResult.length) {
-        return NextResponse.json(
-          { error: 'No active accounts found for posting' },
-          { status: 400 }
-        );
-      }
-
-      const results: any[] = [];
-      let hasError = false;
-
-      for (const account of accountsResult) {
-        try {
-          let postResult;
-
-          if (account.platform === 'facebook') {
-            postResult = await postToFacebook(account.account_id, account.access_token, {
-              title: content.title,
-              content: content.content,
-              imageUrl: content.image_url,
-            });
-          } else if (account.platform === 'instagram') {
-            postResult = await postToInstagram(account.account_id, account.access_token, {
-              title: content.title,
-              content: content.content,
-              imageUrl: content.image_url,
-              hashtags: content.hashtags ? JSON.parse(content.hashtags) : [],
-            });
-          }
-
-          // Update content status to posted
-          await executeQuery(
-            `UPDATE social_content 
-             SET status = 'posted', posted_at = NOW() 
-             WHERE id = $1`,
-            [contentId]
-          );
-
-          results.push({
-            platform: account.platform,
-            accountId: account.account_id,
-            postId: postResult?.id,
-            postUrl: postResult?.url,
-            success: true,
-          });
-        } catch (error) {
-          hasError = true;
-          results.push({
-            platform: account.platform,
-            accountId: account.account_id,
-            success: false,
-            error: String(error),
-          });
-
-          // Update content status to failed
-          await executeQuery(
-            `UPDATE social_content 
-             SET status = 'failed', error_message = $1 
-             WHERE id = $2`,
-            [String(error), contentId]
-          );
-        }
-      }
-
-      return NextResponse.json({
-        contentId,
-        results,
-        hasError,
-        message: hasError ? 'Some posts failed' : 'All posts published successfully',
-      });
     }
 
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-  } catch (error) {
+    const formatContent = formatResult.rows[0];
+
+    // Get active social account for the platform
+    const accountResult = await executeQuery(
+      `SELECT * FROM social_accounts 
+       WHERE platform = $1 AND is_active = true
+       LIMIT 1`,
+      [platform]
+    );
+
+    if (!accountResult.rows || accountResult.rows.length === 0) {
+      return NextResponse.json(
+        { 
+          error: `No active ${platform} account found. Please connect your ${platform} account first.`,
+          needsAuth: true 
+        },
+        { status: 400 }
+      );
+    }
+
+    const account = accountResult.rows[0];
+
+    try {
+      let postResult;
+
+      // Parse content from JSON
+      const contentData = typeof formatContent.content === 'string' 
+        ? JSON.parse(formatContent.content) 
+        : formatContent.content;
+
+      if (platform === 'facebook') {
+        postResult = await postToFacebook(
+          account.account_id,
+          account.access_token,
+          formatContent.format,
+          {
+            title: contentData.title || formatContent.title,
+            content: contentData.content,
+            mediaUrl: formatContent.media_url,
+            mediaType: formatContent.media_type,
+            hashtags: contentData.hashtags || formatContent.hashtags,
+            cta: contentData.cta,
+          }
+        );
+      } else if (platform === 'instagram') {
+        postResult = await postToInstagram(
+          account.account_id,
+          account.access_token,
+          {
+            title: contentData.title || formatContent.title,
+            content: contentData.content,
+            imageUrl: formatContent.media_url,
+            hashtags: contentData.hashtags || formatContent.hashtags,
+          }
+        );
+      }
+
+      // Update format status to posted
+      await executeQuery(
+        `UPDATE social_content_formats 
+         SET status = 'posted', 
+             posted_at = NOW(),
+             external_id = $1
+         WHERE id = $2`,
+        [postResult?.id, formatId]
+      );
+
+      return NextResponse.json({
+        success: true,
+        platform,
+        format,
+        postId: postResult?.id,
+        postUrl: postResult?.url,
+        message: `Successfully posted ${format} to ${platform}!`,
+      });
+
+    } catch (error: any) {
+      // Update format status to failed
+      await executeQuery(
+        `UPDATE social_content_formats 
+         SET status = 'failed', 
+             error_message = $1 
+         WHERE id = $2`,
+        [error.message || String(error), formatId]
+      );
+
+      throw error;
+    }
+
+  } catch (error: any) {
     console.error('Error posting to social media:', error);
     return NextResponse.json(
-      { error: 'Failed to post to social media' },
+      { 
+        success: false,
+        error: error.message || 'Failed to post to social media' 
+      },
       { status: 500 }
     );
   }

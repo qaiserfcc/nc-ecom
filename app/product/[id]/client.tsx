@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -16,6 +16,7 @@ import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
 import { useConfirm } from "@/components/ui/confirm-dialog"
 import { OptimizedImage } from "@/components/optimized-image"
+import { trackViewContent, trackAddToCart } from "@/lib/event-tracking"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -50,6 +51,18 @@ export default function ProductPageClient({
 
   const product = data?.product
   const activeDiscount = discountData?.discount
+
+  // Track product view when product loads
+  useEffect(() => {
+    if (product) {
+      trackViewContent({
+        contentId: product.id.toString(),
+        contentName: product.name,
+        value: Number(product.current_price),
+        currency: 'PKR'
+      })
+    }
+  }, [product])
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
@@ -86,6 +99,15 @@ export default function ProductPageClient({
       if (!response.ok) {
         throw new Error("Failed to add to cart")
       }
+      
+      // Track add to cart event
+      trackAddToCart({
+        contentId: product.id.toString(),
+        contentName: product.name,
+        value: Number(product.current_price) * quantity,
+        quantity,
+        currency: 'PKR'
+      })
       
       notify.success("Added to cart!", `${quantity} item(s) added - view your cart`)
       // Revalidate cart count

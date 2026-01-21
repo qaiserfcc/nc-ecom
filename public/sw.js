@@ -24,7 +24,8 @@ const CACHE_STRATEGIES = {
         ),
       ])
       
-      if (response && response.ok) {
+      // Only cache successful responses, exclude 206 (partial content) which Cache API doesn't support
+      if (response && response.ok && response.status !== 206) {
         const cache = await caches.open(CACHE_NAMES.API)
         cache.put(request, response.clone())
       }
@@ -46,7 +47,7 @@ const CACHE_STRATEGIES = {
     // Start background fetch
     const fetchPromise = fetch(request)
       .then((response) => {
-        if (response && response.ok) {
+        if (response && response.ok && response.status !== 206) {
           // Clone the response before using it
           const responseToCache = response.clone()
           const cache = caches.open(CACHE_NAMES.IMAGES)
@@ -81,7 +82,8 @@ const CACHE_STRATEGIES = {
         ),
       ])
       
-      if (response && response.ok) {
+      // Only cache successful responses, exclude 206 (partial content) which Cache API doesn't support
+      if (response && response.ok && response.status !== 206) {
         const cache = await caches.open(CACHE_NAMES.IMAGES)
         cache.put(request, response.clone())
       }

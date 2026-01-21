@@ -26,6 +26,9 @@ import {
   Settings,
   Truck,
   Share2,
+  Gift,
+  Mail,
+  Facebook,
 } from "lucide-react"
 
 const sidebarItems = [
@@ -40,7 +43,10 @@ const sidebarItems = [
   { href: "/admin/banners", icon: ImageIcon, label: "Banners" },
   { href: "/admin/discounts", icon: Tag, label: "Discounts" },
   { href: "/admin/shipping-methods", icon: Truck, label: "Shipping Methods" },
+  { href: "/admin/marketing/lead-magnets", icon: Gift, label: "Lead Magnets" },
+  { href: "/admin/marketing/campaigns", icon: Mail, label: "Email Campaigns" },
   { href: "/admin/social-content", icon: Share2, label: "Social Media" },
+  { href: "/admin/facebook", icon: Facebook, label: "Facebook Marketing" },
   { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
   { href: "/admin/meta-pixel", icon: Settings, label: "Meta Pixel" },
 ]

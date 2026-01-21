@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/db';
 
+// Cache for social content
+const contentCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
+function getCacheKey(platform?: string, status?: string, limit?: number, offset?: number): string {
+  return `social:${platform || 'all'}:${status || 'all'}:${limit}:${offset}`;
+}
+
 // GET - Fetch social content with filters
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +18,15 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    let query = 'SELECT * FROM social_content WHERE 1=1';
+    // Check cache
+    const cacheKey = getCacheKey(platform || undefined, status || undefined, limit, offset);
+    const cached = contentCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      console.log(`📺 Cache hit for social content`);
+      return NextResponse.json(cached.data);
+    }
+
+    let query = 'SELECT id, product_id, platform, title, content, hashtags, status, media_url, media_type, created_at, scheduled_at FROM social_content WHERE 1=1';
     const params: any[] = [];
 
     if (platform) {
@@ -26,7 +42,13 @@ export async function GET(request: NextRequest) {
     query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
     params.push(limit, offset);
 
-    const data = await executeQuery(query, params);
+    const data = await Promise.race([
+      executeQuery(query, params),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 8000))
+    ]).catch(err => {
+      console.error('Query error:', err);
+      return [];
+    });
     
     // Get total count
     let countQuery = 'SELECT COUNT(*) as count FROM social_content WHERE 1=1';
@@ -42,19 +64,30 @@ export async function GET(request: NextRequest) {
       countParams.push(status);
     }
 
-    const countResult = await executeQuery(countQuery, countParams);
-    const total = countResult[0]?.count || 0;
+    const countResult = await Promise.race([
+      executeQuery(countQuery, countParams),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 8000))
+    ]).catch(err => {
+      console.error('Count query error:', err);
+      return [{ count: 0 }];
+    });
+    const total = (countResult as any[])[0]?.count || 0;
 
-    return NextResponse.json({
+    const result = {
       data,
       total,
       limit,
       offset,
       pages: Math.ceil(total / limit),
-    });
+    };
+
+    // Cache the result
+    contentCache.set(cacheKey, { data: result, timestamp: Date.now() });
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error fetching social content:', error);
-    return NextResponse.json({ error: 'Failed to fetch social content' }, { status: 500 });
+    return NextResponse.json({ data: [], total: 0, error: 'Service temporarily unavailable' }, { status: 200 });
   }
 }
 

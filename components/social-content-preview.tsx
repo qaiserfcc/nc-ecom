@@ -155,6 +155,11 @@ function FormatPreview({ format }: { format: FormatContent }) {
                     <Video className="w-8 h-8 text-white" />
                   </div>
                 </div>
+                <div className="absolute bottom-2 left-2 right-2">
+                  <Badge variant="secondary" className="text-xs">
+                    Video Thumbnail Preview
+                  </Badge>
+                </div>
                 <Video className="w-12 h-12 text-gray-400 video-icon-fallback hidden" />
               </>
             ) : (
@@ -187,11 +192,19 @@ function FormatPreview({ format }: { format: FormatContent }) {
           </div>
 
           {(() => {
-            const hashtags = Array.isArray(format.hashtags)
-              ? format.hashtags
-              : typeof format.hashtags === 'string'
-              ? format.hashtags.split(/[\s,#]+/).filter(Boolean)
-              : []
+            let hashtags: string[] = []
+            
+            if (Array.isArray(format.hashtags)) {
+              hashtags = format.hashtags
+            } else if (typeof format.hashtags === 'string') {
+              try {
+                // Try parsing as JSON array first
+                hashtags = JSON.parse(format.hashtags);
+              } catch {
+                // Fall back to splitting by space or comma
+                hashtags = format.hashtags.split(/[\s,#]+/).filter(Boolean)
+              }
+            }
 
             return hashtags.length > 0 ? (
               <div>
@@ -199,7 +212,7 @@ function FormatPreview({ format }: { format: FormatContent }) {
                 <div className="flex flex-wrap gap-2 mt-2">
                   {hashtags.map((tag, i) => (
                     <Badge key={i} variant="outline">
-                      #{tag.startsWith('#') ? tag.slice(1) : tag}
+                      #{String(tag).startsWith('#') ? String(tag).slice(1) : String(tag)}
                     </Badge>
                   ))}
                 </div>

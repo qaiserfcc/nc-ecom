@@ -44,8 +44,15 @@ async function querySql<T = any>(queryText: string, params: any[]): Promise<T[]>
       escapedValue = `'${param.replace(/'/g, "''")}'`
     } else if (typeof param === 'boolean') {
       escapedValue = param ? 'true' : 'false'
+    } else if (Array.isArray(param)) {
+      // For arrays, use PostgreSQL array syntax: '{val1,val2,val3}'
+      const escapedItems = param.map(item => {
+        if (item === null || item === undefined) return 'NULL'
+        return String(item).replace(/'/g, "''")
+      })
+      escapedValue = `'{${escapedItems.join(',')}}'`
     } else if (typeof param === 'object') {
-      // For arrays and objects, convert to JSON string
+      // For other objects, convert to JSON string
       escapedValue = `'${JSON.stringify(param).replace(/'/g, "''")}'`
     } else {
       escapedValue = String(param)

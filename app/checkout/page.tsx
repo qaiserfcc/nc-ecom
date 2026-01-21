@@ -21,6 +21,7 @@ import { Loader2, CreditCard, Banknote, ShoppingBag, CheckCircle, MessageCircle,
 import { useAuth } from "@/lib/hooks/use-auth"
 import { notify } from "@/lib/utils/notifications"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { trackInitiateCheckout, trackPurchase } from "@/lib/event-tracking"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -153,6 +154,24 @@ export default function CheckoutPage() {
     }
   }, [profileData, address, city, postalCode, country, phone])
 
+  // Track checkout initiation when page loads with cart items
+  useEffect(() => {
+    if (items.length > 0 && finalAmount > 0) {
+      const contents = items.map((item: any) => ({
+        id: item.product_id.toString(),
+        quantity: item.quantity,
+        item_price: Number(item.current_price)
+      }))
+      
+      trackInitiateCheckout({
+        contents,
+        value: finalAmount,
+        currency: 'PKR',
+        numItems: items.length
+      })
+    }
+  }, []) // Only track once when component mounts
+
   const generateWhatsAppMessage = () => {
     let message = "🛒 *Order Summary*\n\n"
     
@@ -253,6 +272,27 @@ export default function CheckoutPage() {
       if (!res.ok) {
         throw new Error(data.error || "Failed to place order")
       }
+
+      // Track purchase event
+      const contents = items.map((item: any) => ({
+        id: item.product_id.toString(),
+        quantity: item.quantity,
+        item_price: Number(item.current_price)
+      }))
+      
+      trackPurchase({
+        orderId: data.order.order_number,
+        contents,
+        value: totalWithShipping,
+        currency: 'PKR',
+        email: user?.email,
+        phone: phone || user?.phone,
+        firstName: user?.full_name?.split(' ')[0],
+        lastName: user?.full_name?.split(' ').slice(1).join(' '),
+        city,
+        country,
+        zip: postalCode
+      })
 
       setOrderPlaced(true)
       setOrderNumber(data.order.order_number)
