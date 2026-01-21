@@ -11,7 +11,12 @@
     "db:init": "tsx scripts/init-db.ts",
     "db:banners:reset": "dotenv -e .env.local -- tsx scripts/reset-homepage-banners.ts",
     "test": "vitest",
-    "test:smoke": "vitest run tests/api/smoke.test.ts"
+    "test:smoke": "vitest run tests/api/smoke.test.ts",
+    "test:admin-smoke": "vitest run tests/api/admin-smoke.test.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "playwright:install": "playwright install"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.66",
@@ -85,6 +90,7 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4.1.9",
     "@types/node": "^22.19.3",
     "@types/pg": "^8.16.0",
