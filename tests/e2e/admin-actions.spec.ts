@@ -2,6 +2,15 @@ import { test, expect, type Page } from '@playwright/test'
 
 const timestamp = Date.now()
 
+// Helper function to wait for form submission success
+async function waitForFormSuccess(page: Page, successPath?: string) {
+  await Promise.race([
+    successPath ? page.waitForURL(new RegExp(successPath), { timeout: 5000 }).catch(() => {}) : Promise.resolve(),
+    page.waitForSelector('text=/success|created|saved|updated|deleted/i', { timeout: 5000 }).catch(() => {}),
+    page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+  ])
+}
+
 test.describe('Admin Product Actions Tests', () => {
   let productId: string
 
@@ -32,8 +41,11 @@ test.describe('Admin Product Actions Tests', () => {
     if (await submitButton.isVisible().catch(() => false)) {
       await submitButton.click()
       
-      // Wait for navigation or success message
-      await page.waitForTimeout(2000)
+      // Wait for success indication (either URL change or toast message)
+      await Promise.race([
+        page.waitForURL(/\/admin\/products/, { timeout: 5000 }).catch(() => {}),
+        page.waitForSelector('text=/success|created|saved/i', { timeout: 5000 }).catch(() => {}),
+      ])
       
       // Check for success (either redirected or message shown)
       const url = page.url()
@@ -73,7 +85,10 @@ test.describe('Admin Product Actions Tests', () => {
       const submitButton = page.locator('button[type="submit"], button:has-text("Update"), button:has-text("Save")')
       if (await submitButton.isVisible().catch(() => false)) {
         await submitButton.click()
-        await page.waitForTimeout(2000)
+        await Promise.race([
+          page.waitForURL(/\/admin\/products/, { timeout: 5000 }).catch(() => {}),
+          page.waitForSelector('text=/success|updated|saved/i', { timeout: 5000 }).catch(() => {}),
+        ])
       }
     }
   })
@@ -96,7 +111,10 @@ test.describe('Admin Product Actions Tests', () => {
       
       if (confirmExists) {
         await confirmButton.click()
-        await page.waitForTimeout(2000)
+        await Promise.race([
+          page.waitForSelector('text=/deleted|removed|success/i', { timeout: 5000 }).catch(() => {}),
+          page.waitForURL('/admin/products', { timeout: 5000 }).catch(() => {}),
+        ])
       }
     }
   })

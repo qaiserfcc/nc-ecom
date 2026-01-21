@@ -1,13 +1,19 @@
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 
 // Test configuration
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-let adminAuthCookie: string = ''
+
+// Auth state will be set per test suite
+let testContext = {
+  adminAuthCookie: '',
+  timestamp: Date.now(),
+}
 
 // Helper function to make API requests
 async function apiRequest(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  authCookie?: string
 ): Promise<Response> {
   const url = `${BASE_URL}${endpoint}`
   const headers: Record<string, string> = {
@@ -15,8 +21,9 @@ async function apiRequest(
     ...((options.headers as Record<string, string>) || {}),
   }
 
-  if (adminAuthCookie && !headers['Cookie']) {
-    headers['Cookie'] = adminAuthCookie
+  const cookieToUse = authCookie || testContext.adminAuthCookie
+  if (cookieToUse && !headers['Cookie']) {
+    headers['Cookie'] = cookieToUse
   }
 
   return fetch(url, {
@@ -26,13 +33,13 @@ async function apiRequest(
 }
 
 describe('Admin API Smoke Tests', () => {
-  const timestamp = Date.now()
-  const adminEmail = `admin.smoke.${timestamp}@example.com`
-  const adminPassword = 'AdminSmoke123!'
-  const adminName = `Admin Smoke Test ${timestamp}`
-
   beforeAll(async () => {
     // Create and authenticate admin user
+    const timestamp = testContext.timestamp
+    const adminEmail = `admin.smoke.${timestamp}@example.com`
+    const adminPassword = 'AdminSmoke123!'
+    const adminName = `Admin Smoke Test ${timestamp}`
+    
     try {
       // Register admin user (note: in real scenario, admin role should be set via database)
       const signupResponse = await apiRequest('/api/auth/signup', {
@@ -42,7 +49,7 @@ describe('Admin API Smoke Tests', () => {
           password: adminPassword,
           name: adminName,
         }),
-      })
+      }, '')
 
       if (signupResponse.status === 200) {
         console.log('✓ Admin test user created')
@@ -55,12 +62,12 @@ describe('Admin API Smoke Tests', () => {
           email: adminEmail,
           password: adminPassword,
         }),
-      })
+      }, '')
 
       if (signinResponse.status === 200) {
         const setCookie = signinResponse.headers.get('set-cookie')
         if (setCookie) {
-          adminAuthCookie = setCookie.split(';')[0]
+          testContext.adminAuthCookie = setCookie.split(';')[0]
           console.log('✓ Admin authenticated successfully')
         }
       }
@@ -68,6 +75,11 @@ describe('Admin API Smoke Tests', () => {
       console.error('Failed to setup admin user:', error)
     }
   }, 30000)
+
+  afterAll(() => {
+    // Clean up test context
+    testContext.adminAuthCookie = ''
+  })
 
   describe('1. Admin Dashboard Analytics API', () => {
     it('GET /api/admin/dashboard-analytics - should fetch dashboard analytics', async () => {
@@ -175,7 +187,7 @@ describe('Admin API Smoke Tests', () => {
       const response = await apiRequest('/api/products', {
         method: 'POST',
         body: JSON.stringify({
-          name: `Test Product ${timestamp}`,
+          name: `Test Product ${testContext.timestamp}`,
           description: 'Test product description',
           current_price: 99.99,
           category_id: 1,
@@ -254,8 +266,8 @@ describe('Admin API Smoke Tests', () => {
       const response = await apiRequest('/api/brands', {
         method: 'POST',
         body: JSON.stringify({
-          name: `Test Brand ${timestamp}`,
-          slug: `test-brand-${timestamp}`,
+          name: `Test Brand ${testContext.timestamp}`,
+          slug: `test-brand-${testContext.timestamp}`,
         }),
       })
 
@@ -303,7 +315,7 @@ describe('Admin API Smoke Tests', () => {
       const response = await apiRequest('/api/bundles', {
         method: 'POST',
         body: JSON.stringify({
-          name: `Test Bundle ${timestamp}`,
+          name: `Test Bundle ${testContext.timestamp}`,
           description: 'Test bundle description',
           discount_percentage: 10,
         }),
@@ -338,8 +350,8 @@ describe('Admin API Smoke Tests', () => {
       const response = await apiRequest('/api/categories', {
         method: 'POST',
         body: JSON.stringify({
-          name: `Test Category ${timestamp}`,
-          slug: `test-category-${timestamp}`,
+          name: `Test Category ${testContext.timestamp}`,
+          slug: `test-category-${testContext.timestamp}`,
         }),
       })
 
@@ -378,7 +390,7 @@ describe('Admin API Smoke Tests', () => {
       const response = await apiRequest('/api/discounts', {
         method: 'POST',
         body: JSON.stringify({
-          code: `TEST${timestamp}`,
+          code: `TEST${testContext.timestamp}`,
           discount_percentage: 10,
           valid_from: new Date().toISOString(),
           valid_until: new Date(Date.now() + 86400000).toISOString(),
@@ -403,7 +415,7 @@ describe('Admin API Smoke Tests', () => {
       const response = await apiRequest('/api/banners', {
         method: 'POST',
         body: JSON.stringify({
-          title: `Test Banner ${timestamp}`,
+          title: `Test Banner ${testContext.timestamp}`,
           position: 'homepage',
           is_active: true,
         }),
@@ -487,7 +499,7 @@ describe('Admin API Smoke Tests', () => {
       const response = await apiRequest('/api/shipping-methods', {
         method: 'POST',
         body: JSON.stringify({
-          name: `Test Shipping ${timestamp}`,
+          name: `Test Shipping ${testContext.timestamp}`,
           cost: 10,
           estimated_days: 5,
         }),
